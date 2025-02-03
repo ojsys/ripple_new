@@ -1,0 +1,9 @@
+body {
+    background-color: #f8f9fa;
+}
+.project-card {
+    transition: transform 0.2s;
+}
+.project-card:hover {
+    transform: scale(1.02);
+}
