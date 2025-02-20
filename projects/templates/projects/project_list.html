@@ -1,21 +1,56 @@
 {% extends 'base.html' %}
 {% load static %}
 
-
 {% block content %}
-<h1 class="mb-4">Discover Projects</h1>
-<div class="row">
-    {% for project in projects %}
-    <div class="col-md-4 mb-4">
-        <div class="card project-card">
-            <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
-            <div class="card-body">
-                <h5 class="card-title">{{ project.title }}</h5>
-                <p class="card-text">{{ project.description|truncatewords:20 }}</p>
-                <a href="{% url 'project_detail' project.pk %}" class="btn btn-primary">View Project</a>
+<section class="py-5">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h2>All Projects</h2>
+            </div>
+            <div class="col-md-6 text-end">
+                <a href="{% url 'create_project' %}" class="btn btn-success">Start a Project</a>
             </div>
         </div>
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <form method="get">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="q" placeholder="Search projects...">
+                        <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <form method="get">
+                    <select class="form-select" name="category" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        <option value="tech">Technology</option>
+                        <option value="agri">Agriculture</option>
+                        <option value="art">Arts</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            {% for project in projects %}
+
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ project.title }}</h5>
+                        <p class="card-text text-muted">{{ project.description|truncatechars:100 }}</p>
+                        <div class="progress mb-3">
+                            <div class="progress-bar" style="width: {{ project.percent_funded }}%"></div>
+                        </div>
+                        <p class="text-muted mb-1">${{ project.amount_raised }} raised of ${{ project.funding_goal }}</p>
+                        <a href="{% url 'project_detail' project.id %}" class="btn btn-outline-primary">Back This Project</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-    {% endfor %}
-</div>
+</section>
 {% endblock %}

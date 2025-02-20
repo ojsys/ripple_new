@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-5 text-center bg-light">
+    <div class="container">
+        <h1 class="display-4 mb-4">Fund African Innovation</h1>
+        <p class="lead mb-4">Support underrepresented founders building the future of Africa.</p>
+        <a href="{% url 'project_list' %}" class="btn btn-primary btn-lg">Explore Projects</a>
+    </div>
+</section>
+
+<!-- Featured Projects -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Projects</h2>
+        <div class="row">
+            {% for project in featured_projects %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ project.title }}</h5>
+                        <p class="card-text text-muted">{{ project.description|truncatechars:100 }}</p>
+                        <div class="progress mb-3">
+                            <div class="progress-bar" style="width: {{ project.percent_funded }}%"></div>
+                        </div>
+                        <p class="text-muted mb-1">${{ project.amount_raised }} raised of ${{ project.funding_goal }}</p>
+                        <a href="{% url 'project_detail' project.id %}" class="btn btn-outline-primary">View Project</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

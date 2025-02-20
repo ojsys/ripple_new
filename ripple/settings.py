@@ -12,6 +12,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
 
+
+STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -61,8 +65,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ripple.wsgi.application'
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
-CRISPY_TEMPLATE_PACK = "bootstrap5"
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -94,11 +97,24 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Authentication Settings
+LOGIN_URL = '/accounts/login/'  # Where to redirect unauthenticated users
+LOGIN_REDIRECT_URL = '/'        # Where to redirect after successful login
+LOGOUT_REDIRECT_URL = '/'       # Where to redirect after logout
+
+#  Static files (CSS, JS, images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
+
+# Media files (user-uploaded content)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+
+# Crispy Forms (for Bootstrap 5 forms)
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 
 # Internationalization
