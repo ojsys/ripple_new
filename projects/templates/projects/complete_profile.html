@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Complete Your Profile</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Common Fields -->
+                        <h4 class="mt-4 mb-3">Basic Information</h4>
+                        {{ base_form.as_p }}
+                        
+                        <!-- Type-Specific Fields -->
+                        {% if specific_form %}
+                            <h4 class="mt-4 mb-3">
+                                {% if user_type == 'founder' %}
+                                    Company Information
+                                {% elif user_type == 'investor' %}
+                                    Investment Preferences
+                                {% endif %}
+                            </h4>
+                            {{ specific_form.as_p }}
+                        {% endif %}
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Save Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

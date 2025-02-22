@@ -1,5 +1,25 @@
 from django import forms
-from .models import Project, Reward, InvestmentTerm, Investment, Pledge, FundingType
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field
+from .models import (Project, Reward, InvestmentTerm, Investment, 
+                     Pledge, FundingType, CustomUser, FounderProfile, InvestorProfile)
+
+
+class SignUpForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Confirm Password', widget=forms.PasswordInput)
+
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'user_type']
+
+    def clean_password2(self):
+        cd = self.cleaned_data
+        if cd['password'] != cd['password2']:
+            raise forms.ValidationError('Passwords don\'t match.')
+        return cd['password2']
+
+
 
 class ProjectForm(forms.ModelForm):
     class Meta:
@@ -46,3 +66,28 @@ class PledgeForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if project:
             self.fields['reward'].queryset = Reward.objects.filter(project=project)
+
+
+class BaseProfileForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'phone_number']
+
+class FounderProfileForm(forms.ModelForm):
+    class Meta:
+        model = FounderProfile
+        fields = ['company_name', 'website', 'bio']
+        widgets = {
+            'bio': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class InvestorProfileForm(forms.ModelForm):
+    class Meta:
+        model = InvestorProfile
+        fields = ['investment_focus', 'preferred_industries']
+        widgets = {
+            'investment_focus': forms.Textarea(attrs={'rows': 3}),
+            'preferred_industries': forms.TextInput(attrs={
+                'placeholder': 'e.g., Technology, Agriculture, Healthcare'
+            }),
+        }

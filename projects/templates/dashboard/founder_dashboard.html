@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Founder Dashboard</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Your Projects</h5>
+                    <a href="{% url 'create_project' %}" class="btn btn-primary">
+                        Create New Project
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <!-- Project List -->
+        </div>
+    </div>
+</div>
+{% endblock %}

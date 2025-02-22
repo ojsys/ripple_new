@@ -21,6 +21,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'projects.CustomUser'
 
 # Application definition
 
@@ -31,9 +32,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'projects',
     'crispy_forms',
     'crispy_bootstrap5',
+    'django_json_widget',
 ]
 
 MIDDLEWARE = [
@@ -44,6 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'projects.middleware.ProfileCompletionMiddleware',
 ]
 
 ROOT_URLCONF = 'ripple.urls'
@@ -59,6 +63,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'projects.context_processors.site_settings',
+                'projects.context_processors.theme_settings',
+                'projects.context_processors.announcements',
             ],
         },
     },
@@ -99,8 +106,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Authentication Settings
 LOGIN_URL = '/accounts/login/'  # Where to redirect unauthenticated users
-LOGIN_REDIRECT_URL = '/'        # Where to redirect after successful login
-LOGOUT_REDIRECT_URL = '/'       # Where to redirect after logout
+LOGIN_REDIRECT_URL = 'dashboard'        # Where to redirect after successful login
+LOGOUT_REDIRECT_URL = 'home'       # Where to redirect after logout
 
 #  Static files (CSS, JS, images)
 STATIC_URL = '/static/'
@@ -120,7 +127,14 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+LANGUAGES = [
+    ('en', 'English'),
+    ('fr', 'Français'),
+]
+USE_I18N = True
+LOCALE_PATHS = [BASE_DIR / 'locale']
+
 
 TIME_ZONE = 'UTC'
 

@@ -1,13 +1,19 @@
 from django.contrib.auth import login, logout
+from django.contrib.auth.views import LogoutView
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_GET
+from django.http import HttpResponseBadRequest
 import stripe
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, ExpressionWrapper, F, FloatField
 from django import forms
-from .models import Project, FundingType, InvestmentTerm, Investment, Pledge, Reward, Category
-from .forms import ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, PledgeForm
+from .models import (Project, FundingType, InvestmentTerm, Investment, Pledge, 
+                     Reward, Category, FounderProfile, InvestorProfile)
+from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, 
+                    PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm)
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -15,14 +21,27 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def signup(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.username = user.email  # Use email as username
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            
+            # Create profile based on user type
+            if user.user_type == 'founder':
+                FounderProfile.objects.create(user=user)
+            elif user.user_type == 'investor':
+                InvestorProfile.objects.create(user=user)
+                
             login(request, user)
-            return redirect('home')
+            return redirect('dashboard')
     else:
-        form = UserCreationForm()
+        form = SignUpForm()
     return render(request, 'signup.html', {'form': form})
+
+
+
 
 def user_login(request):
     if request.method == 'POST':
@@ -35,9 +54,13 @@ def user_login(request):
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
 
+
+@require_GET
 def user_logout(request):
     logout(request)
     return redirect('home')
+
+
 
 
 
@@ -78,7 +101,7 @@ def project_list(request):
     elif sort == 'ending_soon':
         projects = projects.order_by('deadline')
     
-    return render(request, 'project_list.html', {
+    return render(request, 'projects/project_list.html', {
         'projects': projects,
         'categories': Category.objects.all(),
         'funding_types': FundingType.objects.all()
@@ -99,7 +122,7 @@ def create_project(request):
             return redirect('add_terms_rewards', project.id)
     else:
         form = ProjectForm()
-    return render(request, 'create_project.html', {'form': form})
+    return render(request, 'projects/create_project.html', {'form': form})
 
 
 
@@ -107,31 +130,40 @@ def create_project(request):
 def add_terms_rewards(request, project_id):
     project = get_object_or_404(Project, id=project_id, creator=request.user)
     
-    # Add rewards for donation-based projects
-    if project.funding_type.name == 'Donation':
-        RewardFormSet = forms.inlineformset_factory(Project, Reward, form=RewardForm, extra=1)
-    # Add terms for equity-based projects
-    elif project.funding_type.name == 'Equity':
-        InvestmentTermFormSet = forms.inlineformset_factory(Project, InvestmentTerm, form=InvestmentTermForm, extra=1)
+    if not project.funding_type:
+        return HttpResponseBadRequest("Project has no funding type set")
     
+    funding_type_name = project.funding_type.name.lower()
+    
+    # Map valid funding types to formset classes
+    FORMSET_MAP = {
+        'donation': (Reward, RewardForm),
+        'equity': (InvestmentTerm, InvestmentTermForm)
+    }
+    
+    if funding_type_name not in FORMSET_MAP:
+        valid_types = ', '.join(FORMSET_MAP.keys())
+        return HttpResponseBadRequest(f"Invalid project type. Valid types: {valid_types}")
+    
+    model_class, form_class = FORMSET_MAP[funding_type_name]
+    formset_class = forms.inlineformset_factory(
+        Project, model_class, form=form_class, extra=1
+    )
+
     # Handle form submission
     if request.method == 'POST':
-        if project.funding_type.name == 'Donation':
-            formset = RewardFormSet(request.POST, instance=project)
-        elif project.funding_type.name == 'Equity':
-            formset = InvestmentTermFormSet(request.POST, instance=project)
-        
+        formset = formset_class(request.POST, instance=project)
         if formset.is_valid():
             formset.save()
             return redirect('project_detail', project.id)
-    
-    # Render appropriate form
-    if project.funding_type.name == 'Donation':
-        formset = RewardFormSet(instance=project)
-    elif project.funding_type.name == 'Equity':
-        formset = InvestmentTermFormSet(instance=project)
-    
-    return render(request, 'add_terms_rewards.html', {'formset': formset, 'project': project})
+    else:
+        formset = formset_class(instance=project)
+
+    return render(request, 'add_terms_rewards.html', {
+        'formset': formset,
+        'project': project,
+        'funding_type': funding_type_name
+    })
 
 
 @login_required
@@ -185,7 +217,7 @@ def project_detail(request, project_id):
     elif project.funding_type.name == 'Donation':
         context['pledge_form'] = PledgeForm(project=project)
     
-    return render(request, 'project_detail.html', context)
+    return render(request, 'projects/project_detail.html', context)
 
 # Investment/Pledge Handling
 @login_required
@@ -231,24 +263,79 @@ def update_investment_status(request, investment_id, status):
     return redirect('manage_investments', investment.project.id)
 
 
-
-@login_required
 def dashboard(request):
-    # Founder projects
-    created_projects = Project.objects.filter(creator=request.user)
+    if not request.user.is_authenticated:
+        return redirect('login')
     
-    # Backer pledges
-    pledges = Pledge.objects.filter(backer=request.user)
+    context = {}
+    user = request.user
     
-    # Investor commitments
-    investments = Investment.objects.filter(investor=request.user)
+    # Common data for all user types
+    context['pledges'] = Pledge.objects.filter(backer=user).select_related('project')
+    context['investments'] = Investment.objects.filter(investor=user).select_related('project')
     
-    context = {
-        'created_projects': created_projects,
-        'pledges': pledges,
-        'investments': investments
+    # User-type specific data
+    if user.user_type == 'founder':
+        context['created_projects'] = Project.objects.filter(creator=user).annotate(
+            percent_funded=ExpressionWrapper(
+                F('amount_raised') / F('funding_goal') * 100,
+                output_field=FloatField()
+            )
+        )
+
+    template_map = {
+        'founder': 'dashboard/founder_dashboard.html',
+        'donor': 'dashboard/donor_dashboard.html',
+        'investor': 'dashboard/investor_dashboard.html',
     }
-    return render(request, 'dashboard.html', context)
+    
+    return render(request, template_map.get(user.user_type, 'dashboard.html'), context)
+
+
+def complete_profile(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    user = request.user
+    profile_forms = {
+        'founder': FounderProfileForm,
+        'investor': InvestorProfileForm,
+    }
+    
+    if request.method == 'POST':
+        base_form = BaseProfileForm(request.POST, instance=user)
+        specific_form = None
+        
+        if user.user_type in profile_forms:
+            specific_form = profile_forms[user.user_type](
+                request.POST, 
+                instance=user.founderprofile if user.user_type == 'founder' else user.investorprofile
+            )
+        
+        if base_form.is_valid() and (specific_form.is_valid() if specific_form else True):
+            base_form.save()
+            if specific_form:
+                specific_form.save()
+            user.profile_completed = True
+            user.save()
+            return redirect('dashboard')
+    else:
+        base_form = BaseProfileForm(instance=user)
+        specific_form = None
+        if user.user_type in profile_forms:
+            try:
+                instance = user.founderprofile if user.user_type == 'founder' else user.investorprofile
+            except:
+                instance = None
+            specific_form = profile_forms[user.user_type](instance=instance)
+
+    return render(request, 'projects/complete_profile.html', {
+        'base_form': base_form,
+        'specific_form': specific_form,
+        'user_type': user.user_type
+    })
+
+
 
 
 

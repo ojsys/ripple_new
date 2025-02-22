@@ -12,23 +12,64 @@
                 <a href="{% url 'create_project' %}" class="btn btn-success">Start a Project</a>
             </div>
         </div>
-        <div class="row mb-4">
-            <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
                 <form method="get">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="q" placeholder="Search projects...">
-                        <button class="btn btn-outline-secondary" type="submit">Search</button>
+                    <div class="row g-3">
+                        <!-- Search -->
+                        <div class="col-md-4">
+                            <input type="text" name="q" class="form-control" 
+                                   placeholder="Search projects..." 
+                                   value="{{ request.GET.q }}">
+                        </div>
+                        
+                        <!-- Category Filter -->
+                        <div class="col-md-3">
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.name }}" 
+                                    {% if request.GET.category == cat.name %}selected{% endif %}>
+                                    {{ cat.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Funding Type Filter -->
+                        <div class="col-md-3">
+                            <select name="funding_type" class="form-select">
+                                <option value="">All Funding Types</option>
+                                {% for ft in funding_types %}
+                                <option value="{{ ft.name }}" 
+                                    {% if request.GET.funding_type == ft.name %}selected{% endif %}>
+                                    {{ ft.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Sort -->
+                        <div class="col-md-2">
+                            <select name="sort" class="form-select">
+                                <option value="">Sort By</option>
+                                <option value="newest" 
+                                    {% if request.GET.sort == 'newest' %}selected{% endif %}>
+                                    Newest
+                                </option>
+                                <option value="ending_soon" 
+                                    {% if request.GET.sort == 'ending_soon' %}selected{% endif %}>
+                                    Ending Soon
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-12 mt-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                Apply Filters
+                            </button>
+                        </div>
                     </div>
-                </form>
-            </div>
-            <div class="col-md-4">
-                <form method="get">
-                    <select class="form-select" name="category" onchange="this.form.submit()">
-                        <option value="">All Categories</option>
-                        <option value="tech">Technology</option>
-                        <option value="agri">Agriculture</option>
-                        <option value="art">Arts</option>
-                    </select>
                 </form>
             </div>
         </div>

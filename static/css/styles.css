@@ -44,3 +44,20 @@ main {
 .btn-primary:hover {
     background-color: #218838;
 }
+
+
+/* Profile completion form styling */
+#complete-profile-form label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+#complete-profile-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+#complete-profile-form h4 {
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #dee2e6;
+    margin-bottom: 1.5rem;
+}
