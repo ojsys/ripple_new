@@ -6,12 +6,16 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_GET
 from django.http import HttpResponseBadRequest
+from django.utils import timezone
 import stripe
 from django.conf import settings
-from django.db.models import Q, ExpressionWrapper, F, FloatField
+from django.db.models import Sum, Avg, DurationField, Q, ExpressionWrapper, F, FloatField, DecimalField
+from django.db.models.functions import Coalesce
+from datetime import datetime
+from decimal import Decimal
 from django import forms
 from .models import (Project, FundingType, InvestmentTerm, Investment, Pledge, 
-                     Reward, Category, FounderProfile, InvestorProfile)
+                     Reward, Category, FounderProfile, InvestorProfile, HeroSlider)
 from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, 
                     PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm)
 
@@ -65,8 +69,12 @@ def user_logout(request):
 
 
 def home(request):
+    sliders = HeroSlider.objects.filter(is_active=True)
     featured_projects = Project.objects.all()[:3]  # Replace with logic to fetch featured projects
-    return render(request, 'projects/home.html', {'featured_projects': featured_projects})
+    return render(request, 'projects/home.html', {
+        'sliders': sliders,
+        'featured_projects': featured_projects
+        })
 
 
 def project_detail(request, project_id):
@@ -270,18 +278,47 @@ def dashboard(request):
     context = {}
     user = request.user
     
-    # Common data for all user types
+    # Common data for all users
     context['pledges'] = Pledge.objects.filter(backer=user).select_related('project')
     context['investments'] = Investment.objects.filter(investor=user).select_related('project')
     
-    # User-type specific data
+    # Founder-specific data
     if user.user_type == 'founder':
-        context['created_projects'] = Project.objects.filter(creator=user).annotate(
-            percent_funded=ExpressionWrapper(
+        projects = Project.objects.filter(creator=user).annotate(
+            calculated_percent=ExpressionWrapper(
                 F('amount_raised') / F('funding_goal') * 100,
                 output_field=FloatField()
             )
         )
+        
+        context.update({
+            'created_projects': projects,
+            'total_projects': projects.count(),
+            'active_projects': projects.filter(deadline__gte=timezone.now()).count(),
+            'total_raised': projects.aggregate(Sum('amount_raised'))['amount_raised__sum'] or 0,
+            'avg_funding': projects.aggregate(Avg('calculated_percent'))['calculated_percent__avg'] or 0
+        })
+
+    # Investor-specific data
+    elif user.user_type == 'investor':
+        investments = context['investments']
+        
+        # Investment statistics
+        context.update({
+            'total_invested': investments.aggregate(total=Sum('amount'))['total'] or 0,
+            'active_investments': investments.filter(terms__deadline__gte=timezone.now()).count(),
+            'avg_return': investments.aggregate(avg=Avg('terms__equity_offered'))['avg'] or 0,
+            'potential_roi': sum(
+                inv.amount * (inv.terms.equity_offered / 100)
+                for inv in investments.filter(status='accepted')
+            ) or 0,
+            'recommended_projects': get_recommended_projects(user)  # Implement this function
+        })
+
+    # Donor-specific data can be added here
+    elif user.user_type == 'donor':
+        # Add donor-specific context
+        pass
 
     template_map = {
         'founder': 'dashboard/founder_dashboard.html',
@@ -290,6 +327,36 @@ def dashboard(request):
     }
     
     return render(request, template_map.get(user.user_type, 'dashboard.html'), context)
+
+
+def get_recommended_projects(user):
+    # Implementation from previous investor_dashboard view
+    try:
+        investor_profile = InvestorProfile.objects.get(user=user)
+        preferred_industries = investor_profile.preferred_industries.split(',')
+    except InvestorProfile.DoesNotExist:
+        preferred_industries = []
+    
+    recommended_projects = Project.objects.filter(
+        funding_type__name='Equity',
+        deadline__gte=timezone.now(),
+        investment_terms__isnull=False
+    ).exclude(
+        investments__investor=user
+    ).annotate(
+        num_investors=Count('investments')
+    ).select_related('category').distinct()
+    
+    if preferred_industries:
+        recommended_projects = recommended_projects.filter(
+            Q(category__name__in=preferred_industries) |
+            Q(title__icontains=preferred_industries[0])
+        )[:6]
+    else:
+        recommended_projects = recommended_projects[:6]
+    
+    return recommended_projects
+
 
 
 def complete_profile(request):
@@ -337,5 +404,113 @@ def complete_profile(request):
 
 
 
+def founder_dashboard(request):
+    if not request.user.is_authenticated or not request.user.is_founder:
+        return redirect('login')
+    
+    founder = request.user
+    projects = Project.objects.filter(creator=founder).annotate(
+        calculated_percent=ExpressionWrapper(
+            F('amount_raised') / F('funding_goal') * 100,
+            output_field=FloatField()
+        ),
+        days_remaining=ExpressionWrapper(
+            F('deadline') - timezone.now(),
+            output_field=DurationField()
+        )
+    ).order_by('-created_at')
+    
+    try:
+        profile = founder.founderprofile
+    except FounderProfile.DoesNotExist:
+        profile = None
+    
+    # Project statistics
+    total_projects = projects.count()
+    active_projects = projects.filter(deadline__gte=timezone.now()).count()
+    total_raised = projects.aggregate(Sum('amount_raised'))['amount_raised__sum'] or 0
+    avg_funding = projects.aggregate(Avg('percent_funded'))['percent_funded__avg'] or 0
+    
+    # Recent activity
+    recent_pledges = Pledge.objects.filter(
+        project__in=projects
+    ).select_related('project', 'backer').order_by('-pledged_at')[:5]
+    
+    recent_investments = Investment.objects.filter(
+        project__in=projects
+    ).select_related('project', 'investor').order_by('-created_at')[:5]
+
+    context = {
+        'founder': founder,
+        'profile': profile,
+        'projects': projects,
+        'total_projects': total_projects,
+        'active_projects': active_projects,
+        'total_raised': total_raised,
+        'avg_funding': avg_funding,
+        'recent_pledges': recent_pledges,
+        'recent_investments': recent_investments,
+    }
+    return render(request, 'dashboard/founder_dashboard.html', context)
 
 
+
+@login_required
+def investor_dashboard(request):
+    if not request.user.is_authenticated or request.user.user_type != 'investor':
+        return redirect('login')
+    
+    investor = request.user
+    investments = Investment.objects.filter(investor=investor).select_related(
+        'project', 'terms'
+    ).order_by('-created_at')
+    
+    # Calculate statistics
+    total_invested = investments.aggregate(total=Sum('amount'))['total'] or 0
+    active_investments = investments.filter(terms__deadline__gte=timezone.now()).count()
+    
+    # Average equity percentage from investments
+    avg_return = investments.aggregate(avg_equity=Avg('terms__equity_offered'))['avg_equity'] or 0
+    
+    # Calculate potential ROI (simplified example)
+    potential_roi = sum(
+        investment.amount * (investment.terms.equity_offered / 100)
+        for investment in investments.filter(status='accepted')
+    ) or 0
+
+    # Get recommended projects
+    try:
+        investor_profile = InvestorProfile.objects.get(user=investor)
+        preferred_industries = investor_profile.preferred_industries.split(',')
+    except InvestorProfile.DoesNotExist:
+        preferred_industries = []
+    
+    recommended_projects = Project.objects.filter(
+        funding_type__name='Equity',
+        deadline__gte=timezone.now(),
+        investment_terms__isnull=False
+    ).exclude(
+        investments__investor=investor
+    ).annotate(
+        num_investors=Count('investments')
+    ).select_related('category').distinct()
+    
+    if preferred_industries:
+        recommended_projects = recommended_projects.filter(
+            Q(category__name__in=preferred_industries) |
+            Q(title__icontains=preferred_industries[0])
+        )[:6]
+    else:
+        recommended_projects = recommended_projects[:6]
+
+    context = {
+        'total_invested': total_invested,
+        'active_investments': active_investments,
+        'avg_return': avg_return,
+        'potential_roi': potential_roi,
+        'investments': investments,
+        'recommended_projects': recommended_projects,
+        'investor_profile': investor_profile if 'investor_profile' in locals() else None,
+    }
+    
+    return render(request, 'dashboard/investor_dashboard.html', context)

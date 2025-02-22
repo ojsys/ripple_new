@@ -18,6 +18,14 @@ class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=20)
     profile_completed = models.BooleanField(default=False)
 
+    # Add these if missing
+    username = models.CharField(max_length=30, unique=True)
+    email = models.EmailField(unique=True)
+    
+    # Update the USERNAME_FIELD if needed
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
     def __str__(self):
         return f"{self.get_full_name()} ({self.get_user_type_display()})"
 
@@ -68,13 +76,19 @@ class Project(models.Model):
     def __str__(self):
         return self.title
     
-    @property
-    def percent_funded(self):
+    
+
+    def get_calculated_percent(self):
+        """Method to access the annotated value or fallback"""
+        if hasattr(self, 'annotated_percent'):
+            return self.annotated_percent
+        return self.percent_funded
+    
+    def get_percent_funded(self):
+        """Calculate funding percentage without using a property"""
         if self.funding_goal == 0:
             return 0
         return (self.amount_raised / self.funding_goal) * 100
-
-
 
 class InvestmentTerm(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='investment_terms')
@@ -89,14 +103,16 @@ class InvestmentTerm(models.Model):
 
 class Investment(models.Model):
     STATUS_CHOICES = [
+        ('active', 'Active'),
         ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='investments')
     investor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    actual_return = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     terms = models.ForeignKey(InvestmentTerm, on_delete=models.SET_NULL, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -161,6 +177,16 @@ class SiteSettings(models.Model):
         verbose_name_plural = "Site Settings"
 
 
+class HeroSlider(models.Model):
+    title = models.CharField(max_length=255, blank=True)
+    subtitle = models.TextField(blank=True)
+    image = models.ImageField(upload_to='slider_images/')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title or f"Slider {self.id}"
+    
 
 class HeaderLink(models.Model):
     site_settings = models.ForeignKey(

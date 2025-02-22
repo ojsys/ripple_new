@@ -4,9 +4,10 @@ from django.db import models
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django_json_widget.widgets import JSONEditorWidget
+from django.contrib.auth.admin import UserAdmin
 from .models import (
-    Category, Project, FundingType, HeaderLink, FooterSection,
-    Reward, Pledge, InvestmentTerm, Investment, SiteSettings, SocialMediaLink
+    CustomUser, Category, Project, FundingType, HeaderLink, FooterSection, FounderProfile, InvestorProfile,
+    Reward, Pledge, InvestmentTerm, Investment, SiteSettings, SocialMediaLink, HeroSlider
 )
 
 class HeaderLinkInline(admin.TabularInline):
@@ -45,7 +46,57 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         return super().add_view(request, form_url, extra_context)
     
 
+@admin.register(HeroSlider)
+class HeroSliderAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_active', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('title',)
 
+    
+class CustomUserAdmin(UserAdmin):
+    # Fields to display in the admin list view
+    list_display = ('email', 'username', 'user_type', 'phone_number', 'is_staff')
+    
+    # Fields to filter by
+    list_filter = ('user_type', 'is_staff', 'is_superuser')
+    
+    # Fields to search
+    search_fields = ('email', 'username', 'phone_number')
+    
+    # Fields ordering
+    ordering = ('-date_joined',)
+    
+    # Fields in edit form
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal Info', {'fields': ('username', 'first_name', 'last_name', 'phone_number')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('User Type', {'fields': ('user_type',)}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    
+    # Fields in add form
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'username', 'password1', 'password2', 'user_type', 'phone_number'),
+        }),
+    )
+
+@admin.register(FounderProfile)
+class FounderProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'company_name', 'website')
+    search_fields = ('user__email', 'company_name')
+
+@admin.register(InvestorProfile)
+class InvestorProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'investment_focus')
+    list_filter = ('preferred_industries',)
+
+
+
+# Register the admin class
+admin.site.register(CustomUser, CustomUserAdmin)
 
 
 

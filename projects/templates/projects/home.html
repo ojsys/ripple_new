@@ -1,33 +1,96 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static humanize %}
 
 {% block content %}
+
 <!-- Hero Section -->
-<section class="py-5 text-center bg-light">
-    <div class="container">
-        <h1 class="display-4 mb-4">Fund African Innovation</h1>
-        <p class="lead mb-4">Support underrepresented founders building the future of Africa.</p>
-        <a href="{% url 'project_list' %}" class="btn btn-primary btn-lg">Explore Projects</a>
+<section style="margin: -60px;" class="hero position-relative overflow-hidden text-white">
+
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            {% for slide in sliders %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <img src="{{ slide.image.url }}" class="d-block w-100" style="height: 100vh; object-fit: cover;" alt="{{ slide.title }}">
+                <div class="carousel-caption d-flex flex-column justify-content-center h-100">
+                    <h1 class="display-2 fw-bold animate__animated animate__fadeInDown">{{ slide.title }}</h1>
+                    <p class="lead fs-3 text-light-emphasis animate__animated animate__fadeInUp">{{ slide.subtitle }}</p>
+                    <a href="{% url 'project_list' %}" class="btn btn-light btn-lg rounded-pill px-5 py-3 mt-4 align-items-center animate__animated animate__fadeInUp">
+                        Explore Projects <i class="fas fa-arrow ms-2"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
     </div>
 </section>
 
 <!-- Featured Projects -->
-<section class="py-5">
+<section class="py-7 bg-light">
     <div class="container">
-        <h2 class="text-center mb-5">Featured Projects</h2>
-        <div class="row">
+        <div class="row justify-content-center text-center mb-6">
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold mb-3">Featured Projects</h2>
+                <p class="text-muted lead">
+                    Discover innovative projects that are reshaping Africa's technological landscape
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
             {% for project in featured_projects %}
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ project.title }}</h5>
-                        <p class="card-text text-muted">{{ project.description|truncatechars:100 }}</p>
-                        <div class="progress mb-3">
-                            <div class="progress-bar" style="width: {{ project.percent_funded }}%"></div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="position-relative">
+                        <img src="{{ project.image.url }}" 
+                             class="card-img-top object-fit-cover" 
+                             style="height: 240px;"
+                             alt="{{ project.title }}">
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-light text-dark rounded-pill px-3 py-2">
+                                {{ project.category }}
+                            </span>
                         </div>
-                        <p class="text-muted mb-1">${{ project.amount_raised }} raised of ${{ project.funding_goal }}</p>
-                        <a href="{% url 'project_detail' project.id %}" class="btn btn-outline-primary">View Project</a>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <h3 class="h4 card-title mb-3">{{ project.title }}</h3>
+                        <p class="card-text text-muted">{{ project.description|truncatechars:100 }}</p>
+                        
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-success fw-semibold">Progress</span>
+                                <span class="small text-success fw-semibold">{{ project.percent_funded }}%</span>
+                            </div>
+                            <div class="progress mb-3" style="height: 8px;">
+                                <div class="progress-bar bg-success" 
+                                     role="progressbar" 
+                                     style="width: {{ project.percent_funded }}%" 
+                                     aria-valuenow="{{ project.percent_funded }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between text-muted small mb-4">
+                                <span>${{ project.amount_raised|floatformat:2|intcomma }} raised</span>
+                                <span>${{ project.funding_goal|floatformat:2|intcomma }} goal</span>
+                            </div>
+                            
+                            <a href="{% url 'project_detail' project.id %}" 
+                               class="btn btn-success w-100">
+                                View Project
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -35,4 +98,35 @@
         </div>
     </div>
 </section>
+
+<!-- Add this CSS to your stylesheet -->
+<style>
+.bg-gradient {
+    background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    opacity: 0.9;
+}
+
+.hover-lift {
+    transition: transform 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+}
+
+.py-7 {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+}
+/* Custom styles for the carousel */
+.carousel-caption {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.carousel-item img {
+    filter: brightness(70%);
+}
+</style>
 {% endblock %}

@@ -4,6 +4,7 @@
 <div class="container py-5">
     <h2 class="mb-4">Your Dashboard</h2>
     
+    {% if is_founder %}
     <!-- Founder Section -->
     <div class="card mb-4">
         <div class="card-header bg-success text-white">
@@ -36,6 +37,7 @@
             </a>
         </div>
     </div>
+    {% endif %}
 
     <!-- Backer Section -->
     <div class="card mb-4">

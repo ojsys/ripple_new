@@ -20,6 +20,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
     <style>
         /* Custom CSS */
@@ -94,9 +95,10 @@
                 </a>
                 {% endfor %}
             </div>
-            <p class="mb-0 text-white">&copy; 2023 Ripples. Empowering African Innovation.</p>
+            <p class="mb-0 text-white">&copy; {% now "Y" %} Ripples. Empowering African Innovation.</p>
         </div>
     </footer>
+    
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
