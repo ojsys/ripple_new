@@ -12,7 +12,9 @@ urlpatterns = [
     path('login/', views.user_login, name='login'),
     path('accounts/logout/', views.user_logout, name='logout'),
     
-
+    # Edit URLs
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
+    path('projects/<int:pk>/edit/', views.edit_project, name='edit_project'),
 
     # Project Management
     path('projects/create/', views.create_project, name='create_project'),
@@ -26,6 +28,9 @@ urlpatterns = [
     # Investment Management
     path('projects/<int:project_id>/investments/', views.manage_investments, name='manage_investments'),
     path('investments/<int:investment_id>/<str:status>/', views.update_investment_status, name='update_investment_status'),
+    path('my-investments/', views.MyInvestmentsView.as_view(), name='my_investments'),
+    path('investment/<int:pk>/', views.InvestmentDetailView.as_view(), name='investment_detail'),
+    path('investment/<int:investment_id>/activate/', views.activate_investment, name='activate_investment'),
 
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),

@@ -2,6 +2,27 @@
 {% load static humanize %}
 
 {% block content %}
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+}
+
+.verified-badge {
+    background: #28a745;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(25%, 25%);
+}
+
+</style>
 <div class="container py-5">
     <!-- Back Navigation -->
     <a href="{% url 'project_list' %}" class="text-decoration-none text-muted mb-4 d-block">
@@ -25,7 +46,7 @@
                     <h1 class="display-6 mb-3">{{ project.title }}</h1>
                     
                     <div class="d-flex align-items-center mb-4">
-                        <img src="{% if project.creator.profile.image %}{{ project.creator.profile.image.url }}{% else %}{% static 'images/default-avatar.jpg' %}{% endif %}" 
+                        <img src="{% if project.creator.profile.image %}{{ project.creator.profile.image.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
                              alt="{{ project.creator.username }}" 
                              class="rounded-circle me-2"
                              style="width: 40px; height: 40px; object-fit: cover;">
@@ -175,24 +196,31 @@
             <section class="card border-0 shadow-sm">
                 <div class="card-body">
                     <h3 class="h5 mb-3">About the creator</h3>
-                    <div class="d-flex align-items-start">
-                        <img src="{% if project.creator.profile.image %}{{ project.creator.profile.image.url }}{% else %}{% static 'images/default-avatar.jpg' %}{% endif %}" 
-                             alt="{{ project.creator.username }}" 
-                             class="rounded-circle me-3"
-                             style="width: 60px; height: 60px; object-fit: cover;">
-                        <div>
-                            <div class="fw-bold mb-1">
-                                {{ project.creator.get_full_name|default:project.creator.username }}
-                            </div>
-                            <div class="text-muted small">
-                                Joined {{ project.creator.date_joined|date:"M Y" }}
-                            </div>
-                            {% if project.creator.profile.bio %}
-                            <p class="small mt-2 mb-0">
-                                {{ project.creator.profile.bio|truncatewords:20 }}
-                            </p>
+                    <div class="creator-info d-flex align-items-center mb-3">
+                        {% with creator=project.creator %}
+                        <div class="position-relative">
+                            <img src="{% if creator.profile.image %}{{ creator.profile.image.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
+                                 class="avatar-sm rounded-circle me-2" 
+                                 alt="{{ creator.username }}'s avatar">
+                            {% if creator.profile.verified %}
+                            <span class="position-absolute bottom-0 end-0 badge verified-badge">
+                                <i class="fas fa-check"></i>
+                            </span>
                             {% endif %}
                         </div>
+                        <div>
+                            <div class="small text-muted">Created by</div>
+                            <div class="fw-bold">
+                                {{ creator.get_full_name|default:creator.username }}
+                                {% if creator.profile.company_name %}
+                                <span class="text-muted ms-2">• {{ creator.profile.company_name }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="small text-muted">
+                                Member since {{ creator.date_joined|date:"M Y" }}
+                            </div>
+                        </div>
+                        {% endwith %}
                     </div>
                 </div>
             </section>

@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
 
 {% block content %}
+
+
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -11,10 +15,10 @@
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-                        
+
                         <!-- Common Fields -->
                         <h4 class="mt-4 mb-3">Basic Information</h4>
-                        {{ base_form.as_p }}
+                        {{ base_form|crispy }}
                         
                         <!-- Type-Specific Fields -->
                         {% if specific_form %}
@@ -25,7 +29,7 @@
                                     Investment Preferences
                                 {% endif %}
                             </h4>
-                            {{ specific_form.as_p }}
+                            {{ specific_form|crispy }}
                         {% endif %}
                         
                         <div class="mt-4">
@@ -39,4 +43,5 @@
         </div>
     </div>
 </div>
+
 {% endblock %}

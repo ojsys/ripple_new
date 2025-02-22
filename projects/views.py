@@ -1,5 +1,7 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.views import LogoutView
+from django.views.generic import ListView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
@@ -9,14 +11,16 @@ from django.http import HttpResponseBadRequest
 from django.utils import timezone
 import stripe
 from django.conf import settings
-from django.db.models import Sum, Avg, DurationField, Q, ExpressionWrapper, F, FloatField, DecimalField
+from django.contrib import messages
+from django.db import transaction
+from django.db.models import Count, Sum, Avg, DurationField, Q, ExpressionWrapper, F, FloatField, DecimalField
 from django.db.models.functions import Coalesce
 from datetime import datetime
 from decimal import Decimal
 from django import forms
 from .models import (Project, FundingType, InvestmentTerm, Investment, Pledge, 
                      Reward, Category, FounderProfile, InvestorProfile, HeroSlider)
-from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, 
+from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, EditProfileForm,
                     PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm)
 
 
@@ -64,9 +68,57 @@ def user_logout(request):
     logout(request)
     return redirect('home')
 
+##### Edit/Updates ##########
+
+@login_required
+def edit_profile(request):
+    user = request.user
+
+    # Get or create FounderProfile if user is a founder
+    founder_profile = None
+    if user.user_type == 'founder':
+        founder_profile, created = FounderProfile.objects.get_or_create(user=user)
+
+    if request.method == 'POST':
+        user_form = EditProfileForm(request.POST, instance=user)
+        founder_form = FounderProfileForm(request.POST, request.FILES, instance=founder_profile) if founder_profile else None
+
+        if user_form.is_valid() and (founder_form is None or founder_form.is_valid()):
+            user_form.save()
+            if founder_form:
+                founder_form.save()
+
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('edit_profile')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        user_form = EditProfileForm(instance=user)
+        founder_form = FounderProfileForm(instance=founder_profile) if founder_profile else None
+
+    context = {
+        'user_form': user_form,
+        'founder_form': founder_form
+    }
+    return render(request, 'projects/edit_profile.html', context)
 
 
+@login_required
+def edit_project(request, pk):
+    project = get_object_or_404(Project, pk=pk, creator=request.user)
 
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, request.FILES, instance=project)
+        if form.is_valid():
+            form.save()
+            return redirect('project_detail', pk=project.pk)
+    else:
+        form = ProjectForm(instance=project)
+
+    return render(request, 'projects/edit_project.html', {'form': form, 'project': project})
+
+
+######################
 
 def home(request):
     sliders = HeroSlider.objects.filter(is_active=True)
@@ -84,7 +136,7 @@ def project_detail(request, project_id):
 
 
 def project_list(request):
-    projects = Project.objects.all()
+    projects = Project.objects.all().order_by('-created_at')
     
     # Search
     search_query = request.GET.get('q')
@@ -228,19 +280,6 @@ def project_detail(request, project_id):
     return render(request, 'projects/project_detail.html', context)
 
 # Investment/Pledge Handling
-@login_required
-def make_investment(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    if request.method == 'POST':
-        form = InvestmentForm(request.POST, terms=project.investment_terms.all())
-        if form.is_valid():
-            investment = form.save(commit=False)
-            investment.project = project
-            investment.investor = request.user
-            investment.save()
-            project.total_investment_raised += investment.amount
-            project.save()
-            return redirect('project_detail', project.id)
 
 @login_required
 def make_pledge(request, project_id):
@@ -270,6 +309,74 @@ def update_investment_status(request, investment_id, status):
     investment.save()
     return redirect('manage_investments', investment.project.id)
 
+
+def make_investment(request, project_id):
+    project = get_object_or_404(Project, pk=project_id)
+
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        investor = request.user
+
+        # Save the investment as 'pending' or 'inactive' initially
+        investment = Investment.objects.create(
+            project=project,
+            investor=investor,
+            amount=amount,
+            status='pending'  # or 'inactive' based on your model
+        )
+
+        messages.success(request, "Investment submitted and awaiting activation.")
+        return redirect('investment_detail', pk=investment.id)
+
+    return render(request, 'projects/make_investment.html', {'project': project})
+
+
+def activate_investment(request, investment_id):
+    investment = get_object_or_404(Investment, pk=investment_id)
+
+    if investment.status != 'active':
+        with transaction.atomic():
+            # Lock investment for safe update
+            investment = Investment.objects.select_for_update().get(pk=investment_id)
+
+            if investment.status != 'active':
+                investment.status = 'active'
+                investment.save()
+
+                # Update project's amount_raised ONLY when activating
+                project = investment.project
+                project.amount_raised += investment.amount
+                project.save()
+
+                messages.success(request, "Investment marked as active and project updated.")
+            else:
+                messages.info(request, "Investment is already active.")
+    else:
+        messages.info(request, "Investment is already active.")
+
+    return redirect('investment_detail', pk=investment.id)
+
+
+
+class MyInvestmentsView(LoginRequiredMixin, ListView):
+    model = Investment
+    template_name = 'projects/my_investments.html'  # Create this template
+    context_object_name = 'investments'
+
+    def get_queryset(self):
+        # Fetch investments made by the logged-in user
+        return Investment.objects.filter(investor=self.request.user)
+
+
+class InvestmentDetailView(LoginRequiredMixin, DetailView):
+    model = Investment
+    template_name = 'projects/investment_detail.html'
+    context_object_name = 'investment'
+
+    def get_object(self):
+        investment_id = self.kwargs.get('pk')
+        return get_object_or_404(Investment, pk=investment_id)
+#################################
 
 def dashboard(request):
     if not request.user.is_authenticated:

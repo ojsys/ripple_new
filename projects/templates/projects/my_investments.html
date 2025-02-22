@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">My Investments</h2>
+
+    {% if investments %}
+        <div class="row">
+            {% for investment in investments %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ investment.project.title }}</h5>
+                            <p class="card-text">
+                                Amount: <strong>${{ investment.amount }}</strong><br>
+                                Date: {{ investment.date_invested|date:"M d, Y" }}
+                            </p>
+                            <a href="{% url 'project_detail' investment.project.id %}" class="btn btn-primary">View Project</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>You haven't made any investments yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

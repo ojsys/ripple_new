@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 <div class="container py-5">
@@ -24,35 +25,9 @@
                             {% for form in formset %}
                                 <div class="form-row mb-3 border-bottom pb-3">
                                     {% if funding_type == 'donation' %}
-                                        <div class="col-md-4">
-                                            <label class="form-label">Amount</label>
-                                            {{ form.amount }}
-                                        </div>
-                                        <div class="col-md-8">
-                                            <label class="form-label">Reward Title</label>
-                                            {{ form.title }}
-                                        </div>
-                                        <div class="col-12 mt-2">
-                                            <label class="form-label">Description</label>
-                                            {{ form.description }}
-                                        </div>
+                                        {{ form|crispy }}
                                     {% elif funding_type == 'equity' %}
-                                        <div class="col-md-3">
-                                            <label class="form-label">Equity %</label>
-                                            {{ form.equity_offered }}
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Min. Investment</label>
-                                            {{ form.minimum_investment }}
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Valuation</label>
-                                            {{ form.valuation }}
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Deadline</label>
-                                            {{ form.deadline }}
-                                        </div>
+                                        {{ form|crispy }}
                                     {% endif %}
                                     {{ form.id }}
                                     {% if form.instance.pk %}{{ form.DELETE }}{% endif %}

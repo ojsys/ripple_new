@@ -76,9 +76,11 @@ class BaseProfileForm(forms.ModelForm):
 class FounderProfileForm(forms.ModelForm):
     class Meta:
         model = FounderProfile
-        fields = ['company_name', 'website', 'bio']
+        fields = ['company_name', 'website', 'bio', 'image']
         widgets = {
-            'bio': forms.Textarea(attrs={'rows': 4}),
+            'company_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'website': forms.URLInput(attrs={'class': 'form-control'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
 
 class InvestorProfileForm(forms.ModelForm):
@@ -90,4 +92,16 @@ class InvestorProfileForm(forms.ModelForm):
             'preferred_industries': forms.TextInput(attrs={
                 'placeholder': 'e.g., Technology, Agriculture, Healthcare'
             }),
+        }
+
+class EditProfileForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'user_type']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'user_type': forms.Select(attrs={'class': 'form-control'}),
         }

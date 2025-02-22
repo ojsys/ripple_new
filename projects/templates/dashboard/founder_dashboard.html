@@ -129,9 +129,11 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="#" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+
+                                {% if user == project.creator %}
+                                    <a href="{% url 'edit_project' project.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i> Edit Project</a>
+                                {% endif %}
+                                
                             </td>
                         </tr>
                         {% empty %}

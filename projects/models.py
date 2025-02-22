@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
+from django.urls import reverse
 from django.conf import settings
 from django.db.models import F, ExpressionWrapper, FloatField
 
@@ -33,6 +34,7 @@ class CustomUser(AbstractUser):
 class FounderProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     company_name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='profile_images/', blank=True)
     website = models.URLField(blank=True)
     bio = models.TextField()
 
@@ -68,7 +70,7 @@ class Project(models.Model):
     total_investment_raised = models.DecimalField(max_digits=10, decimal_places=2, default=0)  
     created_at = models.DateTimeField(default=timezone.now)
     deadline = models.DateTimeField()
-    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='projects_created')
     image = models.ImageField(upload_to='project_images/')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     funding_type = models.ForeignKey(FundingType, on_delete=models.SET_NULL, null=True) 
@@ -89,6 +91,9 @@ class Project(models.Model):
         if self.funding_goal == 0:
             return 0
         return (self.amount_raised / self.funding_goal) * 100
+    
+    def get_absolute_url(self):
+        return reverse('project_detail', kwargs={'project_id': self.id})
 
 class InvestmentTerm(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='investment_terms')
@@ -116,10 +121,39 @@ class Investment(models.Model):
     terms = models.ForeignKey(InvestmentTerm, on_delete=models.SET_NULL, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
+    is_counted = models.BooleanField(default=False)
 
     def __str__(self):
         return f"${self.amount} investment in {self.project} by {self.investor}"
     
+    def status_color(self):
+        return {
+            'pending': 'warning',
+            'approved': 'success',
+            'rejected': 'danger',
+            'completed': 'primary',
+        }.get(self.status, 'secondary')
+    
+
+    def save(self, *args, **kwargs):
+        # Track status change
+        is_new = self.pk is None
+        previous_status = None
+
+        if not is_new:
+            previous_status = Investment.objects.get(pk=self.pk).status
+
+        super().save(*args, **kwargs)
+
+        # If status changes to 'active', update project's amount_raised
+        if self.status == 'active' and previous_status != 'active':
+            self.project.amount_raised += self.amount
+            self.project.save()
+
+        # If status changes from 'active' to another, deduct the amount
+        elif previous_status == 'active' and self.status != 'active':
+            self.project.amount_raised -= self.amount
+            self.project.save()
 
     
 class Reward(models.Model):
