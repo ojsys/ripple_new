@@ -1,28 +1,7 @@
 {% extends 'base.html' %}
-{% load static humanize %}
+{% load static humanize crispy_forms_tags %}
 
 {% block content %}
-<style>
-.avatar-sm {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
-}
-
-.verified-badge {
-    background: #28a745;
-    color: white;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: translate(25%, 25%);
-}
-
-</style>
 <div class="container py-5">
     <!-- Back Navigation -->
     <a href="{% url 'project_list' %}" class="text-decoration-none text-muted mb-4 d-block">
@@ -80,32 +59,37 @@
                     <!-- Funding Action -->
                     <div class="border-top pt-4">
                         {% if project.funding_type.name == 'Donation' and pledge_form %}
+                            <h3 class="h5 mb-3">Make a Donation</h3>
                             <form method="post" action="{% url 'make_pledge' project.id %}">
                                 {% csrf_token %}
-                                {% load crispy_forms_tags %}
-                                
-                                <div class="mb-3">
-                                    {{ pledge_form.amount|as_crispy_field }}
-                                </div>
-                                <div class="mb-4">
-                                    {{ pledge_form.reward|as_crispy_field }}
-                                </div>
-                                <button type="submit" class="btn btn-success w-100 btn-lg">
-                                    Continue with Pledge
+                                {{ pledge_form|crispy }}
+                                <button type="submit" class="btn btn-success w-100 btn-lg mt-3">
+                                    Continue with Donation
                                 </button>
                             </form>
                         
                         {% elif project.funding_type.name == 'Equity' and investment_form %}
+                            <h3 class="h5 mb-3">Make an Investment</h3>
                             <form method="post" action="{% url 'make_investment' project.id %}">
                                 {% csrf_token %}
-                                {% load crispy_forms_tags %}
+                                {{ investment_form|crispy }}
                                 
-                                <div class="mb-3">
-                                    {{ investment_form.amount|as_crispy_field }}
+                                {% if terms %}
+                                <div class="card border-primary mb-4">
+                                    <div class="card-body">
+                                        <h5 class="h6">Selected Investment Terms</h5>
+                                        <dl class="row mb-0">
+                                            <dt class="col-6">Equity Offered</dt>
+                                            <dd class="col-6">{{ terms.equity_offered }}%</dd>
+                                            <dt class="col-6">Minimum Investment</dt>
+                                            <dd class="col-6">${{ terms.minimum_investment|intcomma }}</dd>
+                                            <dt class="col-6">Valuation</dt>
+                                            <dd class="col-6">${{ terms.valuation|intcomma }}</dd>
+                                        </dl>
+                                    </div>
                                 </div>
-                                <div class="mb-4">
-                                    {{ investment_form.terms|as_crispy_field }}
-                                </div>
+                                {% endif %}
+                                
                                 <button type="submit" class="btn btn-primary w-100 btn-lg">
                                     Submit Investment Proposal
                                 </button>
@@ -200,13 +184,9 @@
                         {% with creator=project.creator %}
                         <div class="position-relative">
                             <img src="{% if creator.profile.image %}{{ creator.profile.image.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
-                                 class="avatar-sm rounded-circle me-2" 
+                                 class="rounded-circle me-2" 
+                                 style="width: 50px; height: 50px; object-fit: cover;"
                                  alt="{{ creator.username }}'s avatar">
-                            {% if creator.profile.verified %}
-                            <span class="position-absolute bottom-0 end-0 badge verified-badge">
-                                <i class="fas fa-check"></i>
-                            </span>
-                            {% endif %}
                         </div>
                         <div>
                             <div class="small text-muted">Created by</div>
@@ -230,13 +210,14 @@
 
 <!-- Mobile Fixed Support Button -->
 <div class="d-lg-none fixed-bottom bg-white border-top py-3 px-4 shadow-sm">
-    <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#supportModal">
+    {% if project.funding_type.name == 'Donation' %}
+    <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#pledgeModal">
         Support this Project
     </button>
+    {% else %}
+    <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#investmentModal">
+        Invest in this Project
+    </button>
+    {% endif %}
 </div>
-
-<!-- Social Meta Tags -->
-<meta property="og:title" content="{{ project.title }}">
-<meta property="og:description" content="{{ project.description|truncatechars:200 }}">
-<meta property="og:image" content="{{ project.image.url }}">
 {% endblock %}

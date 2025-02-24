@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.urls import reverse
 from django.conf import settings
+from django.db import transaction
 from django.db.models import F, ExpressionWrapper, FloatField
 
 
@@ -20,7 +21,7 @@ class CustomUser(AbstractUser):
     profile_completed = models.BooleanField(default=False)
 
     # Add these if missing
-    username = models.CharField(max_length=30, unique=True)
+    
     email = models.EmailField(unique=True)
     
     # Update the USERNAME_FIELD if needed
@@ -136,24 +137,33 @@ class Investment(models.Model):
     
 
     def save(self, *args, **kwargs):
-        # Track status change
-        is_new = self.pk is None
-        previous_status = None
+        try:
+            is_new = self.pk is None
+            previous_status = None
 
-        if not is_new:
-            previous_status = Investment.objects.get(pk=self.pk).status
+            if not is_new:
+                previous_status = Investment.objects.get(pk=self.pk).status
 
-        super().save(*args, **kwargs)
+            # Auto-assign terms if not set
+            if not self.terms and self.project:
+                self.terms = self.project.investment_terms.first()
 
-        # If status changes to 'active', update project's amount_raised
-        if self.status == 'active' and previous_status != 'active':
-            self.project.amount_raised += self.amount
-            self.project.save()
+            with transaction.atomic():
+                super().save(*args, **kwargs)
 
-        # If status changes from 'active' to another, deduct the amount
-        elif previous_status == 'active' and self.status != 'active':
-            self.project.amount_raised -= self.amount
-            self.project.save()
+                # Update project's amount based on status
+                if self.status == 'active' and previous_status != 'active':
+                    Project.objects.filter(pk=self.project.pk).update(
+                        amount_raised=F('amount_raised') + self.amount,
+                        total_investment_raised=F('total_investment_raised') + self.amount
+                    )
+                elif previous_status == 'active' and self.status != 'active':
+                    Project.objects.filter(pk=self.project.pk).update(
+                        amount_raised=F('amount_raised') - self.amount,
+                        total_investment_raised=F('total_investment_raised') - self.amount
+                    )
+        except Exception as e:
+            raise ValidationError(f"Error saving investment: {str(e)}")
 
     
 class Reward(models.Model):
@@ -196,8 +206,8 @@ class SiteSettings(models.Model):
     def save(self, *args, **kwargs):
         if not self.pk and SiteSettings.objects.exists():
             raise ValidationError("Only one SiteSettings instance can exist")
-        self.pk = 1  # Force primary key to maintain singleton
         super().save(*args, **kwargs)
+
 
     @classmethod
     def load(cls):

@@ -122,7 +122,7 @@
                                     {{ investment.project.title }}
                                 </a>
                             </td>
-                            <td>{{ investment.terms.equity_offered }}%</td>
+                            <td>{{ investment.terms.equity_offered | default:"N/A" }}%</td>
                             <td>${{ investment.amount|intcomma }}</td>
                             <td>
                                 {% if investment.status == 'pending' %}
@@ -137,11 +137,11 @@
                                     <span class="badge bg-secondary p-2">{{ investment.get_status_display }}</span>
                                 {% endif %}
                             </td>
-                            <td>${{ investment.terms.valuation|intcomma }}</td>
+                            <td>${{ investment.terms.valuation|default:"N/A"|intcomma }}</td>
                             <td>
                                 <div class="small">
-                                    {{ investment.terms.deadline|date:"M d, Y" }}
-                                    <div class="text-muted">{{ investment.terms.deadline|timeuntil }} left</div>
+                                    {{ investment.terms.deadline|date:"M d, Y"|default:"N/A" }}
+                                    <div class="text-muted">{{ investment.terms.deadline|timeuntil|default:"-" }} left</div>
                                 </div>
                             </td>
                             <td>

@@ -1,6 +1,6 @@
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field
+from crispy_forms.layout import Layout, Field, Submit
 from .models import (Project, Reward, InvestmentTerm, Investment, 
                      Pledge, FundingType, CustomUser, FounderProfile, InvestorProfile)
 
@@ -45,16 +45,45 @@ class InvestmentTermForm(forms.ModelForm):
             'deadline': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
 
+
 class InvestmentForm(forms.ModelForm):
     class Meta:
         model = Investment
-        fields = ['amount', 'terms']
+        fields = ['amount']
 
     def __init__(self, *args, **kwargs):
-        terms = kwargs.pop('terms', None)
+        self.terms = kwargs.pop('terms', None)
+        self.project = kwargs.pop('project', None)
+        
+        if not self.terms and not self.project:
+            raise ValueError("InvestmentForm requires either 'terms' or 'project' argument.")
+            
         super().__init__(*args, **kwargs)
-        if terms:
-            self.fields['terms'].queryset = terms
+        
+        if self.terms:
+            self.fields['amount'].widget.attrs['min'] = self.terms.minimum_investment
+            self.fields['amount'].widget.attrs['max'] = self.terms.maximum_investment
+        elif self.project:
+            # For projects without terms, you might want to set some default constraints
+            self.fields['amount'].widget.attrs['min'] = 1  # or any minimum you want
+            self.fields['amount'].widget.attrs['max'] = self.project.funding_goal
+
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        
+        if self.terms:
+            if amount < self.terms.minimum_investment:
+                raise forms.ValidationError(f"Investment amount must be at least ${self.terms.minimum_investment}.")
+        else:
+            # For projects without terms, implement basic validation
+            if amount <= 0:
+                raise forms.ValidationError("Investment amount must be greater than zero.")
+            if amount > self.project.funding_goal:
+                raise forms.ValidationError(f"Investment amount cannot exceed the project funding goal of ${self.project.funding_goal}.")
+        
+        return amount
+
 
 class PledgeForm(forms.ModelForm):
     class Meta:
@@ -62,11 +91,17 @@ class PledgeForm(forms.ModelForm):
         fields = ['amount', 'reward']
 
     def __init__(self, *args, **kwargs):
-        project = kwargs.pop('project', None)
+        # Extract project from kwargs before initializing parent
+        self.project = kwargs.pop('project', None)
         super().__init__(*args, **kwargs)
-        if project:
-            self.fields['reward'].queryset = Reward.objects.filter(project=project)
-
+        
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.add_input(Submit('submit', 'Continue with Pledge', css_class='btn-success w-100'))
+        
+        # Filter rewards based on project
+        if self.project:
+            self.fields['reward'].queryset = self.project.rewards.all()
 
 class BaseProfileForm(forms.ModelForm):
     class Meta:

@@ -129,14 +129,13 @@ def home(request):
         })
 
 
-def project_detail(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    percent_funded = (project.amount_raised / project.funding_goal) * 100
-    return render(request, 'projects/project_detail.html', {'project': project, 'percent_funded': percent_funded})
-
-
 def project_list(request):
-    projects = Project.objects.all().order_by('-created_at')
+    projects = Project.objects.all().order_by('-created_at').annotate(
+        percent_funded=ExpressionWrapper(
+            (F('amount_raised') * 100.0) / F('funding_goal'),
+            output_field=FloatField()
+        )
+    )
     
     # Search
     search_query = request.GET.get('q')
@@ -226,74 +225,61 @@ def add_terms_rewards(request, project_id):
     })
 
 
-@login_required
-def make_pledge(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    if request.method == 'POST':
-        form = PledgeForm(request.POST, project=project)
-        if form.is_valid():
-            try:
-                # Stripe Charge
-                charge = stripe.Charge.create(
-                    amount=int(form.cleaned_data['amount'] * 100),
-                    currency='usd',
-                    source=request.POST['stripeToken'],
-                    description=f'Pledge for {project.title}'
-                )
-                
-                # Save Pledge
-                pledge = form.save(commit=False)
-                pledge.project = project
-                pledge.backer = request.user
-                pledge.save()
-                
-                # Update Project
-                project.amount_raised += pledge.amount
-                project.save()
-                
-                return redirect('pledge_success', pledge.id)
-                
-            except stripe.error.StripeError as e:
-                form.add_error(None, f'Payment error: {e.user_message}')
-    
-    # Render form with errors
-    return render(request, 'project_detail.html', {
-        'project': project,
-        'pledge_form': form
-    })
+
 
 
 # Project Detail Page
+
+# def project_detail(request, project_id):
+#     project = get_object_or_404(
+#         Project.objects.prefetch_related('investment_terms', 'rewards'),
+#         id=project_id
+#     )
+#     investment_terms = project.investment_terms.first()
+#     context = {
+#         'project': project,
+#         'percent_funded': project.get_percent_funded(),
+#         'terms': investment_terms,
+#         'investment_form': InvestmentForm(terms=investment_terms)
+#     }
+
+#     if project.funding_type.name == 'Equity':
+#         context['investment_form'] = InvestmentForm(
+#             terms=investment_terms,
+#             initial={'terms': investment_terms}
+#         )
+#     elif project.funding_type.name == 'Donation':
+#         context['pledge_form'] = PledgeForm(project=project)
+
+#     return render(request, 'projects/project_detail.html', context)
+
 def project_detail(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
+    project = get_object_or_404(
+        Project.objects.prefetch_related('investment_terms', 'rewards'),
+        id=project_id
+    )
+    investment_terms = project.investment_terms.first()
     context = {
         'project': project,
-        'percent_funded': (project.amount_raised / project.funding_goal) * 100,
+        'percent_funded': project.get_percent_funded(),
+        'terms': investment_terms,
     }
-    
-    # Add investment/pledge forms based on funding type
+
     if project.funding_type.name == 'Equity':
-        context['investment_form'] = InvestmentForm(terms=project.investment_terms.all())
+        if investment_terms:
+            context['investment_form'] = InvestmentForm(
+                terms=investment_terms,
+                project=project
+            )
+        else:
+            # For projects without terms, only pass the project
+            context['investment_form'] = InvestmentForm(project=project)
     elif project.funding_type.name == 'Donation':
         context['pledge_form'] = PledgeForm(project=project)
-    
+
     return render(request, 'projects/project_detail.html', context)
 
-# Investment/Pledge Handling
 
-@login_required
-def make_pledge(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    if request.method == 'POST':
-        form = PledgeForm(request.POST, project=project)
-        if form.is_valid():
-            pledge = form.save(commit=False)
-            pledge.project = project
-            pledge.backer = request.user
-            pledge.save()
-            project.amount_raised += pledge.amount
-            project.save()
-            return redirect('project_detail', project.id)
 
 # Investment Management (Founder)
 @login_required
@@ -310,25 +296,72 @@ def update_investment_status(request, investment_id, status):
     return redirect('manage_investments', investment.project.id)
 
 
+@login_required
+def make_pledge(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    
+    if request.method == 'POST':
+        form = PledgeForm(request.POST, project=project)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    pledge = form.save(commit=False)
+                    pledge.project = project
+                    pledge.backer = request.user
+                    pledge.save()
+
+                    # Update project's amount_raised
+                    project.amount_raised += pledge.amount
+                    project.save()
+
+                    messages.success(request, "Thank you for your donation!")
+                    return redirect('project_detail', project_id=project.id)
+            except Exception as e:
+                messages.error(request, f"Error processing donation: {str(e)}")
+                return redirect('project_detail', project_id=project.id)
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = PledgeForm(project=project)
+    
+    return render(request, 'projects/pledge_form.html', {'form': form, 'project': project})
+
+
+@login_required
 def make_investment(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)
+    project = get_object_or_404(Project, id=project_id)
+    terms = project.investment_terms.first()
+
+    if not terms:
+        messages.error(request, "No investment terms available for this project.")
+        return redirect('project_detail', project_id=project.id)
 
     if request.method == 'POST':
-        amount = request.POST.get('amount')
-        investor = request.user
+        form = InvestmentForm(request.POST, terms=terms, project=project)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    investment = form.save(commit=False)
+                    investment.project = project
+                    investment.investor = request.user
+                    investment.terms = terms
+                    investment.status = 'pending'
+                    investment.save()  # Explicitly save to catch errors
+                    print(f"Investment ID after save: {investment.id}")  # Debugging
+                    return redirect('investment_detail', pk=investment.id)
+            except Exception as e:
+                messages.error(request, f"Error saving investment: {str(e)}")
+                return redirect('project_detail', project_id=project.id)
+        else:
+            messages.error(request, f"Form errors: {form.errors}")
+    else:
+        form = InvestmentForm(terms=terms, project=project)
 
-        # Save the investment as 'pending' or 'inactive' initially
-        investment = Investment.objects.create(
-            project=project,
-            investor=investor,
-            amount=amount,
-            status='pending'  # or 'inactive' based on your model
-        )
+    return render(request, 'projects/investment_detail.html', {'form': form, 'project': project})
 
-        messages.success(request, "Investment submitted and awaiting activation.")
-        return redirect('investment_detail', pk=investment.id)
 
-    return render(request, 'projects/make_investment.html', {'project': project})
+
+
 
 
 def activate_investment(request, investment_id):
@@ -351,6 +384,9 @@ def activate_investment(request, investment_id):
                 messages.success(request, "Investment marked as active and project updated.")
             else:
                 messages.info(request, "Investment is already active.")
+            if not investment.id:
+                messages.error(request, "Investment ID is missing. Cannot proceed.")
+                return redirect('project_detail', project_id=investment.project.id)
     else:
         messages.info(request, "Investment is already active.")
 
