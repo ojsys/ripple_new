@@ -1,41 +1,356 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <h2>Edit Profile</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>User Information</h4>
+    <div class="row">
+        <!-- Left Column - Profile Summary -->
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            <div class="card shadow mb-4">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {% if user.user_type == 'founder' and user.founderprofile.image %}
+                            <img src="{{ user.founderprofile.image.url }}" alt="Profile" class="rounded-circle img-fluid" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% elif user.user_type == 'investor' and user.investorprofile.image %}
+                            <img src="{{ user.investorprofile.image.url }}" alt="Profile" class="rounded-circle img-fluid" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                            <img src="{% static 'images/default-avatar.png' %}" alt="Profile" class="rounded-circle img-fluid" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    <h4>{{ user.get_full_name }}</h4>
+                    <p class="text-muted">{{ user.get_user_type_display }}</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#profileModal">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </button>
+                </div>
             </div>
-            <div class="card-body">
-                {{ user_form|crispy }}
+            
+            <!-- Contact Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-address-card me-2"></i>Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <p class="text-muted mb-1"><i class="fas fa-envelope me-2"></i>Email</p>
+                        <p class="mb-0">{{ user.email }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1"><i class="fas fa-phone me-2"></i>Phone</p>
+                        <p class="mb-0">{{ user.phone_number|default:"Not provided" }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1"><i class="fas fa-map-marker-alt me-2"></i>Location</p>
+                        <p class="mb-0">{{ user.location|default:"Not provided" }}</p>
+                    </div>
+                    
+                    {% if user.address_line1 or user.city or user.country %}
+                    <div>
+                        <p class="text-muted mb-1"><i class="fas fa-home me-2"></i>Address</p>
+                        <address class="mb-0">
+                            {% if user.address_line1 %}{{ user.address_line1 }}<br>{% endif %}
+                            {% if user.address_line2 %}{{ user.address_line2 }}<br>{% endif %}
+                            {% if user.city %}{{ user.city }}{% if user.state_province %}, {{ user.state_province }}{% endif %}{% if user.postal_code %} {{ user.postal_code }}{% endif %}<br>{% endif %}
+                            {% if user.country %}{{ user.country }}{% endif %}
+                        </address>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
-
-        {% if founder_form %}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Founder Profile</h4>
+        
+        <!-- Right Column - Detailed Information -->
+        <div class="col-lg-8">
+            <!-- User Details -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>User Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">Full Name</p>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="mb-0">{{ user.get_full_name|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">Username</p>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="mb-0">{{ user.username }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">Account Type</p>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="mb-0">{{ user.get_user_type_display }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                {{ founder_form|crispy }}
+            
+            {% if user.user_type == 'founder' %}
+            <!-- Founder Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Founder Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">Company</p>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="mb-0">{{ user.founderprofile.company_name|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">Industry</p>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="mb-0">{{ user.founderprofile.industry|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">Website</p>
+                        </div>
+                        <div class="col-md-8">
+                            {% if user.founderprofile.website %}
+                                <a href="{{ user.founderprofile.website }}" target="_blank">{{ user.founderprofile.website }}</a>
+                            {% else %}
+                                <p class="mb-0">Not provided</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">Bio</p>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="mb-0">{{ user.founderprofile.bio|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">Experience</p>
+                        </div>
+                        <div class="col-md-8">
+                            <div>{{ user.founderprofile.experience|safe|default:"Not provided" }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if user.founderprofile.cv %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">CV/Resume</p>
+                        </div>
+                        <div class="col-md-8">
+                            <a href="{{ user.founderprofile.cv.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i class="fas fa-file-pdf me-1"></i> View CV
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
+            {% endif %}
+            
+            {% if user.user_type == 'investor' %}
+            <!-- Investor Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Investor Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">Investment Focus</p>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="mb-0">{{ user.investorprofile.investment_focus|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-0">Preferred Industries</p>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="mb-0">{{ user.investorprofile.preferred_industries|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
-
-        <button type="submit" class="btn btn-success">Save Changes</button>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
-    </form>
-
-    {% if messages %}
-        <ul class="mt-3">
-            {% for message in messages %}
-                <li class="alert alert-{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+    </div>
 </div>
+
+<!-- Profile Edit Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <!-- User Information -->
+                    <h6 class="border-bottom pb-2 mb-3">Basic Information</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {% if user_form.first_name %}{{ user_form.first_name|as_crispy_field }}{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if user_form.last_name %}{{ user_form.last_name|as_crispy_field }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {% if user_form.email %}{{ user_form.email|as_crispy_field }}{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if user_form.phone_number %}{{ user_form.phone_number|as_crispy_field }}{% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Add the user_type field as a hidden input since it shouldn't change -->
+                    {% if user_form.user_type %}
+                        {{ user_form.user_type|as_crispy_field }}
+                    {% else %}
+                        <input type="hidden" name="user_type" value="{{ user.user_type }}">
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        {% if user_form.location %}{{ user_form.location|as_crispy_field }}{% endif %}
+                    </div>
+                    
+                    <!-- Address Information -->
+                    <h6 class="border-bottom pb-2 mb-3 mt-4">Address Information</h6>
+                    <div class="mb-3">
+                        {% if user_form.address_line1 %}{{ user_form.address_line1|as_crispy_field }}{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {% if user_form.address_line2 %}{{ user_form.address_line2|as_crispy_field }}{% endif %}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {% if user_form.city %}{{ user_form.city|as_crispy_field }}{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if user_form.state_province %}{{ user_form.state_province|as_crispy_field }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {% if user_form.postal_code %}{{ user_form.postal_code|as_crispy_field }}{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if user_form.country %}{{ user_form.country|as_crispy_field }}{% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if user.user_type == 'founder' and founder_form %}
+                    <!-- Founder Information -->
+                    <h6 class="border-bottom pb-2 mb-3 mt-4">Founder Information</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {% if founder_form.company_name %}{{ founder_form.company_name|as_crispy_field }}{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if founder_form.industry %}{{ founder_form.industry|as_crispy_field }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {% if founder_form.website %}{{ founder_form.website|as_crispy_field }}{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {% if founder_form.bio %}{{ founder_form.bio|as_crispy_field }}{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {% if founder_form.experience %}{{ founder_form.experience|as_crispy_field }}{% endif %}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {% if founder_form.image %}{{ founder_form.image|as_crispy_field }}{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if founder_form.cv %}{{ founder_form.cv|as_crispy_field }}{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.user_type == 'investor' and investor_form %}
+                    <!-- Investor Information -->
+                    <h6 class="border-bottom pb-2 mb-3 mt-4">Investor Information</h6>
+                    <div class="mb-3">
+                        {% if investor_form.investment_focus %}{{ investor_form.investment_focus|as_crispy_field }}{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {% if investor_form.preferred_industries %}{{ investor_form.preferred_industries|as_crispy_field }}{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+    {% for message in messages %}
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header {% if message.tags == 'success' %}bg-success text-white{% elif message.tags == 'error' %}bg-danger text-white{% else %}bg-light{% endif %}">
+            <strong class="me-auto">{{ message.tags|title }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            {{ message }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.ckeditor.com/ckeditor5/35.1.0/classic/ckeditor.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize CKEditor for experience field if it exists
+        if (document.querySelector('#id_experience')) {
+            ClassicEditor
+                .create(document.querySelector('#id_experience'))
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+        
+        // Auto-hide toasts after 5 seconds
+        setTimeout(function() {
+            document.querySelectorAll('.toast').forEach(function(toast) {
+                var bsToast = new bootstrap.Toast(toast);
+                bsToast.hide();
+            });
+        }, 5000);
+    });
+</script>
 {% endblock %}

@@ -9,19 +9,24 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_GET
 from django.http import HttpResponseBadRequest
 from django.utils import timezone
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
 import stripe
+import json
+import requests
 from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count, Sum, Avg, DurationField, Q, ExpressionWrapper, F, FloatField, DecimalField
 from django.db.models.functions import Coalesce
 from datetime import datetime
 from decimal import Decimal
 from django import forms
 from .models import (Project, FundingType, InvestmentTerm, Investment, Pledge, 
-                     Reward, Category, FounderProfile, InvestorProfile, HeroSlider)
+                     Reward, Category, FounderProfile, InvestorProfile, HeroSlider, Testimonial)
 from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, EditProfileForm,
-                    PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm)
+                    PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm, InvestmentAgreementForm)
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -49,7 +54,27 @@ def signup(request):
     return render(request, 'signup.html', {'form': form})
 
 
-
+def verify_email(request, uidb64, token):
+    try:
+        # Decode the user id
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = CustomUser.objects.get(pk=uid)
+        
+        # Check if the token is valid
+        if default_token_generator.check_token(user, token):
+            # Mark user as verified
+            user.is_active = True
+            user.email_verified = True
+            user.save()
+            
+            messages.success(request, "Your email has been verified successfully! You can now log in.")
+            return redirect('login')
+        else:
+            messages.error(request, "The verification link is invalid or has expired.")
+            return redirect('home')
+    except Exception as e:
+        messages.error(request, "An error occurred during verification. Please try again.")
+        return redirect('home')
 
 def user_login(request):
     if request.method == 'POST':
@@ -73,61 +98,146 @@ def user_logout(request):
 @login_required
 def edit_profile(request):
     user = request.user
-
-    # Get or create FounderProfile if user is a founder
-    founder_profile = None
+    
+    # Initialize forms based on user type
     if user.user_type == 'founder':
         founder_profile, created = FounderProfile.objects.get_or_create(user=user)
-
-    if request.method == 'POST':
-        user_form = EditProfileForm(request.POST, instance=user)
-        founder_form = FounderProfileForm(request.POST, request.FILES, instance=founder_profile) if founder_profile else None
-
-        if user_form.is_valid() and (founder_form is None or founder_form.is_valid()):
-            user_form.save()
-            if founder_form:
-                founder_form.save()
-
-            messages.success(request, 'Your profile has been updated successfully!')
-            return redirect('edit_profile')
-        else:
-            messages.error(request, 'Please correct the errors below.')
+        investor_form = None
+    elif user.user_type == 'investor':
+        investor_profile, created = InvestorProfile.objects.get_or_create(user=user)
+        founder_form = None
     else:
+        founder_form = None
+        investor_form = None
+    
+    if request.method == 'POST':
+        # Process the user form
+        user_form = EditProfileForm(request.POST, instance=user)
+        
+        # Process profile-specific forms
+        if user.user_type == 'founder':
+            founder_form = FounderProfileForm(
+                request.POST, 
+                request.FILES, 
+                instance=founder_profile
+            )
+            
+            if user_form.is_valid() and founder_form.is_valid():
+                # Save user form
+                user_form.save()
+                
+                # Save founder profile with explicit commit
+                founder_profile = founder_form.save(commit=False)
+                founder_profile.user = user
+                founder_profile.save()
+                
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('edit_profile')
+            else:
+                for field, errors in user_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+                
+                for field, errors in founder_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+        
+        elif user.user_type == 'investor':
+            investor_form = InvestorProfileForm(
+                request.POST, 
+                request.FILES, 
+                instance=investor_profile
+            )
+            
+            if user_form.is_valid() and investor_form.is_valid():
+                user_form.save()
+                investor_profile = investor_form.save(commit=False)
+                investor_profile.user = user
+                investor_profile.save()
+                
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('edit_profile')
+            else:
+                for field, errors in user_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+                
+                for field, errors in investor_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+        
+        else:
+            # For other user types, just save the user form
+            if user_form.is_valid():
+                user_form.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('edit_profile')
+            else:
+                for field, errors in user_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+    
+    else:
+        # GET request - initialize forms with existing data
         user_form = EditProfileForm(instance=user)
-        founder_form = FounderProfileForm(instance=founder_profile) if founder_profile else None
-
+        
+        if user.user_type == 'founder':
+            founder_form = FounderProfileForm(instance=founder_profile)
+        elif user.user_type == 'investor':
+            investor_form = InvestorProfileForm(instance=investor_profile)
+    
     context = {
         'user_form': user_form,
-        'founder_form': founder_form
+        'founder_form': founder_form if user.user_type == 'founder' else None,
+        'investor_form': investor_form if user.user_type == 'investor' else None,
     }
+    
     return render(request, 'projects/edit_profile.html', context)
 
 
-@login_required
-def edit_project(request, pk):
-    project = get_object_or_404(Project, pk=pk, creator=request.user)
-
+def edit_project(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    
+    # Check if user is the creator of the project
+    if request.user != project.creator:
+        messages.error(request, "You don't have permission to edit this project.")
+        return redirect('project_detail', project_id=project.id)
+    
     if request.method == 'POST':
         form = ProjectForm(request.POST, request.FILES, instance=project)
         if form.is_valid():
             form.save()
-            return redirect('project_detail', pk=project.pk)
+            messages.success(request, "Project updated successfully!")
+            # Change this line from pk to project_id
+            return redirect('project_detail', project_id=project.id)
     else:
         form = ProjectForm(instance=project)
-
-    return render(request, 'projects/edit_project.html', {'form': form, 'project': project})
+    
+    return render(request, 'projects/edit_project.html', {
+        'form': form,
+        'project': project
+    })
 
 
 ######################
 
 def home(request):
     sliders = HeroSlider.objects.filter(is_active=True)
-    featured_projects = Project.objects.all()[:3]  # Replace with logic to fetch featured projects
+    featured_projects = Project.objects.all().annotate(
+        percent_funded=ExpressionWrapper(
+            (F('amount_raised') * 100.0) / F('funding_goal'),
+            output_field=FloatField()
+        )
+    )[:3]  # Get first 3 projects with funding percentage calculated
+    # Get active testimonials
+    testimonials = Testimonial.objects.filter(is_active=True)[:3]
+
     return render(request, 'projects/home.html', {
         'sliders': sliders,
-        'featured_projects': featured_projects
-        })
-
+        'featured_projects': featured_projects,
+        'testimonials': testimonials
+    })
+    
 
 def project_list(request):
     projects = Project.objects.all().order_by('-created_at').annotate(
@@ -184,6 +294,27 @@ def create_project(request):
     return render(request, 'projects/create_project.html', {'form': form})
 
 
+@login_required
+def delete_project(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    
+    # Check if the user is the creator of the project
+    if request.user != project.creator:
+        messages.error(request, "You don't have permission to delete this project.")
+        return redirect('project_detail', project_id=project_id)
+    
+    if request.method == 'POST':
+        # Store the project title for the success message
+        project_title = project.title
+        
+        # Delete the project
+        project.delete()
+        
+        messages.success(request, f"Project '{project_title}' has been deleted successfully.")
+        return redirect('project_list')
+    
+    return render(request, 'projects/delete_project.html', {'project': project})
+
 
 @login_required
 def add_terms_rewards(request, project_id):
@@ -226,32 +357,7 @@ def add_terms_rewards(request, project_id):
 
 
 
-
-
 # Project Detail Page
-
-# def project_detail(request, project_id):
-#     project = get_object_or_404(
-#         Project.objects.prefetch_related('investment_terms', 'rewards'),
-#         id=project_id
-#     )
-#     investment_terms = project.investment_terms.first()
-#     context = {
-#         'project': project,
-#         'percent_funded': project.get_percent_funded(),
-#         'terms': investment_terms,
-#         'investment_form': InvestmentForm(terms=investment_terms)
-#     }
-
-#     if project.funding_type.name == 'Equity':
-#         context['investment_form'] = InvestmentForm(
-#             terms=investment_terms,
-#             initial={'terms': investment_terms}
-#         )
-#     elif project.funding_type.name == 'Donation':
-#         context['pledge_form'] = PledgeForm(project=project)
-
-#     return render(request, 'projects/project_detail.html', context)
 
 def project_detail(request, project_id):
     project = get_object_or_404(
@@ -303,28 +409,276 @@ def make_pledge(request, project_id):
     if request.method == 'POST':
         form = PledgeForm(request.POST, project=project)
         if form.is_valid():
-            try:
-                with transaction.atomic():
-                    pledge = form.save(commit=False)
-                    pledge.project = project
-                    pledge.backer = request.user
-                    pledge.save()
-
-                    # Update project's amount_raised
-                    project.amount_raised += pledge.amount
-                    project.save()
-
-                    messages.success(request, "Thank you for your donation!")
-                    return redirect('project_detail', project_id=project.id)
-            except Exception as e:
-                messages.error(request, f"Error processing donation: {str(e)}")
+            # Create pledge and save to DB first to get an ID
+            pledge = form.save(commit=False)
+            pledge.project = project
+            pledge.backer = request.user
+            pledge.save()  # Save immediately to get an ID
+            
+            # Convert USD to NGN (using a conversion rate of approximately 1 USD = 1600 NGN)
+            # You may want to use a real-time conversion API in production
+            usd_amount = float(pledge.amount)  # Convert Decimal to float
+            ngn_amount = usd_amount * 1600  # Conversion rate
+            
+            # Initialize Paystack transaction (in kobo - smallest NGN unit)
+            amount_in_kobo = int(ngn_amount * 100)  # Convert NGN to kobo
+            
+            headers = {
+                "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+                "Content-Type": "application/json"
+            }
+            
+            # Build callback URL with pledge ID
+            callback_url = request.build_absolute_uri(
+                reverse('pledge_payment_callback')
+            ) + f"?pledge_id={pledge.id}"
+            
+            # Ensure all values are JSON serializable
+            data = {
+                "amount": amount_in_kobo,
+                "email": request.user.email,
+                "callback_url": callback_url,
+                "currency": "NGN",  # Explicitly set currency to NGN
+                "metadata": {
+                    "pledge_id": str(pledge.id),  # Convert to string to be safe
+                    "project_id": str(project.id),
+                    "reward_id": str(pledge.reward.id) if pledge.reward else None,
+                    "usd_amount": usd_amount,  # Already converted to float
+                    "custom_fields": [
+                        {
+                            "display_name": "Project Name",
+                            "variable_name": "project_name",
+                            "value": project.title
+                        }
+                    ]
+                }
+            }
+            
+            # Initialize transaction
+            url = "https://api.paystack.co/transaction/initialize"
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                # Redirect to Paystack payment page
+                return redirect(response_data['data']['authorization_url'])
+            else:
+                # Handle error
+                messages.error(request, "Payment initialization failed. Please try again.")
+                pledge.delete()  # Remove the pledge since payment failed
                 return redirect('project_detail', project_id=project.id)
-        else:
-            messages.error(request, "Please correct the errors below.")
     else:
         form = PledgeForm(project=project)
     
     return render(request, 'projects/pledge_form.html', {'form': form, 'project': project})
+
+
+@login_required
+def pledge_payment_callback(request):
+    reference = request.GET.get('reference')
+    pledge_id = request.GET.get('pledge_id')
+    
+    # Check if pledge_id is None or invalid
+    if not pledge_id or pledge_id == 'None':
+        # Handle the case where pledge_id is missing
+        messages.warning(
+            request, 
+            "Payment was processed, but we couldn't find your pledge details. Please contact support."
+        )
+        # Redirect to a safe location
+        return redirect('project_list')
+    
+    # Verify transaction
+    url = f"https://api.paystack.co/transaction/verify/{reference}"
+    headers = {"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
+    
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        response_data = response.json()
+        
+        if response_data['data']['status'] == 'success':
+            try:
+                # Payment successful
+                pledge = get_object_or_404(Pledge, id=pledge_id)
+                project = pledge.project
+                
+                # Update project's amount_raised
+                project.amount_raised += pledge.amount
+                project.save()
+                
+                # Add success message
+                messages.success(
+                    request, 
+                    f"Thank you for your generous donation of ${pledge.amount}! "
+                    f"Your support helps make this project a reality."
+                )
+                
+                return redirect('project_detail', project_id=project.id)
+            except Exception as e:
+                # Log the error for debugging
+                print(f"Error processing pledge: {str(e)}")
+                messages.error(
+                    request,
+                    "Your payment was successful, but we encountered an error updating your pledge. "
+                    "Please contact support with reference: " + reference
+                )
+                return redirect('project_list')
+        else:
+            # Payment failed
+            messages.error(request, "Payment verification failed. Please try again.")
+            return redirect('project_list')
+    else:
+        # API call failed
+        messages.error(request, "Payment verification failed. Please try again.")
+        return redirect('project_list')
+
+
+@login_required
+def investment_proposal(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    terms = project.investment_terms.first()
+
+    if not terms:
+        messages.error(request, "No investment terms available for this project.")
+        return redirect('project_detail', project_id=project.id)
+
+    if request.method == 'POST':
+        form = InvestmentForm(request.POST, terms=terms, project=project)
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            agreement_form = InvestmentAgreementForm(user=request.user)
+            
+            return render(request, 'projects/investment_proposal.html', {
+                'form': agreement_form,
+                'project': project,
+                'terms': terms,
+                'amount': amount
+            })
+        else:
+            messages.error(request, f"Form errors: {form.errors}")
+            return redirect('project_detail', project_id=project.id)
+    else:
+        # If accessed directly, redirect to project detail
+        return redirect('project_detail', project_id=project.id)
+
+@login_required
+def process_investment(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    terms = project.investment_terms.first()
+
+    if not terms:
+        messages.error(request, "No investment terms available for this project.")
+        return redirect('project_detail', project_id=project.id)
+
+    if request.method == 'POST':
+        agreement_form = InvestmentAgreementForm(request.POST, user=request.user)
+        
+        if agreement_form.is_valid():
+            try:
+                amount = float(request.POST.get('amount', 0))
+                
+                # Calculate the percentage of the funding goal this investment represents
+                investment_percentage = (amount / project.funding_goal) * 100
+                
+                # Calculate the equity percentage based on the funding percentage
+                # If $10,000 gets 10% equity, then $500 gets 0.5% equity (5% of the 10%)
+                equity_percentage = (funding_percentage / 100) * terms.equity_offered
+                
+                # Calculate remaining available equity
+                total_invested_percentage = project.investments.filter(status__in=['active', 'pending']).aggregate(
+                    total=Coalesce(Sum('equity_percentage'), 0)
+                )['total'] or 0
+                
+                available_equity = terms.equity_offered - total_invested_percentage
+                
+                # Check if there's enough equity available
+                if equity_percentage > available_equity:
+                    messages.error(
+                        request, 
+                        f"Your investment would exceed the available equity. Maximum available: {available_equity:.2f}%"
+                    )
+                    return redirect('project_detail', project_id=project.id)
+                
+                with transaction.atomic():
+                    # Create the investment with equity percentage
+                    investment = Investment(
+                        project=project,
+                        investor=request.user,
+                        terms=terms,
+                        amount=amount,
+                        equity_percentage=investment_percentage,
+                        status='pending'
+                    )
+                    investment.save()
+                    
+                    # Convert USD to NGN
+                    usd_amount = float(amount)
+                    ngn_amount = usd_amount * 1600  # Conversion rate
+                    
+                    # Initialize Paystack transaction
+                    amount_in_kobo = int(ngn_amount * 100)
+                    
+                    headers = {
+                        "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+                        "Content-Type": "application/json"
+                    }
+                    
+                    data = {
+                        "amount": amount_in_kobo,
+                        "email": request.user.email,
+                        "callback_url": request.build_absolute_uri(
+                            reverse('investment_payment_callback')
+                        ) + f"?investment_id={investment.id}",
+                        "currency": "NGN",
+                        "metadata": {
+                            "investment_id": str(investment.id),
+                            "project_id": str(project.id),
+                            "usd_amount": usd_amount,
+                            "equity_percentage": investment_percentage,
+                            "custom_fields": [
+                                {
+                                    "display_name": "Project Name",
+                                    "variable_name": "project_name",
+                                    "value": project.title
+                                },
+                                {
+                                    "display_name": "Equity Offered",
+                                    "variable_name": "equity_offered",
+                                    "value": f"{investment_percentage:.2f}% of {terms.equity_offered}%"
+                                }
+                            ]
+                        }
+                    }
+                    
+                    # Initialize transaction
+                    url = "https://api.paystack.co/transaction/initialize"
+                    response = requests.post(url, headers=headers, data=json.dumps(data))
+                    
+                    if response.status_code == 200:
+                        response_data = response.json()
+                        # Redirect to Paystack payment page
+                        return redirect(response_data['data']['authorization_url'])
+                    else:
+                        # Handle error
+                        messages.error(request, "Payment initialization failed. Please try again.")
+                        investment.delete()
+                        return redirect('project_detail', project_id=project.id)
+            except Exception as e:
+                messages.error(request, f"Error processing investment: {str(e)}")
+                return redirect('project_detail', project_id=project.id)
+        else:
+            # If agreement form is invalid, show the form again
+            amount = request.POST.get('amount', 0)
+            return render(request, 'projects/investment_proposal.html', {
+                'form': agreement_form,
+                'project': project,
+                'terms': terms,
+                'amount': amount
+            })
+    else:
+        # If accessed directly, redirect to project detail
+        return redirect('project_detail', project_id=project.id)
 
 
 @login_required
@@ -337,27 +691,92 @@ def make_investment(request, project_id):
         return redirect('project_detail', project_id=project.id)
 
     if request.method == 'POST':
-        form = InvestmentForm(request.POST, terms=terms, project=project)
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    investment = form.save(commit=False)
-                    investment.project = project
-                    investment.investor = request.user
-                    investment.terms = terms
-                    investment.status = 'pending'
-                    investment.save()  # Explicitly save to catch errors
-                    print(f"Investment ID after save: {investment.id}")  # Debugging
-                    return redirect('investment_detail', pk=investment.id)
-            except Exception as e:
-                messages.error(request, f"Error saving investment: {str(e)}")
-                return redirect('project_detail', project_id=project.id)
+        # Check if this is coming from the proposal page
+        if 'agree_to_terms' in request.POST and 'electronic_signature' in request.POST:
+            # Create a form with all the data
+            form_data = request.POST.copy()
+            form = InvestmentForm(form_data, terms=terms, project=project)
+            form.instance.investor = request.user
+            
+            if form.is_valid():
+                try:
+                    with transaction.atomic():
+                        investment = form.save(commit=False)
+                        investment.project = project
+                        investment.investor = request.user
+                        investment.terms = terms
+                        investment.status = 'pending'
+                        investment.save()
+                        
+                        # Convert USD to NGN (using a conversion rate of approximately 1 USD = 1600 NGN)
+                        usd_amount = float(investment.amount)  # Convert Decimal to float
+                        ngn_amount = usd_amount * 1600  # Conversion rate
+                        
+                        # Initialize Paystack transaction (in kobo - smallest NGN unit)
+                        amount_in_kobo = int(ngn_amount * 100)  # Convert NGN to kobo
+                        
+                        headers = {
+                            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+                            "Content-Type": "application/json"
+                        }
+                        
+                        data = {
+                            "amount": amount_in_kobo,
+                            "email": request.user.email,
+                            "callback_url": request.build_absolute_uri(
+                                reverse('investment_payment_callback')
+                            ) + f"?investment_id={investment.id}",
+                            "currency": "NGN",  # Explicitly set currency to NGN
+                            "metadata": {
+                                "investment_id": str(investment.id),  # Convert to string
+                                "project_id": str(project.id),
+                                "usd_amount": usd_amount,  # Already converted to float
+                                "custom_fields": [
+                                    {
+                                        "display_name": "Project Name",
+                                        "variable_name": "project_name",
+                                        "value": project.title
+                                    },
+                                    {
+                                        "display_name": "Equity Offered",
+                                        "variable_name": "equity_offered",
+                                        "value": f"{terms.equity_offered}%"
+                                    }
+                                ]
+                            }
+                        }
+                        
+                        # Initialize transaction
+                        url = "https://api.paystack.co/transaction/initialize"
+                        response = requests.post(url, headers=headers, data=json.dumps(data))
+                        
+                        if response.status_code == 200:
+                            response_data = response.json()
+                            # Redirect to Paystack payment page
+                            return redirect(response_data['data']['authorization_url'])
+                        else:
+                            # Handle error
+                            messages.error(request, "Payment initialization failed. Please try again.")
+                            investment.delete()  # Remove the investment since payment failed
+                            return redirect('project_detail', project_id=project.id)
+                except Exception as e:
+                    messages.error(request, f"Error processing investment: {str(e)}")
+                    return redirect('project_detail', project_id=project.id)
+            else:
+                messages.error(request, f"Form errors: {form.errors}")
+                return render(request, 'projects/investment_proposal.html', {
+                    'form': form,
+                    'project': project,
+                    'terms': terms,
+                    'amount': form_data.get('amount')
+                })
         else:
-            messages.error(request, f"Form errors: {form.errors}")
+            # This is the initial form from project detail
+            return redirect('investment_proposal', project_id=project.id)
     else:
+        # GET request - show the initial form
         form = InvestmentForm(terms=terms, project=project)
-
-    return render(request, 'projects/investment_detail.html', {'form': form, 'project': project})
+        return render(request, 'projects/investment_detail.html', {'form': form, 'project': project})
 
 
 
@@ -379,7 +798,14 @@ def activate_investment(request, investment_id):
                 # Update project's amount_raised ONLY when activating
                 project = investment.project
                 project.amount_raised += investment.amount
-                project.save()
+                
+                # Update available equity if equity_percentage exists
+                if hasattr(investment, 'equity_percentage'):
+                    # You might need to add an available_equity field to your Project model
+                    # or calculate it on the fly when needed
+                    project.save()
+                else:
+                    project.save()
 
                 messages.success(request, "Investment marked as active and project updated.")
             else:
@@ -414,62 +840,155 @@ class InvestmentDetailView(LoginRequiredMixin, DetailView):
         return get_object_or_404(Investment, pk=investment_id)
 #################################
 
+# def dashboard(request):
+#     if not request.user.is_authenticated:
+#         return redirect('login')
+    
+#     context = {}
+#     user = request.user
+    
+#     pledges = Pledge.objects.filter(backer=user).select_related('project').order_by('-pledged_at')
+#     investments = Investment.objects.filter(investor=user).order_by('-created_at')
+
+#     paginator = Paginator(investments, 3)  # Show 5 investments per page
+#     page = request.GET.get('page')
+#     try:
+#         paginated_investments = paginator.page(page)
+#     except PageNotAnInteger:
+#         paginated_investments = paginator.page(1)
+#     except EmptyPage:
+#         paginated_investments = paginator.page(paginator.num_pages)
+#     # Common data for all users
+#     context['pledges'] = Pledge.objects.filter(backer=user).select_related('project')
+#     context['investments'] = Investment.objects.filter(investor=user).select_related('project')
+    
+#     # Founder-specific data
+#     if user.user_type == 'founder':
+#         projects = Project.objects.filter(creator=user).annotate(
+#             calculated_percent=ExpressionWrapper(
+#                 F('amount_raised') / F('funding_goal') * 100,
+#                 output_field=FloatField()
+#             )
+#         )
+        
+#         context.update({
+#             'created_projects': projects,
+#             'total_projects': projects.count(),
+#             'active_projects': projects.filter(deadline__gte=timezone.now()).count(),
+#             'total_raised': projects.aggregate(Sum('amount_raised'))['amount_raised__sum'] or 0,
+#             'avg_funding': projects.aggregate(Avg('calculated_percent'))['calculated_percent__avg'] or 0,
+
+#         })
+
+#     # Investor-specific data
+#     elif user.user_type == 'investor':
+#         investments = context['investments']
+        
+#         # Investment statistics
+#         context.update({
+#             'total_invested': investments.aggregate(total=Sum('amount'))['total'] or 0,
+#             'active_investments': investments.filter(terms__deadline__gte=timezone.now()).count(),
+#             'avg_return': investments.aggregate(avg=Avg('terms__equity_offered'))['avg'] or 0,
+#             'potential_roi': sum(
+#                 inv.amount * (inv.terms.equity_offered / 100)
+#                 for inv in investments.filter(status='accepted')
+#             ) or 0,
+#             'recommended_projects': get_recommended_projects(user)  # Implement this function
+#         })
+
+#     # Donor-specific data can be added here
+#     elif user.user_type == 'donor':
+#         # Add donor-specific context
+#         pass
+
+#     template_map = {
+#         'founder': 'dashboard/founder_dashboard.html',
+#         'donor': 'dashboard/donor_dashboard.html',
+#         'investor': 'dashboard/investor_dashboard.html',
+#     }
+    
+#     return render(request, template_map.get(user.user_type, 'dashboard.html'), context)
+
+@login_required
 def dashboard(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-    
-    context = {}
     user = request.user
+    now = timezone.now()
     
-    # Common data for all users
-    context['pledges'] = Pledge.objects.filter(backer=user).select_related('project')
-    context['investments'] = Investment.objects.filter(investor=user).select_related('project')
+    # Common context data
+    context = {
+        'now': now,
+    }
     
     # Founder-specific data
     if user.user_type == 'founder':
-        projects = Project.objects.filter(creator=user).annotate(
-            calculated_percent=ExpressionWrapper(
-                F('amount_raised') / F('funding_goal') * 100,
+        created_projects = Project.objects.filter(creator=user).annotate(
+            percent_funded=ExpressionWrapper(
+                (F('amount_raised') * 100.0) / F('funding_goal'),
                 output_field=FloatField()
             )
         )
         
-        context.update({
-            'created_projects': projects,
-            'total_projects': projects.count(),
-            'active_projects': projects.filter(deadline__gte=timezone.now()).count(),
-            'total_raised': projects.aggregate(Sum('amount_raised'))['amount_raised__sum'] or 0,
-            'avg_funding': projects.aggregate(Avg('calculated_percent'))['calculated_percent__avg'] or 0
-        })
-
-    # Investor-specific data
-    elif user.user_type == 'investor':
-        investments = context['investments']
+        total_projects = created_projects.count()
+        active_projects = created_projects.filter(deadline__gte=now).count()
+        total_raised = created_projects.aggregate(Sum('amount_raised'))['amount_raised__sum'] or 0
         
-        # Investment statistics
+        # Calculate average funding percentage
+        funded_projects = created_projects.filter(amount_raised__gt=0)
+        if funded_projects.exists():
+            avg_funding = funded_projects.aggregate(
+                avg=Avg('percent_funded')
+            )['avg'] or 0
+        else:
+            avg_funding = 0
+        
         context.update({
-            'total_invested': investments.aggregate(total=Sum('amount'))['total'] or 0,
-            'active_investments': investments.filter(terms__deadline__gte=timezone.now()).count(),
-            'avg_return': investments.aggregate(avg=Avg('terms__equity_offered'))['avg'] or 0,
-            'potential_roi': sum(
-                inv.amount * (inv.terms.equity_offered / 100)
-                for inv in investments.filter(status='accepted')
-            ) or 0,
-            'recommended_projects': get_recommended_projects(user)  # Implement this function
+            'created_projects': created_projects,
+            'total_projects': total_projects,
+            'active_projects': active_projects,
+            'total_raised': total_raised,
+            'avg_funding': avg_funding,
         })
-
-    # Donor-specific data can be added here
-    elif user.user_type == 'donor':
-        # Add donor-specific context
-        pass
-
-    template_map = {
-        'founder': 'dashboard/founder_dashboard.html',
-        'donor': 'dashboard/donor_dashboard.html',
-        'investor': 'dashboard/investor_dashboard.html',
-    }
     
-    return render(request, template_map.get(user.user_type, 'dashboard.html'), context)
+    # Get user's pledges
+    pledges = Pledge.objects.filter(backer=user).select_related('project', 'reward')
+    context['pledges'] = pledges
+    
+    # Get user's investments with equity percentage calculation
+    investments = Investment.objects.filter(investor=user).select_related('project', 'terms')
+    
+    # Ensure each investment has the correct equity percentage
+    for investment in investments:
+        if not investment.equity_percentage:
+            # Calculate if not already set
+            funding_percentage = (investment.amount / investment.project.funding_goal) * 100
+            investment.equity_percentage = (funding_percentage / 100) * investment.terms.equity_offered
+            investment.save()
+    
+    context['investments'] = investments
+    
+    # Recommended projects for investors
+    if user.user_type == 'investor':
+        # Get investor's preferred industries if available
+        preferred_industries = []
+        if hasattr(user, 'investorprofile') and user.investorprofile.preferred_industries:
+            preferred_industries = user.investorprofile.preferred_industries.split(',')
+            preferred_industries = [industry.strip() for industry in preferred_industries]
+        
+        # Get projects that match investor's preferences
+        recommended_projects = Project.objects.filter(
+            deadline__gte=now
+        ).exclude(
+            investments__investor=user
+        ).annotate(
+            percent_funded=ExpressionWrapper(
+                (F('amount_raised') * 100.0) / F('funding_goal'),
+                output_field=FloatField()
+            )
+        ).order_by('-created_at')[:6]
+        
+        context['recommended_projects'] = recommended_projects
+    
+    return render(request, 'dashboard.html', context)
 
 
 def get_recommended_projects(user):
@@ -657,3 +1176,68 @@ def investor_dashboard(request):
     }
     
     return render(request, 'dashboard/investor_dashboard.html', context)
+
+
+@login_required
+def investment_payment_callback(request):
+    reference = request.GET.get('reference')
+    investment_id = request.GET.get('investment_id')
+    
+    # Check if investment_id is None or invalid
+    if not investment_id or investment_id == 'None':
+        # Handle the case where investment_id is missing
+        messages.warning(
+            request, 
+            "Payment was processed, but we couldn't find your investment details. Please contact support."
+        )
+        # Redirect to a safe location
+        return redirect('project_list')
+    
+    # Verify transaction
+    url = f"https://api.paystack.co/transaction/verify/{reference}"
+    headers = {"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
+    
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        response_data = response.json()
+        
+        if response_data['data']['status'] == 'success':
+            try:
+                # Payment successful
+                investment = get_object_or_404(Investment, id=investment_id)
+                
+                # Update investment status
+                investment.status = 'active'
+                investment.save()
+                
+                # Update project's amount_raised
+                project = investment.project
+                project.amount_raised += investment.amount
+                project.save()
+                
+                # Add success message
+                messages.success(
+                    request, 
+                    f"Your investment of ${investment.amount} was successful! "
+                    f"You now own {investment.terms.equity_offered}% equity in this project."
+                )
+                
+                return redirect('project_detail', project_id=project.id)
+            except Exception as e:
+                # Log the error for debugging
+                print(f"Error processing investment: {str(e)}")
+                messages.error(
+                    request,
+                    "Your payment was successful, but we encountered an error updating your investment. "
+                    "Please contact support with reference: " + reference
+                )
+                return redirect('project_list')
+        else:
+            # Payment failed
+            messages.error(request, "Payment verification failed. Please try again.")
+            return redirect('project_list')
+    else:
+        # API call failed
+        messages.error(request, "Payment verification failed. Please try again.")
+        return redirect('project_list')

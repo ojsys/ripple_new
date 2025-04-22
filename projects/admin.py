@@ -7,7 +7,7 @@ from django_json_widget.widgets import JSONEditorWidget
 from django.contrib.auth.admin import UserAdmin
 from .models import (
     CustomUser, Category, Project, FundingType, HeaderLink, FooterSection, FounderProfile, InvestorProfile,
-    Reward, Pledge, InvestmentTerm, Investment, SiteSettings, SocialMediaLink, HeroSlider
+    Reward, Pledge, InvestmentTerm, Investment, SiteSettings, SocialMediaLink, HeroSlider, Testimonial
 )
 
 class HeaderLinkInline(admin.TabularInline):
@@ -94,6 +94,12 @@ class InvestorProfileAdmin(admin.ModelAdmin):
     list_filter = ('preferred_industries',)
 
 
+@admin.register(Testimonial)
+class TestimonialAdmin(admin.ModelAdmin):
+    list_display = ('name', 'position', 'company', 'rating', 'is_active', 'created_at')
+    list_filter = ('is_active', 'rating')
+    search_fields = ('name', 'position', 'company', 'content')
+    list_editable = ('is_active',)
 
 # Register the admin class
 admin.site.register(CustomUser, CustomUserAdmin)
@@ -107,3 +113,6 @@ admin.site.register(Reward)
 admin.site.register(Pledge)
 admin.site.register(InvestmentTerm)
 admin.site.register(Investment)
+
+
+# Add this to your admin.py f

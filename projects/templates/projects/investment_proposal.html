@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Investment Proposal - {{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">Investment Proposal</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">Project: {{ project.title }}</h4>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Investment Amount:</strong> ${{ amount }}</p>
+                        <p><strong>Equity Offered:</strong> {{ terms.equity_offered }}%</p>
+                        <p><strong>Company Valuation:</strong> ${{ terms.valuation }}</p>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Investment Terms and Conditions</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6>1. Investment Structure</h6>
+                            <p>This investment represents {{ terms.equity_offered }}% equity stake in {{ project.title }} at a valuation of ${{ terms.valuation }}.</p>
+                            
+                            <h6>2. Rights and Obligations</h6>
+                            {% if terms.investor_rights %}
+                                <p>{{ terms.investor_rights|linebreaks }}</p>
+                            {% else %}
+                                <p>As an investor, you will receive regular updates on the company's progress and financial performance. You will have voting rights proportional to your equity stake.</p>
+                            {% endif %}
+                            
+                            <h6>3. Exit Strategy</h6>
+                            {% if terms.exit_strategy %}
+                                <p>{{ terms.exit_strategy|linebreaks }}</p>
+                            {% else %}
+                                <p>Potential exit opportunities include acquisition, IPO, or secondary market sales. The timeline for exit is estimated at 3-7 years.</p>
+                            {% endif %}
+                            
+                            <h6>4. Risk Disclosure</h6>
+                            <p>Investing in startups and early-stage companies involves substantial risk, including the potential loss of your entire investment. Past performance is not indicative of future results.</p>
+                            
+                            <h6>5. Legal Compliance</h6>
+                            <p>This investment is subject to all applicable securities laws and regulations. By proceeding, you confirm that you meet all legal requirements to make this investment.</p>
+                            
+                            {% if terms.additional_terms %}
+                            <h6>6. Additional Terms</h6>
+                            <p>{{ terms.additional_terms|linebreaks }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <form method="post" action="{% url 'process_investment' project.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="amount" value="{{ amount }}">
+                        
+                        {{ form|crispy }}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Proceed to Payment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

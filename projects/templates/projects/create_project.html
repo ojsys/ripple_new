@@ -1,21 +1,346 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
 
+{% block extra_head %}
+{{ form.media }}
+{% endblock %}
+{% block title %}Creae Project{% endblock %}
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-body p-5">
-                    <h2 class="mb-4">Start Your Project</h2>
-                    <form method="post" enctype="multipart/form-data">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-success text-white py-3">
+                    <h2 class="h4 mb-0"><i class="fas fa-rocket me-2"></i>Start Your Project</h2>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Progress Steps -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between position-relative mb-4">
+                            <div class="step-progress-bar"></div>
+                            <div class="step-item active" data-step="1">
+                                <div class="step-circle">1</div>
+                                <div class="step-label">Basics</div>
+                            </div>
+                            <div class="step-item" data-step="2">
+                                <div class="step-circle">2</div>
+                                <div class="step-label">Details</div>
+                            </div>
+                            <div class="step-item" data-step="3">
+                                <div class="step-circle">3</div>
+                                <div class="step-label">Funding</div>
+                            </div>
+                            <div class="step-item" data-step="4">
+                                <div class="step-circle">4</div>
+                                <div class="step-label">Media</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tips Card -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-lightbulb text-warning me-2"></i>Tips for Success</h5>
+                            <div class="tips-content" id="tipBasics">
+                                <p>Projects with clear titles and compelling descriptions are 50% more likely to reach their funding goals.</p>
+                                <ul>
+                                    <li>Choose a clear, specific title that explains what your project is</li>
+                                    <li>Select the most relevant category for your project</li>
+                                    <li>Set a realistic timeline for your project</li>
+                                </ul>
+                            </div>
+                            <div class="tips-content d-none" id="tipDetails">
+                                <p>A detailed project description helps backers understand your vision.</p>
+                                <ul>
+                                    <li>Tell your story and explain why your project matters</li>
+                                    <li>Describe what you'll accomplish with the funding</li>
+                                    <li>Share your qualifications and experience</li>
+                                </ul>
+                            </div>
+                            <div class="tips-content d-none" id="tipFunding">
+                                <p>Setting the right funding goal is crucial for success.</p>
+                                <ul>
+                                    <li>Be realistic about how much you need</li>
+                                    <li>Consider all costs including fees and fulfillment</li>
+                                    <li>Projects with lower goals have higher success rates</li>
+                                </ul>
+                            </div>
+                            <div class="tips-content d-none" id="tipMedia">
+                                <p>Projects with quality images raise 30% more than those without.</p>
+                                <ul>
+                                    <li>Use high-quality images that showcase your project</li>
+                                    <li>Add a video to increase your chances of success by 50%</li>
+                                    <li>Include diagrams or mockups if relevant</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form -->
+                    <form method="post" enctype="multipart/form-data" id="create-project-form">
                         {% csrf_token %}
-                        {{ form|crispy }}
-                        <button type="submit" class="btn btn-success mt-3">Launch Project</button>
+                        
+                        <!-- Step 1: Basics -->
+                        <div class="form-step" id="step1">
+                            <h4 class="mb-3">Project Basics</h4>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    {% if form.title %}{{ form.title|as_crispy_field }}{% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    {% if form.category %}{{ form.category|as_crispy_field }}{% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {% if form.location %}{{ form.location|as_crispy_field }}{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {% if form.deadline %}{{ form.deadline|as_crispy_field }}{% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="button" class="btn btn-primary next-step">Continue <i class="fas fa-arrow-right ms-1"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Details -->
+                        <div class="form-step d-none" id="step2">
+                            <h4 class="mb-3">Project Details</h4>
+                            
+                            {% if form.description %}{{ form.description|as_crispy_field }}{% endif %}
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-outline-secondary prev-step"><i class="fas fa-arrow-left me-1"></i> Back</button>
+                                <button type="button" class="btn btn-primary next-step">Continue <i class="fas fa-arrow-right ms-1"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Funding -->
+                        <div class="form-step d-none" id="step3">
+                            <h4 class="mb-3">Funding Details</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {% if form.funding_goal %}{{ form.funding_goal|as_crispy_field }}{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {% if form.funding_type %}{{ form.funding_type|as_crispy_field }}{% endif %}
+                                </div>
+                            </div>
+                            <div id="equity-fields" class="d-none">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i> For equity funding, you'll need to set up investment terms after creating your project.
+                                </div>
+                            </div>
+                            <div id="reward-fields" class="d-none">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i> You'll be able to add rewards after creating your project.
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-outline-secondary prev-step"><i class="fas fa-arrow-left me-1"></i> Back</button>
+                                <button type="button" class="btn btn-primary next-step">Continue <i class="fas fa-arrow-right ms-1"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 4: Media -->
+                        <div class="form-step d-none" id="step4">
+                            <h4 class="mb-3">Project Media</h4>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="{{ form.image.id_for_label }}" class="form-label">Project Image</label>
+                                        <div class="custom-file-upload">
+                                            <div class="image-preview-container mb-2">
+                                                <div id="image-preview" class="text-center p-4 border rounded bg-light">
+                                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                                    <p class="mt-2 mb-0">Preview will appear here</p>
+                                                </div>
+                                            </div>
+                                            {% if form.image %}{{ form.image }}{% endif %}
+                                            <small class="form-text text-muted">Recommended size: 1200 x 675 pixels (16:9 ratio)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    {% if form.video_url %}{{ form.video_url|as_crispy_field }}{% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-outline-secondary prev-step"><i class="fas fa-arrow-left me-1"></i> Back</button>
+                                <button type="submit" class="btn btn-success"><i class="fas fa-rocket me-1"></i> Launch Project</button>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.step-progress-bar {
+    position: absolute;
+    top: 24px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #e9ecef;
+    z-index: 1;
+}
+
+.step-item {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    width: 50px;
+}
+
+.step-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-weight: bold;
+    color: #6c757d;
+    border: 2px solid #e9ecef;
+}
+
+.step-item.active .step-circle {
+    background-color: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.step-item.completed .step-circle {
+    background-color: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.step-label {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.step-item.active .step-label {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.custom-file-upload {
+    cursor: pointer;
+}
+
+.image-preview-container {
+    height: 200px;
+    overflow: hidden;
+}
+
+#image-preview img {
+    max-height: 100%;
+    max-width: 100%;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Step navigation
+    const steps = document.querySelectorAll('.form-step');
+    const stepItems = document.querySelectorAll('.step-item');
+    const nextButtons = document.querySelectorAll('.next-step');
+    const prevButtons = document.querySelectorAll('.prev-step');
+    const tipContents = document.querySelectorAll('.tips-content');
+    
+    // Show appropriate tip content
+    function showTip(stepNumber) {
+        tipContents.forEach(tip => tip.classList.add('d-none'));
+        document.getElementById('tip' + ['Basics', 'Details', 'Funding', 'Media'][stepNumber-1]).classList.remove('d-none');
+    }
+    
+    // Next button click
+    nextButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const currentStep = this.closest('.form-step');
+            const currentStepIndex = Array.from(steps).indexOf(currentStep);
+            
+            // Hide current step
+            currentStep.classList.add('d-none');
+            
+            // Show next step
+            steps[currentStepIndex + 1].classList.remove('d-none');
+            
+            // Update step indicators
+            stepItems[currentStepIndex].classList.add('completed');
+            stepItems[currentStepIndex + 1].classList.add('active');
+            
+            // Show appropriate tip
+            showTip(currentStepIndex + 2);
+        });
+    });
+    
+    // Previous button click
+    prevButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const currentStep = this.closest('.form-step');
+            const currentStepIndex = Array.from(steps).indexOf(currentStep);
+            
+            // Hide current step
+            currentStep.classList.add('d-none');
+            
+            // Show previous step
+            steps[currentStepIndex - 1].classList.remove('d-none');
+            
+            // Update step indicators
+            stepItems[currentStepIndex].classList.remove('active');
+            stepItems[currentStepIndex - 1].classList.remove('completed');
+            stepItems[currentStepIndex - 1].classList.add('active');
+            
+            // Show appropriate tip
+            showTip(currentStepIndex);
+        });
+    });
+    
+    // Funding type change
+    const fundingTypeSelect = document.querySelector('#id_funding_type');
+    const equityFields = document.querySelector('#equity-fields');
+    const rewardFields = document.querySelector('#reward-fields');
+    
+    fundingTypeSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex].text;
+        
+        equityFields.classList.add('d-none');
+        rewardFields.classList.add('d-none');
+        
+        if (selectedOption.includes('Equity')) {
+            equityFields.classList.remove('d-none');
+        } else if (selectedOption.includes('Reward')) {
+            rewardFields.classList.remove('d-none');
+        }
+    });
+    
+    // Image preview
+    const imageInput = document.querySelector('#id_image');
+    const imagePreview = document.querySelector('#image-preview');
+    
+    imageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            }
+            
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+});
+</script>
 {% endblock %}

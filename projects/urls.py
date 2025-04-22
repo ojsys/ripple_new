@@ -9,12 +9,15 @@ urlpatterns = [
     path('projects/<int:project_id>/', views.project_detail, name='project_detail'),
 
     path('signup/', views.signup, name='signup'),
+    # Add this to your urlpatterns
+    path('verify-email/<uidb64>/<token>/', views.verify_email, name='verify_email'),
+    # Authentication
     path('login/', views.user_login, name='login'),
     path('accounts/logout/', views.user_logout, name='logout'),
     
     # Edit URLs
     path('profile/edit/', views.edit_profile, name='edit_profile'),
-    path('projects/<int:pk>/edit/', views.edit_project, name='edit_project'),
+    path('projects/<int:project_id>/edit/', views.edit_project, name='edit_project'),
 
     # Project Management
     path('projects/create/', views.create_project, name='create_project'),
@@ -24,6 +27,9 @@ urlpatterns = [
     # Funding Actions
     path('invest/<int:project_id>/', views.make_investment, name='make_investment'),
     path('pledge/<int:project_id>/', views.make_pledge, name='make_pledge'),
+
+    path('pledge/callback/', views.pledge_payment_callback, name='pledge_payment_callback'),
+    path('investment/callback/', views.investment_payment_callback, name='investment_payment_callback'),
     
     # Investment Management
     path('projects/<int:project_id>/investments/', views.manage_investments, name='manage_investments'),
@@ -31,13 +37,24 @@ urlpatterns = [
     path('my-investments/', views.MyInvestmentsView.as_view(), name='my_investments'),
     path('investment/<int:pk>/', views.InvestmentDetailView.as_view(), name='investment_detail'),
     path('investment/<int:investment_id>/activate/', views.activate_investment, name='activate_investment'),
+    # Add these to your urlpatterns
+    path('projects/<int:project_id>/investment/proposal/', views.investment_proposal, name='investment_proposal'),
+    path('projects/<int:project_id>/investment/process/', views.process_investment, name='process_investment'),
+    path('projects/<int:project_id>/delete/', views.delete_project, name='delete_project'),
 
+    
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
     path('complete-profile/', views.complete_profile, name='complete_profile'),
 
 
 ]
+
+
+
+
+
 # Add this at the end
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

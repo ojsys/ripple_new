@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F, ExpressionWrapper, FloatField
-
+from ckeditor.fields import RichTextField
 
 class CustomUser(AbstractUser):
     USER_TYPES = (
@@ -19,9 +19,18 @@ class CustomUser(AbstractUser):
     user_type = models.CharField(max_length=20, choices=USER_TYPES)
     phone_number = models.CharField(max_length=20)
     profile_completed = models.BooleanField(default=False)
-
-    # Add these if missing
+    location = models.CharField(max_length=100, blank=True, null=True)
     
+    # New address fields
+    address_line1 = models.CharField(max_length=255, blank=True, null=True)
+    address_line2 = models.CharField(max_length=255, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    state_province = models.CharField(max_length=100, blank=True, null=True)
+    postal_code = models.CharField(max_length=20, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    email_verified = models.BooleanField(default=False)
+    
+    # Add these if missing
     email = models.EmailField(unique=True)
     
     # Update the USERNAME_FIELD if needed
@@ -34,8 +43,15 @@ class CustomUser(AbstractUser):
 
 class FounderProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    company_name = models.CharField(max_length=100)
-    image = models.ImageField(upload_to='profile_images/', blank=True)
+    image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+    company_name = models.CharField(max_length=100, blank=True, null=True)
+    industry = models.CharField(max_length=100, blank=True, null=True)
+    experience = models.TextField(blank=True, null=True)
+    cv = models.FileField(upload_to='founder_cvs/', blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.user.username}'s Founder Profile"
+    
     website = models.URLField(blank=True)
     bio = models.TextField()
 
@@ -51,6 +67,9 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name_plural = "Categories"
     
     
 
@@ -65,7 +84,7 @@ class FundingType(models.Model):
 class Project(models.Model):
     
     title = models.CharField(max_length=200)
-    description = models.TextField()
+    description = RichTextField()  # Changed from TextField to RichTextField
     funding_goal = models.DecimalField(max_digits=10, decimal_places=2)
     amount_raised = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_investment_raised = models.DecimalField(max_digits=10, decimal_places=2, default=0)  
@@ -74,7 +93,10 @@ class Project(models.Model):
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='projects_created')
     image = models.ImageField(upload_to='project_images/')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    funding_type = models.ForeignKey(FundingType, on_delete=models.SET_NULL, null=True) 
+    funding_type = models.ForeignKey(FundingType, on_delete=models.SET_NULL, null=True)
+    location = models.CharField(max_length=100, blank=True, null=True)
+    short_description = models.CharField(max_length=255, blank=True, null=True)
+    video_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -100,6 +122,8 @@ class InvestmentTerm(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='investment_terms')
     equity_offered = models.DecimalField(max_digits=5, decimal_places=2, help_text="Percentage of equity offered")
     minimum_investment = models.DecimalField(max_digits=10, decimal_places=2)
+    maximum_investment = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, 
+                                           help_text="Maximum investment amount allowed (optional)")
     valuation = models.DecimalField(max_digits=10, decimal_places=2, help_text="Project valuation in USD")
     deadline = models.DateTimeField()
 
@@ -118,6 +142,7 @@ class Investment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='investments')
     investor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    equity_percentage = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     actual_return = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     terms = models.ForeignKey(InvestmentTerm, on_delete=models.SET_NULL, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -188,7 +213,7 @@ class Pledge(models.Model):
 class Update(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='updates')
     title = models.CharField(max_length=200)
-    content = models.TextField()
+    content = RichTextField()  # Changed from TextField to RichTextField
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -324,5 +349,23 @@ class SEOSettings(models.Model):
     def load(cls):
         obj, created = cls.objects.get_or_create(pk=1)
         return obj
+
+# Add this to your models.py file
+
+class Testimonial(models.Model):
+    name = models.CharField(max_length=100)
+    position = models.CharField(max_length=100)
+    company = models.CharField(max_length=100, blank=True, null=True)
+    image = models.ImageField(upload_to='testimonials/', blank=True, null=True)
+    content = models.TextField()
+    rating = models.IntegerField(default=5, choices=[(i, i) for i in range(1, 6)])
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.name} - {self.position}"
+    
+    class Meta:
+        ordering = ['-created_at']
     
 

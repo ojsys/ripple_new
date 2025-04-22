@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load static humanize %}
 
+
+{% block title %}All Projects {% endblock %}
 {% block content %}
 <section class="py-5">
     <div class="container">
@@ -15,8 +17,26 @@
                     <a href="{% url 'my_investments' %}" class="btn btn-primary">My Investments</a>
                 {% endif %}
             </div>
-            
         </div>
+        
+        <!-- Category Tabs - Limited to top 6 -->
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link {% if not request.GET.category %}active{% endif %} text-success" 
+                   href="{% url 'project_list' %}{% if request.GET.funding_type %}?funding_type={{ request.GET.funding_type }}{% endif %}">
+                   All Categories
+                </a>
+            </li>
+            {% for cat in categories|slice:":6" %}
+            <li class="nav-item">
+                <a class="nav-link {% if request.GET.category == cat.name %}active{% endif %} text-success" 
+                   href="{% url 'project_list' %}?category={{ cat.name }}{% if request.GET.funding_type %}&funding_type={{ request.GET.funding_type }}{% endif %}">
+                   {{ cat.name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        
         <div class="card mb-4">
             <div class="card-body">
                 <form method="get">
@@ -28,21 +48,11 @@
                                    value="{{ request.GET.q }}">
                         </div>
                         
-                        <!-- Category Filter -->
-                        <div class="col-md-3">
-                            <select name="category" class="form-select">
-                                <option value="">All Categories</option>
-                                {% for cat in categories %}
-                                <option value="{{ cat.name }}" 
-                                    {% if request.GET.category == cat.name %}selected{% endif %}>
-                                    {{ cat.name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <!-- Category Filter (hidden since we're using tabs) -->
+                        <input type="hidden" name="category" value="{{ request.GET.category }}">
                         
                         <!-- Funding Type Filter -->
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <select name="funding_type" class="form-select">
                                 <option value="">All Funding Types</option>
                                 {% for ft in funding_types %}
@@ -55,7 +65,7 @@
                         </div>
                         
                         <!-- Sort -->
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <select name="sort" class="form-select">
                                 <option value="">Sort By</option>
                                 <option value="newest" 
@@ -97,7 +107,7 @@
                     
                     <div class="card-body p-4">
                         <h3 class="h4 card-title mb-3">{{ project.title }}</h3>
-                        <p class="card-text text-muted">{{ project.description|truncatechars:100 }}</p>
+                        <p class="card-text text-muted">{{ project.description|safe|truncatechars:100 }}</p>
                         
                         <div class="mt-4">
                             <div class="d-flex justify-content-between align-items-center mb-2">

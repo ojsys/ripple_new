@@ -1,10 +1,17 @@
 from django.utils import timezone
 from .models import SiteSettings, ThemeSettings, Announcement
 
+from projects.models import SiteSettings
+
 def site_settings(request):
-    return {
-        'site_settings': SiteSettings.load()
-    }
+    """
+    Context processor to add site settings to all templates
+    """
+    try:
+        settings = SiteSettings.load()
+        return {'site_settings': settings}
+    except:
+        return {'site_settings': None}
 
 
 def theme_settings(request):

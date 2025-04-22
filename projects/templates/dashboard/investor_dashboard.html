@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
+{% block title %}Investor Dashboard{% endblock %}
+
 {% block content %}
 <div class="container px-4">
     <!-- Dashboard Header -->
@@ -166,6 +168,31 @@
                     </tbody>
                 </table>
             </div>
+            {% if investments.paginator.num_pages > 1 %}
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Investment pagination">
+                    <ol class="pagination">
+                        {% if investments.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ investments.previous_page_number }}">&laquo; Previous</a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in investments.paginator.page_range %}
+                            <li class="page-item {% if investments.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endfor %}
+
+                        {% if investments.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ investments.next_page_number }}">Next &raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ol>
+                </nav>
+            </div>
+            {% endif %}
         </div>
     </div>
 
