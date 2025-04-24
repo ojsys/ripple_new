@@ -576,14 +576,14 @@ def process_investment(request, project_id):
         
         if agreement_form.is_valid():
             try:
-                amount = float(request.POST.get('amount', 0))
+                amount = Decimal(request.POST.get('amount', 0))
                 
                 # Calculate the percentage of the funding goal this investment represents
                 investment_percentage = (amount / project.funding_goal) * 100
                 
                 # Calculate the equity percentage based on the funding percentage
                 # If $10,000 gets 10% equity, then $500 gets 0.5% equity (5% of the 10%)
-                equity_percentage = (funding_percentage / 100) * terms.equity_offered
+                equity_percentage = (investment_percentage / 100) * terms.equity_offered
                 
                 # Calculate remaining available equity
                 total_invested_percentage = project.investments.filter(status__in=['active', 'pending']).aggregate(
