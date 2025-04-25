@@ -78,133 +78,125 @@ def send_welcome_email_with_verification(sender, instance, created, **kwargs):
     except Exception as e:
         print(f"Welcome email sending failed: {e}")
 
-@receiver(post_save, sender=Pledge)
-def send_pledge_confirmation(sender, instance, created, **kwargs):
+# Remove the post_save signal for Pledge and create a function to be called after payment success
+def send_pledge_confirmation_after_payment(pledge):
     try:
-        if created:
-            subject = f"Thank you for supporting {instance.project.title}!"
-            
-            html_message = f"""
-            <!DOCTYPE html>
-            <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
-                    <h2 style="color: #2c3e50; margin-bottom: 20px;">Thank You for Your Support! 🎉</h2>
-                    
-                    <p>Hello {instance.backer.get_full_name() or instance.backer.username},</p>
-                    
-                    <p>Thank you for your generous pledge to <strong style="color: #3498db;">{instance.project.title}</strong>. Your support means the world to this project and its creator!</p>
-                    
-                    <div style="background-color: #ffffff; padding: 15px; border-left: 4px solid #27ae60; margin: 20px 0;">
-                        <p style="margin: 0;"><strong>Pledge Amount:</strong> ${instance.amount:,.2f}</p>
-                        <p style="margin: 10px 0 0 0;"><strong>Project:</strong> {instance.project.title}</p>
-                    </div>
-                    
-                    <p>You can track the project's progress and updates here:</p>
-                    
-                    <p style="text-align: center;">
-                        <a href="{instance.project.get_absolute_url()}" style="display: inline-block; padding: 10px 20px; background-color: #27ae60; color: white; text-decoration: none; border-radius: 5px;">View Project</a>
-                    </p>
-                    
-                    <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+        subject = f"Thank you for supporting {pledge.project.title}!"
+        
+        html_message = f"""
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+                <h2 style="color: #2c3e50; margin-bottom: 20px;">Thank You for Your Support! 🎉</h2>
+                
+                <p>Hello {pledge.backer.get_full_name() or pledge.backer.username},</p>
+                
+                <p>Thank you for your generous pledge to <strong style="color: #3498db;">{pledge.project.title}</strong>. Your support means the world to this project and its creator!</p>
+                
+                <div style="background-color: #ffffff; padding: 15px; border-left: 4px solid #27ae60; margin: 20px 0;">
+                    <p style="margin: 0;"><strong>Pledge Amount:</strong> ${pledge.amount:,.2f}</p>
+                    <p style="margin: 10px 0 0 0;"><strong>Project:</strong> {pledge.project.title}</p>
                 </div>
-            </body>
-            </html>
-            """
-            
-            # Plain text version for email clients that don't support HTML
-            text_message = f"""
-            Hello {instance.backer.get_full_name() or instance.backer.username},
-            
-            Thank you for your generous pledge of ${instance.amount:,.2f} to {instance.project.title}. Your support means the world to this project and its creator!
-            
-            You can track the project's progress and updates here: {instance.project.get_absolute_url()}
-            
-            Best regards,
-            The Ripples Team
-            """
-            
-            email = EmailMessage(
-                subject=subject,
-                body=text_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[instance.backer.email],
-                headers={'From': settings.DEFAULT_FROM_EMAIL}
-            )
-            email.content_subtype = 'html'  # Set the content type to HTML
-            email.body = html_message
-            email.send()
+                
+                <p>You can track the project's progress and updates here:</p>
+                
+                <p style="text-align: center;">
+                    <a href="{pledge.project.get_absolute_url()}" style="display: inline-block; padding: 10px 20px; background-color: #27ae60; color: white; text-decoration: none; border-radius: 5px;">View Project</a>
+                </p>
+                
+                <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Plain text version for email clients that don't support HTML
+        text_message = f"""
+        Hello {pledge.backer.get_full_name() or pledge.backer.username},
+        
+        Thank you for your generous pledge of ${pledge.amount:,.2f} to {pledge.project.title}. Your support means the world to this project and its creator!
+        
+        You can track the project's progress and updates here: {pledge.project.get_absolute_url()}
+        
+        Best regards,
+        The Ripples Team
+        """
+        
+        email = EmailMessage(
+            subject=subject,
+            body=text_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[pledge.backer.email],
+            headers={'From': settings.DEFAULT_FROM_EMAIL}
+        )
+        email.content_subtype = 'html'  # Set the content type to HTML
+        email.body = html_message
+        email.send()
     except Exception as e:
-        print(f"Email sending failed: {e}")
+        print(f"Pledge confirmation email sending failed: {e}")
 
-@receiver(post_save, sender=Investment)
-def notify_founder_new_investment(sender, instance, created, **kwargs):
+# Remove the post_save signal for Investment and create a function to be called after payment success
+def notify_founder_new_investment_after_payment(investment):
     try: 
-        if created:
-            subject = f"New Investment Proposal for {instance.project.title}"
-            html_message = f"""
-            <!DOCTYPE html>
-            <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
-                    <h2 style="color: #2c3e50; margin-bottom: 20px;">New Investment Proposal! 🎉</h2>
-                    
-                    <p>Hello {instance.project.creator.username},</p>
-                    
-                    <p>Exciting news! Your project <strong style="color: #3498db;">{instance.project.title}</strong> has received a new investment proposal.</p>
-                    
-                    <div style="background-color: #ffffff; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0;">
-                        <p style="margin: 0;"><strong>Investment Amount:</strong> ${instance.amount:,.2f}</p>
-                        <p style="margin: 10px 0 0 0;"><strong>Investor:</strong> {instance.investor.username}</p>
-                    </div>
-                    
-                    <p>Please review this proposal at your earliest convenience:</p>
-                    
-                    <p style="text-align: center;">
-                        <a href="{instance.project.get_absolute_url()}" style="display: inline-block; padding: 10px 20px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px;">Review Proposal</a>
-                    </p>
-                    
-                    <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+        subject = f"New Investment Confirmed for {investment.project.title}"
+        html_message = f"""
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+                <h2 style="color: #2c3e50; margin-bottom: 20px;">New Investment Confirmed! 🎉</h2>
+                
+                <p>Hello {investment.project.creator.username},</p>
+                
+                <p>Great news! Your project <strong style="color: #3498db;">{investment.project.title}</strong> has received a new investment.</p>
+                
+                <div style="background-color: #ffffff; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0;">
+                    <p style="margin: 0;"><strong>Investment Amount:</strong> ${investment.amount:,.2f}</p>
+                    <p style="margin: 10px 0 0 0;"><strong>Investor:</strong> {investment.investor.username}</p>
+                    <p style="margin: 10px 0 0 0;"><strong>Equity Percentage:</strong> {investment.equity_percentage:.2f}%</p>
                 </div>
-            </body>
-            </html>
-            """
-            
-            # Plain text version for email clients that don't support HTML
-            text_message = f"""
-            Hello {instance.project.creator.username},
-            
-            Exciting news! Your project {instance.project.title} has received a new investment proposal.
-            
-            Investment Amount: ${instance.amount:,.2f}
-            Investor: {instance.investor.username}
-            
-            Review it here: {instance.project.get_absolute_url()}
-            
-            Best regards,
-            The Ripples Team
-            """
-            
-            # send_mail(
-            #     subject,
-            #     text_message,
-            #     settings.DEFAULT_FROM_EMAIL,
-            #     [instance.project.creator.email],
-            #     html_message=html_message
-            # )
-            email = EmailMessage(
-                subject=subject,
-                body=text_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[instance.project.creator.email],
-                headers={'From': settings.DEFAULT_FROM_EMAIL}
-            )
-            email.content_subtype = 'html'  # Set the content type to HTML
-            email.body = html_message
-            email.send()
+                
+                <p>You can view the details here:</p>
+                
+                <p style="text-align: center;">
+                    <a href="{investment.project.get_absolute_url()}" style="display: inline-block; padding: 10px 20px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px;">View Project</a>
+                </p>
+                
+                <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Plain text version for email clients that don't support HTML
+        text_message = f"""
+        Hello {investment.project.creator.username},
+        
+        Great news! Your project {investment.project.title} has received a new investment.
+        
+        Investment Amount: ${investment.amount:,.2f}
+        Investor: {investment.investor.username}
+        Equity Percentage: {investment.equity_percentage:.2f}%
+        
+        View it here: {investment.project.get_absolute_url()}
+        
+        Best regards,
+        The Ripples Team
+        """
+        
+        email = EmailMessage(
+            subject=subject,
+            body=text_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[investment.project.creator.email],
+            headers={'From': settings.DEFAULT_FROM_EMAIL}
+        )
+        email.content_subtype = 'html'  # Set the content type to HTML
+        email.body = html_message
+        email.send()
     except Exception as e:
-        print(f"Email sending failed: {e}")
-
+        print(f"Investment confirmation email sending failed: {e}")
 
 @receiver(pre_delete, sender=Investment)
 def update_project_on_investment_delete(sender, instance, **kwargs):
@@ -215,3 +207,127 @@ def update_project_on_investment_delete(sender, instance, **kwargs):
             project.save()
     except Exception as e:
         print(f"Error updating project amount on investment deletion: {e}")
+
+
+def send_project_rejection_email(project):
+    try:
+        subject = f"Update on Your Project '{project.title}'"
+        
+        html_message = f"""
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+                <h2 style="color: #2c3e50; margin-bottom: 20px;">Project Review Update</h2>
+                
+                <p>Hello {project.creator.get_full_name() or project.creator.username},</p>
+                
+                <p>We've reviewed your project <strong style="color: #e74c3c;">{project.title}</strong> and unfortunately, we are unable to approve it at this time.</p>
+                
+                <div style="background-color: #ffffff; padding: 15px; border-left: 4px solid #e74c3c; margin: 20px 0;">
+                    <p style="margin: 0;"><strong>Reason for rejection:</strong></p>
+                    <p style="margin: 10px 0 0 0;">{project.admin_notes or "No specific reason provided."}</p>
+                </div>
+                
+                <p>You can make the necessary changes and resubmit your project for review. If you have any questions or need clarification, please don't hesitate to contact our support team.</p>
+                
+                <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Plain text version for email clients that don't support HTML
+        text_message = f"""
+        Hello {project.creator.get_full_name() or project.creator.username},
+        
+        We've reviewed your project '{project.title}' and unfortunately, we are unable to approve it at this time.
+        
+        Reason for rejection:
+        {project.admin_notes or "No specific reason provided."}
+        
+        You can make the necessary changes and resubmit your project for review. If you have any questions or need clarification, please don't hesitate to contact our support team.
+        
+        Best regards,
+        The Ripples Team
+        """
+        
+        email = EmailMessage(
+            subject=subject,
+            body=text_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[project.creator.email],
+            headers={'From': settings.DEFAULT_FROM_EMAIL}
+        )
+        email.content_subtype = 'html'  # Set the content type to HTML
+        email.body = html_message
+        email.send()
+    except Exception as e:
+        print(f"Project rejection email sending failed: {e}")
+
+
+def send_project_approval_email(project):
+    try:
+        subject = f"Your Project '{project.title}' Has Been Approved!"
+        
+        html_message = f"""
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+                <h2 style="color: #2c3e50; margin-bottom: 20px;">Project Approved! 🎉</h2>
+                
+                <p>Hello {project.creator.get_full_name() or project.creator.username},</p>
+                
+                <p>We're excited to inform you that your project <strong style="color: #3498db;">{project.title}</strong> has been approved and is now live on our platform!</p>
+                
+                <div style="background-color: #ffffff; padding: 15px; border-left: 4px solid #27ae60; margin: 20px 0;">
+                    <p style="margin: 0;"><strong>Project:</strong> {project.title}</p>
+                    <p style="margin: 10px 0 0 0;"><strong>Funding Goal:</strong> ${project.funding_goal:,.2f}</p>
+                    <p style="margin: 10px 0 0 0;"><strong>Deadline:</strong> {project.deadline.strftime('%B %d, %Y')}</p>
+                </div>
+                
+                <p>You can view your project and share it with potential backers here:</p>
+                
+                <p style="text-align: center;">
+                    <a href="{project.get_absolute_url()}" style="display: inline-block; padding: 10px 20px; background-color: #27ae60; color: white; text-decoration: none; border-radius: 5px;">View Your Project</a>
+                </p>
+                
+                <p>Start promoting your project to your network to maximize your chances of success!</p>
+                
+                <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Plain text version for email clients that don't support HTML
+        text_message = f"""
+        Hello {project.creator.get_full_name() or project.creator.username},
+        
+        We're excited to inform you that your project '{project.title}' has been approved and is now live on our platform!
+        
+        Project: {project.title}
+        Funding Goal: ${project.funding_goal:,.2f}
+        Deadline: {project.deadline.strftime('%B %d, %Y')}
+        
+        You can view your project and share it with potential backers here: {project.get_absolute_url()}
+        
+        Start promoting your project to your network to maximize your chances of success!
+        
+        Best regards,
+        The Ripples Team
+        """
+        
+        email = EmailMessage(
+            subject=subject,
+            body=text_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[project.creator.email],
+            headers={'From': settings.DEFAULT_FROM_EMAIL}
+        )
+        email.content_subtype = 'html'  # Set the content type to HTML
+        email.body = html_message
+        email.send()
+    except Exception as e:
+        print(f"Project approval email sending failed: {e}")

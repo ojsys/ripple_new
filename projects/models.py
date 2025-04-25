@@ -82,6 +82,11 @@ class FundingType(models.Model):
         return self.name
 
 class Project(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending Approval'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
     
     title = models.CharField(max_length=200)
     description = RichTextField()  # Changed from TextField to RichTextField
@@ -97,6 +102,8 @@ class Project(models.Model):
     location = models.CharField(max_length=100, blank=True, null=True)
     short_description = models.CharField(max_length=255, blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True, null=True, help_text="Notes from admin about approval/rejection")
 
     def __str__(self):
         return self.title

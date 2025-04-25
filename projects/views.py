@@ -223,7 +223,7 @@ def edit_project(request, project_id):
 
 def home(request):
     sliders = HeroSlider.objects.filter(is_active=True)
-    featured_projects = Project.objects.all().annotate(
+    featured_projects = Project.objects.filter(status='approved').annotate(
         percent_funded=ExpressionWrapper(
             (F('amount_raised') * 100.0) / F('funding_goal'),
             output_field=FloatField()
@@ -240,7 +240,13 @@ def home(request):
     
 
 def project_list(request):
-    projects = Project.objects.all().order_by('-created_at').annotate(
+    # Only show approved projects to regular users
+    if request.user.is_staff or request.user.is_superuser:
+        projects = Project.objects.all().order_by('-created_at')
+    else:
+        projects = Project.objects.filter(status='approved').order_by('-created_at')
+    
+    projects = projects.annotate(
         percent_funded=ExpressionWrapper(
             (F('amount_raised') * 100.0) / F('funding_goal'),
             output_field=FloatField()
@@ -287,7 +293,13 @@ def create_project(request):
         if form.is_valid():
             project = form.save(commit=False)
             project.creator = request.user
+            project.status = 'pending'  # Set initial status to pending
             project.save()
+            
+            # Save many-to-many relationships
+            form.save_m2m()
+            
+            messages.success(request, "Your project has been submitted for approval. You'll be notified once it's reviewed.")
             return redirect('add_terms_rewards', project.id)
     else:
         form = ProjectForm()
@@ -385,6 +397,64 @@ def project_detail(request, project_id):
 
     return render(request, 'projects/project_detail.html', context)
 
+
+# Admin Approval
+@login_required
+def admin_project_approval(request):
+    # Check if user is admin
+    if not request.user.is_staff and not request.user.is_superuser:
+        messages.error(request, "You don't have permission to access this page.")
+        return redirect('home')
+    
+    # Get pending projects
+    pending_projects = Project.objects.filter(status='pending').order_by('-created_at')
+    
+    return render(request, 'projects/admin_project_approval.html', {
+        'pending_projects': pending_projects
+    })
+
+@login_required
+def approve_project(request, project_id):
+    # Check if user is admin
+    if not request.user.is_staff and not request.user.is_superuser:
+        messages.error(request, "You don't have permission to perform this action.")
+        return redirect('home')
+    
+    project = get_object_or_404(Project, id=project_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        admin_notes = request.POST.get('admin_notes', '')
+        
+        if action == 'approve':
+            project.status = 'approved'
+            project.admin_notes = admin_notes
+            project.save()
+            
+            # Notify the creator via email
+            from .signals import send_project_approval_email
+            send_project_approval_email(project)
+
+            # Notify the creator
+            messages.success(request, f"Project '{project.title}' has been approved.")
+            
+        elif action == 'reject':
+            project.status = 'rejected'
+            project.admin_notes = admin_notes
+            project.save()
+            
+            # Notify the creator
+            messages.success(request, f"Project '{project.title}' has been rejected.")
+            
+            # Notify the creator via email
+            from .signals import send_project_rejection_email
+            send_project_rejection_email(project)
+            
+        return redirect('admin_project_approval')
+    
+    return render(request, 'projects/approve_project.html', {
+        'project': project
+    })
 
 
 # Investment Management (Founder)
@@ -507,6 +577,10 @@ def pledge_payment_callback(request):
                 project.amount_raised += pledge.amount
                 project.save()
                 
+                # Send confirmation email
+                from .signals import send_pledge_confirmation_after_payment
+                send_pledge_confirmation_after_payment(pledge)
+
                 # Add success message
                 messages.success(
                     request, 
@@ -578,19 +652,20 @@ def process_investment(request, project_id):
             try:
                 amount = Decimal(request.POST.get('amount', 0))
                 
-                # Calculate the percentage of the funding goal this investment represents
-                investment_percentage = (amount / project.funding_goal) * 100
+                # Convert all values to Decimal to ensure consistent types
+                funding_goal = Decimal(str(project.funding_goal))
+                equity_offered = Decimal(str(terms.equity_offered))
                 
-                # Calculate the equity percentage based on the funding percentage
-                # If $10,000 gets 10% equity, then $500 gets 0.5% equity (5% of the 10%)
-                equity_percentage = (investment_percentage / 100) * terms.equity_offered
+                # Calculate percentages using consistent Decimal types
+                investment_percentage = (amount / funding_goal) * Decimal('100.0')
+                equity_percentage = (amount / funding_goal) * equity_offered
                 
                 # Calculate remaining available equity
-                total_invested_percentage = project.investments.filter(status__in=['active', 'pending']).aggregate(
-                    total=Coalesce(Sum('equity_percentage'), 0)
-                )['total'] or 0
+                total_invested = project.investments.filter(status__in=['active', 'pending']).aggregate(
+                    total=Coalesce(Sum('equity_percentage'), Decimal('0'))
+                )['total'] or Decimal('0')
                 
-                available_equity = terms.equity_offered - total_invested_percentage
+                available_equity = equity_offered - total_invested
                 
                 # Check if there's enough equity available
                 if equity_percentage > available_equity:
@@ -607,14 +682,14 @@ def process_investment(request, project_id):
                         investor=request.user,
                         terms=terms,
                         amount=amount,
-                        equity_percentage=investment_percentage,
+                        equity_percentage=equity_percentage,
                         status='pending'
                     )
                     investment.save()
                     
-                    # Convert USD to NGN
+                    # Convert USD to NGN - use float for API compatibility
                     usd_amount = float(amount)
-                    ngn_amount = usd_amount * 1600  # Conversion rate
+                    ngn_amount = usd_amount * 1600
                     
                     # Initialize Paystack transaction
                     amount_in_kobo = int(ngn_amount * 100)
@@ -623,6 +698,11 @@ def process_investment(request, project_id):
                         "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
                         "Content-Type": "application/json"
                     }
+                    
+                    # Convert Decimal values to float for JSON serialization
+                    investment_percentage_float = float(investment_percentage)
+                    equity_percentage_float = float(equity_percentage)
+                    equity_offered_float = float(equity_offered)
                     
                     data = {
                         "amount": amount_in_kobo,
@@ -635,7 +715,7 @@ def process_investment(request, project_id):
                             "investment_id": str(investment.id),
                             "project_id": str(project.id),
                             "usd_amount": usd_amount,
-                            "equity_percentage": investment_percentage,
+                            "equity_percentage": investment_percentage_float,  # Convert to float
                             "custom_fields": [
                                 {
                                     "display_name": "Project Name",
@@ -645,7 +725,7 @@ def process_investment(request, project_id):
                                 {
                                     "display_name": "Equity Offered",
                                     "variable_name": "equity_offered",
-                                    "value": f"{investment_percentage:.2f}% of {terms.equity_offered}%"
+                                    "value": f"{investment_percentage_float:.2f}% of {equity_offered_float:.2f}%"
                                 }
                             ]
                         }
@@ -840,75 +920,6 @@ class InvestmentDetailView(LoginRequiredMixin, DetailView):
         return get_object_or_404(Investment, pk=investment_id)
 #################################
 
-# def dashboard(request):
-#     if not request.user.is_authenticated:
-#         return redirect('login')
-    
-#     context = {}
-#     user = request.user
-    
-#     pledges = Pledge.objects.filter(backer=user).select_related('project').order_by('-pledged_at')
-#     investments = Investment.objects.filter(investor=user).order_by('-created_at')
-
-#     paginator = Paginator(investments, 3)  # Show 5 investments per page
-#     page = request.GET.get('page')
-#     try:
-#         paginated_investments = paginator.page(page)
-#     except PageNotAnInteger:
-#         paginated_investments = paginator.page(1)
-#     except EmptyPage:
-#         paginated_investments = paginator.page(paginator.num_pages)
-#     # Common data for all users
-#     context['pledges'] = Pledge.objects.filter(backer=user).select_related('project')
-#     context['investments'] = Investment.objects.filter(investor=user).select_related('project')
-    
-#     # Founder-specific data
-#     if user.user_type == 'founder':
-#         projects = Project.objects.filter(creator=user).annotate(
-#             calculated_percent=ExpressionWrapper(
-#                 F('amount_raised') / F('funding_goal') * 100,
-#                 output_field=FloatField()
-#             )
-#         )
-        
-#         context.update({
-#             'created_projects': projects,
-#             'total_projects': projects.count(),
-#             'active_projects': projects.filter(deadline__gte=timezone.now()).count(),
-#             'total_raised': projects.aggregate(Sum('amount_raised'))['amount_raised__sum'] or 0,
-#             'avg_funding': projects.aggregate(Avg('calculated_percent'))['calculated_percent__avg'] or 0,
-
-#         })
-
-#     # Investor-specific data
-#     elif user.user_type == 'investor':
-#         investments = context['investments']
-        
-#         # Investment statistics
-#         context.update({
-#             'total_invested': investments.aggregate(total=Sum('amount'))['total'] or 0,
-#             'active_investments': investments.filter(terms__deadline__gte=timezone.now()).count(),
-#             'avg_return': investments.aggregate(avg=Avg('terms__equity_offered'))['avg'] or 0,
-#             'potential_roi': sum(
-#                 inv.amount * (inv.terms.equity_offered / 100)
-#                 for inv in investments.filter(status='accepted')
-#             ) or 0,
-#             'recommended_projects': get_recommended_projects(user)  # Implement this function
-#         })
-
-#     # Donor-specific data can be added here
-#     elif user.user_type == 'donor':
-#         # Add donor-specific context
-#         pass
-
-#     template_map = {
-#         'founder': 'dashboard/founder_dashboard.html',
-#         'donor': 'dashboard/donor_dashboard.html',
-#         'investor': 'dashboard/investor_dashboard.html',
-#     }
-    
-#     return render(request, template_map.get(user.user_type, 'dashboard.html'), context)
-
 @login_required
 def dashboard(request):
     user = request.user
@@ -921,6 +932,7 @@ def dashboard(request):
     
     # Founder-specific data
     if user.user_type == 'founder':
+        # Show all projects to the creator, regardless of status
         created_projects = Project.objects.filter(creator=user).annotate(
             percent_funded=ExpressionWrapper(
                 (F('amount_raised') * 100.0) / F('funding_goal'),
@@ -928,8 +940,16 @@ def dashboard(request):
             )
         )
         
+        # Count pending projects
+        pending_projects = created_projects.filter(status='pending').count()
+        
+        # Only count approved projects in the active projects count
+        active_projects = created_projects.filter(
+            status='approved',
+            deadline__gte=now
+        ).count()
+        
         total_projects = created_projects.count()
-        active_projects = created_projects.filter(deadline__gte=now).count()
         total_raised = created_projects.aggregate(Sum('amount_raised'))['amount_raised__sum'] or 0
         
         # Calculate average funding percentage
@@ -945,6 +965,7 @@ def dashboard(request):
             'created_projects': created_projects,
             'total_projects': total_projects,
             'active_projects': active_projects,
+            'pending_projects': pending_projects,
             'total_raised': total_raised,
             'avg_funding': avg_funding,
         })
@@ -1216,6 +1237,10 @@ def investment_payment_callback(request):
                 project.amount_raised += investment.amount
                 project.save()
                 
+                # Send confirmation email
+                from .signals import notify_founder_new_investment_after_payment
+                notify_founder_new_investment_after_payment(investment)
+
                 # Add success message
                 messages.success(
                     request, 

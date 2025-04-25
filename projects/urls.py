@@ -41,6 +41,9 @@ urlpatterns = [
     path('projects/<int:project_id>/investment/proposal/', views.investment_proposal, name='investment_proposal'),
     path('projects/<int:project_id>/investment/process/', views.process_investment, name='process_investment'),
     path('projects/<int:project_id>/delete/', views.delete_project, name='delete_project'),
+    # Admin Approvals
+    path('admin/projects/approval/', views.admin_project_approval, name='admin_project_approval'),
+    path('admin/projects/<int:project_id>/approve/', views.approve_project, name='approve_project'),
 
     
     # Dashboard
