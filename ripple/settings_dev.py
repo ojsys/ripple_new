@@ -19,7 +19,7 @@ STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.startupripple.com', 'startupripple.com']
+ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'projects.CustomUser'
 
@@ -78,24 +78,13 @@ WSGI_APPLICATION = 'ripple.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-# Database settings for production
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -297,14 +286,5 @@ JAZZMIN_UI_TWEAKS = {
     }
 }
 
-# Security settings
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-
-# Update site URL for production
-SITE_URL = 'https://startupripple.com'
-
+# Add this to your settings.py
+SITE_URL = 'http://localhost:8000'  # Change this in production

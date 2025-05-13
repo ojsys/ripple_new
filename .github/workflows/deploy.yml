@@ -1,0 +1,58 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Run tests
+      run: |
+        python manage.py test
+
+    - name: Deploy to cPanel
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: /home/startupr/ripple/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/venv/**
+          **/__pycache__/**
+          **/staticfiles/**
+          **/media/**
+          db.sqlite3
+    
+    - name: Execute post-deployment commands
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          cd ~/ripple
+          source venv/bin/activate
+          python manage.py migrate
+          python manage.py collectstatic --noinput
+          touch tmp/restart.txt
