@@ -1,4 +1,7 @@
 from .settings import *
+import pymysql
+
+pymysql.install_as_MySQLdb()
 
 # Override settings for staging
 DEBUG = False
