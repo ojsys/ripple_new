@@ -2,7 +2,9 @@ name: Deploy to cPanel
 
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
+      - staging
 
 jobs:
   deploy:
@@ -32,7 +34,7 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: /home/startupr/ripple/
+        server-dir: ${{ github.ref == 'refs/heads/main' && '/home/startupr/ripple/' || '/home/startupr/staging/' }}
         exclude: |
           **/.git*
           **/.git*/**
@@ -51,7 +53,7 @@ jobs:
         password: ${{ secrets.SSH_PASSWORD }}
         port: ${{ secrets.SSH_PORT }}
         script: |
-          cd ~/ripple
+          cd ${{ github.ref == 'refs/heads/main' && '~/ripple' || '~/staging' }}
           source venv/bin/activate
           python manage.py migrate
           python manage.py collectstatic --noinput
