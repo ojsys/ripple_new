@@ -1,60 +1,188 @@
-name: Deploy to cPanel
+name: Deploy Application
 
 on:
   push:
-    branches: 
-      - main
-      - staging
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    
     steps:
     - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-
+    
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
-
-    - name: Install dependencies
+        python-version: '3.12'
+        
+    - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    - name: Run tests
+        pip install -r requirements.txt
+        pip install pytest pytest-django
+        
+    - name: Create .env file
+      run: |
+        echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" > .env
+        echo "DB_NAME=test_db" >> .env
+        echo "DB_USER=root" >> .env
+        echo "DB_PASSWORD=root" >> .env
+        echo "STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }}" >> .env
+        echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> .env
+        echo "EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}" >> .env
+        echo "EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}" >> .env
+        echo "PAYSTACK_PUBLIC_KEY=${{ secrets.PAYSTACK_PUBLIC_KEY }}" >> .env
+        echo "PAYSTACK_SECRET_KEY=${{ secrets.PAYSTACK_SECRET_KEY }}" >> .env
+        
+    - name: Run Tests
       run: |
         python manage.py test
+        
+    - name: Check for linting errors
+      run: |
+        pip install flake8
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-    - name: Deploy to cPanel
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-      with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: ${{ github.ref == 'refs/heads/main' && '/home/startupr/ripple/' || '/home/startupr/staging/' }}
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          **/venv/**
-          **/__pycache__/**
-          **/staticfiles/**
-          **/media/**
-          db.sqlite3
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     
-    - name: Execute post-deployment commands
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Collect static files
+      run: |
+        python manage.py collectstatic --noinput
+        
+    - name: Create deployment package
+      run: |
+        zip -r deploy.zip . -x "*.git*" "*.github*" "env/*"
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: deploy-package
+        path: deploy.zip
+
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: deploy-package
+        
+    - name: Deploy to staging server
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        password: ${{ secrets.SSH_PASSWORD }}
-        port: ${{ secrets.SSH_PORT }}
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USERNAME }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
         script: |
-          cd ${{ github.ref == 'refs/heads/main' && '~/ripple' || '~/staging' }}
-          source venv/bin/activate
+          mkdir -p ~/staging-deploy
+          cd ~/staging-deploy
+          rm -rf *
+          echo "Deploying to staging environment..."
+          
+    - name: Upload to staging server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USERNAME }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        source: "deploy.zip"
+        target: "~/staging-deploy"
+        
+    - name: Finalize staging deployment
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USERNAME }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        script: |
+          cd ~/staging-deploy
+          unzip -o deploy.zip
+          source ~/venv/bin/activate
+          pip install -r requirements.txt
+          export DJANGO_SETTINGS_MODULE=ripple.settings_staging
           python manage.py migrate
           python manage.py collectstatic --noinput
-          touch tmp/restart.txt
+          sudo systemctl restart gunicorn
+          echo "Staging deployment completed"
+
+  deploy-production:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: deploy-package
+        
+    - name: Deploy to production server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USERNAME }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        script: |
+          mkdir -p ~/production-deploy
+          cd ~/production-deploy
+          rm -rf *
+          echo "Deploying to production environment..."
+          
+    - name: Upload to production server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USERNAME }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        source: "deploy.zip"
+        target: "~/production-deploy"
+        
+    - name: Finalize production deployment
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USERNAME }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        script: |
+          cd ~/production-deploy
+          unzip -o deploy.zip
+          source ~/venv/bin/activate
+          pip install -r requirements.txt
+          export DJANGO_SETTINGS_MODULE=ripple.settings
+          python manage.py migrate
+          python manage.py collectstatic --noinput
+          sudo systemctl restart gunicorn
+          echo "Production deployment completed"
