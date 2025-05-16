@@ -1,0 +1,2980 @@
+[
+{
+    "model": "admin.logentry",
+    "pk": 1,
+    "fields": {
+        "action_time": "2025-02-21T22:14:22.753Z",
+        "user": 1,
+        "content_type": 10,
+        "object_id": "1",
+        "object_repr": "Site Settings",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 2,
+    "fields": {
+        "action_time": "2025-02-21T22:28:16.075Z",
+        "user": 1,
+        "content_type": 10,
+        "object_id": "1",
+        "object_repr": "Site Settings",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Logo\", \"Favicon\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 3,
+    "fields": {
+        "action_time": "2025-02-21T22:34:35.828Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "1",
+        "object_repr": "Pledge",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 4,
+    "fields": {
+        "action_time": "2025-02-21T22:34:57.632Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "2",
+        "object_repr": "Donation",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 5,
+    "fields": {
+        "action_time": "2025-02-21T22:35:26.447Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "3",
+        "object_repr": "Investment",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 6,
+    "fields": {
+        "action_time": "2025-02-21T22:35:41.508Z",
+        "user": 1,
+        "content_type": 7,
+        "object_id": "1",
+        "object_repr": "Technology",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 7,
+    "fields": {
+        "action_time": "2025-02-21T22:35:46.153Z",
+        "user": 1,
+        "content_type": 7,
+        "object_id": "2",
+        "object_repr": "Digital",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 8,
+    "fields": {
+        "action_time": "2025-02-21T22:35:50.919Z",
+        "user": 1,
+        "content_type": 7,
+        "object_id": "3",
+        "object_repr": "Fintech",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 9,
+    "fields": {
+        "action_time": "2025-02-21T22:36:00.276Z",
+        "user": 1,
+        "content_type": 7,
+        "object_id": "4",
+        "object_repr": "Freelancing",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 10,
+    "fields": {
+        "action_time": "2025-02-21T23:10:28.321Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "1",
+        "object_repr": "WorkDey",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 11,
+    "fields": {
+        "action_time": "2025-02-21T23:10:40.830Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "2",
+        "object_repr": "WorkDey",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 12,
+    "fields": {
+        "action_time": "2025-02-21T23:18:17.564Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "3",
+        "object_repr": "WorkDey",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Funding type\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 13,
+    "fields": {
+        "action_time": "2025-02-21T23:22:02.397Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "3",
+        "object_repr": "Investment",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 14,
+    "fields": {
+        "action_time": "2025-02-21T23:22:02.397Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "1",
+        "object_repr": "Pledge",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 15,
+    "fields": {
+        "action_time": "2025-02-21T23:22:20.110Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "4",
+        "object_repr": "Equity",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 16,
+    "fields": {
+        "action_time": "2025-02-21T23:27:41.183Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "4",
+        "object_repr": "WorkDey",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Funding type\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 17,
+    "fields": {
+        "action_time": "2025-02-22T00:12:12.082Z",
+        "user": 1,
+        "content_type": 12,
+        "object_id": "1",
+        "object_repr": "Jonah Onah (Founder)",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"User type\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 18,
+    "fields": {
+        "action_time": "2025-02-22T13:13:37.877Z",
+        "user": 1,
+        "content_type": 24,
+        "object_id": "1",
+        "object_repr": "Funding African Innovation",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 19,
+    "fields": {
+        "action_time": "2025-02-22T20:13:03.572Z",
+        "user": 1,
+        "content_type": 12,
+        "object_id": "2",
+        "object_repr": "Ruth Ogboji (Investor)",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"password\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 20,
+    "fields": {
+        "action_time": "2025-02-22T20:37:51.180Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "2",
+        "object_repr": "$20000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Actual return\", \"Status\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 21,
+    "fields": {
+        "action_time": "2025-02-22T21:41:49.663Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "2",
+        "object_repr": "$20000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 22,
+    "fields": {
+        "action_time": "2025-02-22T21:42:17.887Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "1",
+        "object_repr": "$12000 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount\", \"Actual return\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 23,
+    "fields": {
+        "action_time": "2025-02-22T21:43:15.589Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 24,
+    "fields": {
+        "action_time": "2025-02-22T22:00:34.003Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "3",
+        "object_repr": "$2000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Actual return\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 25,
+    "fields": {
+        "action_time": "2025-02-22T22:29:44.903Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "8",
+        "object_repr": "$3000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 26,
+    "fields": {
+        "action_time": "2025-02-22T22:29:44.903Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "7",
+        "object_repr": "$3000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 27,
+    "fields": {
+        "action_time": "2025-02-22T22:29:44.903Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "6",
+        "object_repr": "$3000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 28,
+    "fields": {
+        "action_time": "2025-02-22T22:29:44.903Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "5",
+        "object_repr": "$2000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 29,
+    "fields": {
+        "action_time": "2025-02-22T22:29:44.903Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "4",
+        "object_repr": "$2000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 30,
+    "fields": {
+        "action_time": "2025-02-22T22:29:44.903Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "3",
+        "object_repr": "$2000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 31,
+    "fields": {
+        "action_time": "2025-02-22T22:30:39.030Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 32,
+    "fields": {
+        "action_time": "2025-02-22T22:41:29.822Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "9",
+        "object_repr": "$3000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 33,
+    "fields": {
+        "action_time": "2025-02-22T22:42:04.166Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 34,
+    "fields": {
+        "action_time": "2025-02-22T22:42:14.874Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "1",
+        "object_repr": "$9000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 35,
+    "fields": {
+        "action_time": "2025-02-22T22:42:38.163Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "1",
+        "object_repr": "$9000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Is counted\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 36,
+    "fields": {
+        "action_time": "2025-02-22T22:49:41.544Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\", \"Total investment raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 37,
+    "fields": {
+        "action_time": "2025-02-22T22:50:07.425Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "10",
+        "object_repr": "$5000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 38,
+    "fields": {
+        "action_time": "2025-02-22T23:01:50.574Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "11",
+        "object_repr": "$3000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 39,
+    "fields": {
+        "action_time": "2025-02-22T23:02:12.151Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\", \"Total investment raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 40,
+    "fields": {
+        "action_time": "2025-02-22T23:13:52.606Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 41,
+    "fields": {
+        "action_time": "2025-02-22T23:14:18.251Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "12",
+        "object_repr": "$3000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 42,
+    "fields": {
+        "action_time": "2025-02-22T23:15:31.803Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 43,
+    "fields": {
+        "action_time": "2025-02-22T23:15:41.122Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "13",
+        "object_repr": "$3000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 44,
+    "fields": {
+        "action_time": "2025-02-22T23:32:26.676Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 45,
+    "fields": {
+        "action_time": "2025-02-22T23:32:39.724Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "15",
+        "object_repr": "$4500.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 46,
+    "fields": {
+        "action_time": "2025-02-22T23:32:39.724Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "14",
+        "object_repr": "$3000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 47,
+    "fields": {
+        "action_time": "2025-02-22T23:39:02.729Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 48,
+    "fields": {
+        "action_time": "2025-02-22T23:39:11.276Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "16",
+        "object_repr": "$4500.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 49,
+    "fields": {
+        "action_time": "2025-02-22T23:46:29.284Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "17",
+        "object_repr": "$5500.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 50,
+    "fields": {
+        "action_time": "2025-02-22T23:46:45.875Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 51,
+    "fields": {
+        "action_time": "2025-02-23T00:02:24.859Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "18",
+        "object_repr": "$2000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Actual return\", \"Terms\", \"Is counted\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 52,
+    "fields": {
+        "action_time": "2025-02-23T00:03:36.636Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "19",
+        "object_repr": "$3000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Actual return\", \"Terms\", \"Is counted\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 53,
+    "fields": {
+        "action_time": "2025-02-23T13:41:45.671Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "21",
+        "object_repr": "$50000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 54,
+    "fields": {
+        "action_time": "2025-02-23T13:42:26.979Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Amount raised\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 55,
+    "fields": {
+        "action_time": "2025-02-23T14:23:43.371Z",
+        "user": 1,
+        "content_type": 17,
+        "object_id": "22",
+        "object_repr": "$20000.00 investment in RutOna by Ruth Ogboji (Investor)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 56,
+    "fields": {
+        "action_time": "2025-02-23T14:24:06.779Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 57,
+    "fields": {
+        "action_time": "2025-02-23T15:34:08.108Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "3",
+        "object_repr": "WorkDey",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 58,
+    "fields": {
+        "action_time": "2025-02-23T15:35:02.735Z",
+        "user": 1,
+        "content_type": 19,
+        "object_id": "6",
+        "object_repr": "Ruth Ogboji (Investor) pledged $10000.00 to WorkDey",
+        "action_flag": 2,
+        "change_message": "[]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 59,
+    "fields": {
+        "action_time": "2025-04-22T17:31:23.775Z",
+        "user": 1,
+        "content_type": 7,
+        "object_id": "5",
+        "object_repr": "Agriculture",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 60,
+    "fields": {
+        "action_time": "2025-04-22T17:31:39.532Z",
+        "user": 1,
+        "content_type": 7,
+        "object_id": "6",
+        "object_repr": "Education",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 61,
+    "fields": {
+        "action_time": "2025-04-22T17:32:14.002Z",
+        "user": 1,
+        "content_type": 7,
+        "object_id": "7",
+        "object_repr": "Health",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 62,
+    "fields": {
+        "action_time": "2025-04-22T17:32:57.811Z",
+        "user": 1,
+        "content_type": 7,
+        "object_id": "8",
+        "object_repr": "Engineering",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 63,
+    "fields": {
+        "action_time": "2025-04-22T18:56:29.874Z",
+        "user": 1,
+        "content_type": 25,
+        "object_id": "1",
+        "object_repr": "Michael Okafor - Angel Investor",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 64,
+    "fields": {
+        "action_time": "2025-04-22T18:59:11.636Z",
+        "user": 1,
+        "content_type": 25,
+        "object_id": "2",
+        "object_repr": "Adeola Johnson - Founder",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 65,
+    "fields": {
+        "action_time": "2025-04-22T19:02:42.066Z",
+        "user": 1,
+        "content_type": 25,
+        "object_id": "3",
+        "object_repr": "Ruth Goodness - Investor",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 66,
+    "fields": {
+        "action_time": "2025-04-22T19:03:28.696Z",
+        "user": 1,
+        "content_type": 25,
+        "object_id": "2",
+        "object_repr": "Adeola Johnson - Founder",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Image\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 67,
+    "fields": {
+        "action_time": "2025-04-22T19:13:26.056Z",
+        "user": 1,
+        "content_type": 10,
+        "object_id": "1",
+        "object_repr": "Site Settings",
+        "action_flag": 2,
+        "change_message": "[]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 68,
+    "fields": {
+        "action_time": "2025-04-24T18:58:30.491Z",
+        "user": 1,
+        "content_type": 24,
+        "object_id": "1",
+        "object_repr": "Funding African Innovation",
+        "action_flag": 2,
+        "change_message": "[]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 69,
+    "fields": {
+        "action_time": "2025-04-24T18:59:39.586Z",
+        "user": 1,
+        "content_type": 24,
+        "object_id": "2",
+        "object_repr": "A Place For Underrepresented Founders",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 70,
+    "fields": {
+        "action_time": "2025-04-24T19:19:58.821Z",
+        "user": 1,
+        "content_type": 16,
+        "object_id": "2",
+        "object_repr": "10.00% equity for $500.00+",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Equity offered\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 71,
+    "fields": {
+        "action_time": "2025-04-25T03:16:28.047Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "4",
+        "object_repr": "WorkDey",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Description\", \"Location\", \"Status\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 72,
+    "fields": {
+        "action_time": "2025-04-25T03:17:19.835Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "5",
+        "object_repr": "RutOna",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Location\", \"Status\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 73,
+    "fields": {
+        "action_time": "2025-04-25T03:17:37.988Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "6",
+        "object_repr": "Flutter School",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Description\", \"Location\", \"Status\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 74,
+    "fields": {
+        "action_time": "2025-04-25T03:19:42.152Z",
+        "user": 1,
+        "content_type": 15,
+        "object_id": "7",
+        "object_repr": "Gitako",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Status\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 75,
+    "fields": {
+        "action_time": "2025-04-25T04:19:58.685Z",
+        "user": 1,
+        "content_type": 10,
+        "object_id": "1",
+        "object_repr": "Site Settings",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Logo\", \"Favicon\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 76,
+    "fields": {
+        "action_time": "2025-04-25T04:47:04.915Z",
+        "user": 1,
+        "content_type": 10,
+        "object_id": "1",
+        "object_repr": "Site Settings",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Logo\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 77,
+    "fields": {
+        "action_time": "2025-05-13T15:47:03.382Z",
+        "user": 1,
+        "content_type": 10,
+        "object_id": "1",
+        "object_repr": "Site Settings",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Logo\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 78,
+    "fields": {
+        "action_time": "2025-05-13T15:47:10.515Z",
+        "user": 1,
+        "content_type": 10,
+        "object_id": "1",
+        "object_repr": "Site Settings",
+        "action_flag": 2,
+        "change_message": "[]"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 1,
+    "fields": {
+        "name": "Can add log entry",
+        "content_type": 1,
+        "codename": "add_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 2,
+    "fields": {
+        "name": "Can change log entry",
+        "content_type": 1,
+        "codename": "change_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 3,
+    "fields": {
+        "name": "Can delete log entry",
+        "content_type": 1,
+        "codename": "delete_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 4,
+    "fields": {
+        "name": "Can view log entry",
+        "content_type": 1,
+        "codename": "view_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 5,
+    "fields": {
+        "name": "Can add permission",
+        "content_type": 2,
+        "codename": "add_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 6,
+    "fields": {
+        "name": "Can change permission",
+        "content_type": 2,
+        "codename": "change_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 7,
+    "fields": {
+        "name": "Can delete permission",
+        "content_type": 2,
+        "codename": "delete_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 8,
+    "fields": {
+        "name": "Can view permission",
+        "content_type": 2,
+        "codename": "view_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 9,
+    "fields": {
+        "name": "Can add group",
+        "content_type": 3,
+        "codename": "add_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 10,
+    "fields": {
+        "name": "Can change group",
+        "content_type": 3,
+        "codename": "change_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 11,
+    "fields": {
+        "name": "Can delete group",
+        "content_type": 3,
+        "codename": "delete_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 12,
+    "fields": {
+        "name": "Can view group",
+        "content_type": 3,
+        "codename": "view_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 13,
+    "fields": {
+        "name": "Can add content type",
+        "content_type": 4,
+        "codename": "add_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 14,
+    "fields": {
+        "name": "Can change content type",
+        "content_type": 4,
+        "codename": "change_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 15,
+    "fields": {
+        "name": "Can delete content type",
+        "content_type": 4,
+        "codename": "delete_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 16,
+    "fields": {
+        "name": "Can view content type",
+        "content_type": 4,
+        "codename": "view_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 17,
+    "fields": {
+        "name": "Can add session",
+        "content_type": 5,
+        "codename": "add_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 18,
+    "fields": {
+        "name": "Can change session",
+        "content_type": 5,
+        "codename": "change_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 19,
+    "fields": {
+        "name": "Can delete session",
+        "content_type": 5,
+        "codename": "delete_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 20,
+    "fields": {
+        "name": "Can view session",
+        "content_type": 5,
+        "codename": "view_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 21,
+    "fields": {
+        "name": "Can add announcement",
+        "content_type": 6,
+        "codename": "add_announcement"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 22,
+    "fields": {
+        "name": "Can change announcement",
+        "content_type": 6,
+        "codename": "change_announcement"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 23,
+    "fields": {
+        "name": "Can delete announcement",
+        "content_type": 6,
+        "codename": "delete_announcement"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 24,
+    "fields": {
+        "name": "Can view announcement",
+        "content_type": 6,
+        "codename": "view_announcement"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 25,
+    "fields": {
+        "name": "Can add category",
+        "content_type": 7,
+        "codename": "add_category"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 26,
+    "fields": {
+        "name": "Can change category",
+        "content_type": 7,
+        "codename": "change_category"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 27,
+    "fields": {
+        "name": "Can delete category",
+        "content_type": 7,
+        "codename": "delete_category"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 28,
+    "fields": {
+        "name": "Can view category",
+        "content_type": 7,
+        "codename": "view_category"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 29,
+    "fields": {
+        "name": "Can add funding type",
+        "content_type": 8,
+        "codename": "add_fundingtype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 30,
+    "fields": {
+        "name": "Can change funding type",
+        "content_type": 8,
+        "codename": "change_fundingtype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 31,
+    "fields": {
+        "name": "Can delete funding type",
+        "content_type": 8,
+        "codename": "delete_fundingtype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 32,
+    "fields": {
+        "name": "Can view funding type",
+        "content_type": 8,
+        "codename": "view_fundingtype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 33,
+    "fields": {
+        "name": "Can add seo settings",
+        "content_type": 9,
+        "codename": "add_seosettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 34,
+    "fields": {
+        "name": "Can change seo settings",
+        "content_type": 9,
+        "codename": "change_seosettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 35,
+    "fields": {
+        "name": "Can delete seo settings",
+        "content_type": 9,
+        "codename": "delete_seosettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 36,
+    "fields": {
+        "name": "Can view seo settings",
+        "content_type": 9,
+        "codename": "view_seosettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 37,
+    "fields": {
+        "name": "Can add site settings",
+        "content_type": 10,
+        "codename": "add_sitesettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 38,
+    "fields": {
+        "name": "Can change site settings",
+        "content_type": 10,
+        "codename": "change_sitesettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 39,
+    "fields": {
+        "name": "Can delete site settings",
+        "content_type": 10,
+        "codename": "delete_sitesettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 40,
+    "fields": {
+        "name": "Can view site settings",
+        "content_type": 10,
+        "codename": "view_sitesettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 41,
+    "fields": {
+        "name": "Can add theme settings",
+        "content_type": 11,
+        "codename": "add_themesettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 42,
+    "fields": {
+        "name": "Can change theme settings",
+        "content_type": 11,
+        "codename": "change_themesettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 43,
+    "fields": {
+        "name": "Can delete theme settings",
+        "content_type": 11,
+        "codename": "delete_themesettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 44,
+    "fields": {
+        "name": "Can view theme settings",
+        "content_type": 11,
+        "codename": "view_themesettings"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 45,
+    "fields": {
+        "name": "Can add user",
+        "content_type": 12,
+        "codename": "add_customuser"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 46,
+    "fields": {
+        "name": "Can change user",
+        "content_type": 12,
+        "codename": "change_customuser"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 47,
+    "fields": {
+        "name": "Can delete user",
+        "content_type": 12,
+        "codename": "delete_customuser"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 48,
+    "fields": {
+        "name": "Can view user",
+        "content_type": 12,
+        "codename": "view_customuser"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 49,
+    "fields": {
+        "name": "Can add founder profile",
+        "content_type": 13,
+        "codename": "add_founderprofile"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 50,
+    "fields": {
+        "name": "Can change founder profile",
+        "content_type": 13,
+        "codename": "change_founderprofile"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 51,
+    "fields": {
+        "name": "Can delete founder profile",
+        "content_type": 13,
+        "codename": "delete_founderprofile"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 52,
+    "fields": {
+        "name": "Can view founder profile",
+        "content_type": 13,
+        "codename": "view_founderprofile"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 53,
+    "fields": {
+        "name": "Can add investor profile",
+        "content_type": 14,
+        "codename": "add_investorprofile"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 54,
+    "fields": {
+        "name": "Can change investor profile",
+        "content_type": 14,
+        "codename": "change_investorprofile"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 55,
+    "fields": {
+        "name": "Can delete investor profile",
+        "content_type": 14,
+        "codename": "delete_investorprofile"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 56,
+    "fields": {
+        "name": "Can view investor profile",
+        "content_type": 14,
+        "codename": "view_investorprofile"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 57,
+    "fields": {
+        "name": "Can add project",
+        "content_type": 15,
+        "codename": "add_project"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 58,
+    "fields": {
+        "name": "Can change project",
+        "content_type": 15,
+        "codename": "change_project"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 59,
+    "fields": {
+        "name": "Can delete project",
+        "content_type": 15,
+        "codename": "delete_project"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 60,
+    "fields": {
+        "name": "Can view project",
+        "content_type": 15,
+        "codename": "view_project"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 61,
+    "fields": {
+        "name": "Can add investment term",
+        "content_type": 16,
+        "codename": "add_investmentterm"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 62,
+    "fields": {
+        "name": "Can change investment term",
+        "content_type": 16,
+        "codename": "change_investmentterm"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 63,
+    "fields": {
+        "name": "Can delete investment term",
+        "content_type": 16,
+        "codename": "delete_investmentterm"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 64,
+    "fields": {
+        "name": "Can view investment term",
+        "content_type": 16,
+        "codename": "view_investmentterm"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 65,
+    "fields": {
+        "name": "Can add investment",
+        "content_type": 17,
+        "codename": "add_investment"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 66,
+    "fields": {
+        "name": "Can change investment",
+        "content_type": 17,
+        "codename": "change_investment"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 67,
+    "fields": {
+        "name": "Can delete investment",
+        "content_type": 17,
+        "codename": "delete_investment"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 68,
+    "fields": {
+        "name": "Can view investment",
+        "content_type": 17,
+        "codename": "view_investment"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 69,
+    "fields": {
+        "name": "Can add reward",
+        "content_type": 18,
+        "codename": "add_reward"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 70,
+    "fields": {
+        "name": "Can change reward",
+        "content_type": 18,
+        "codename": "change_reward"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 71,
+    "fields": {
+        "name": "Can delete reward",
+        "content_type": 18,
+        "codename": "delete_reward"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 72,
+    "fields": {
+        "name": "Can view reward",
+        "content_type": 18,
+        "codename": "view_reward"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 73,
+    "fields": {
+        "name": "Can add pledge",
+        "content_type": 19,
+        "codename": "add_pledge"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 74,
+    "fields": {
+        "name": "Can change pledge",
+        "content_type": 19,
+        "codename": "change_pledge"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 75,
+    "fields": {
+        "name": "Can delete pledge",
+        "content_type": 19,
+        "codename": "delete_pledge"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 76,
+    "fields": {
+        "name": "Can view pledge",
+        "content_type": 19,
+        "codename": "view_pledge"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 77,
+    "fields": {
+        "name": "Can add header link",
+        "content_type": 20,
+        "codename": "add_headerlink"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 78,
+    "fields": {
+        "name": "Can change header link",
+        "content_type": 20,
+        "codename": "change_headerlink"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 79,
+    "fields": {
+        "name": "Can delete header link",
+        "content_type": 20,
+        "codename": "delete_headerlink"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 80,
+    "fields": {
+        "name": "Can view header link",
+        "content_type": 20,
+        "codename": "view_headerlink"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 81,
+    "fields": {
+        "name": "Can add footer section",
+        "content_type": 21,
+        "codename": "add_footersection"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 82,
+    "fields": {
+        "name": "Can change footer section",
+        "content_type": 21,
+        "codename": "change_footersection"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 83,
+    "fields": {
+        "name": "Can delete footer section",
+        "content_type": 21,
+        "codename": "delete_footersection"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 84,
+    "fields": {
+        "name": "Can view footer section",
+        "content_type": 21,
+        "codename": "view_footersection"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 85,
+    "fields": {
+        "name": "Can add social media link",
+        "content_type": 22,
+        "codename": "add_socialmedialink"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 86,
+    "fields": {
+        "name": "Can change social media link",
+        "content_type": 22,
+        "codename": "change_socialmedialink"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 87,
+    "fields": {
+        "name": "Can delete social media link",
+        "content_type": 22,
+        "codename": "delete_socialmedialink"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 88,
+    "fields": {
+        "name": "Can view social media link",
+        "content_type": 22,
+        "codename": "view_socialmedialink"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 89,
+    "fields": {
+        "name": "Can add update",
+        "content_type": 23,
+        "codename": "add_update"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 90,
+    "fields": {
+        "name": "Can change update",
+        "content_type": 23,
+        "codename": "change_update"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 91,
+    "fields": {
+        "name": "Can delete update",
+        "content_type": 23,
+        "codename": "delete_update"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 92,
+    "fields": {
+        "name": "Can view update",
+        "content_type": 23,
+        "codename": "view_update"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 93,
+    "fields": {
+        "name": "Can add hero slider",
+        "content_type": 24,
+        "codename": "add_heroslider"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 94,
+    "fields": {
+        "name": "Can change hero slider",
+        "content_type": 24,
+        "codename": "change_heroslider"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 95,
+    "fields": {
+        "name": "Can delete hero slider",
+        "content_type": 24,
+        "codename": "delete_heroslider"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 96,
+    "fields": {
+        "name": "Can view hero slider",
+        "content_type": 24,
+        "codename": "view_heroslider"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 97,
+    "fields": {
+        "name": "Can add testimonial",
+        "content_type": 25,
+        "codename": "add_testimonial"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 98,
+    "fields": {
+        "name": "Can change testimonial",
+        "content_type": 25,
+        "codename": "change_testimonial"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 99,
+    "fields": {
+        "name": "Can delete testimonial",
+        "content_type": 25,
+        "codename": "delete_testimonial"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 100,
+    "fields": {
+        "name": "Can view testimonial",
+        "content_type": 25,
+        "codename": "view_testimonial"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 1,
+    "fields": {
+        "app_label": "admin",
+        "model": "logentry"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 2,
+    "fields": {
+        "app_label": "auth",
+        "model": "permission"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 3,
+    "fields": {
+        "app_label": "auth",
+        "model": "group"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 4,
+    "fields": {
+        "app_label": "contenttypes",
+        "model": "contenttype"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 5,
+    "fields": {
+        "app_label": "sessions",
+        "model": "session"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 6,
+    "fields": {
+        "app_label": "projects",
+        "model": "announcement"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 7,
+    "fields": {
+        "app_label": "projects",
+        "model": "category"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 8,
+    "fields": {
+        "app_label": "projects",
+        "model": "fundingtype"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 9,
+    "fields": {
+        "app_label": "projects",
+        "model": "seosettings"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 10,
+    "fields": {
+        "app_label": "projects",
+        "model": "sitesettings"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 11,
+    "fields": {
+        "app_label": "projects",
+        "model": "themesettings"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 12,
+    "fields": {
+        "app_label": "projects",
+        "model": "customuser"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 13,
+    "fields": {
+        "app_label": "projects",
+        "model": "founderprofile"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 14,
+    "fields": {
+        "app_label": "projects",
+        "model": "investorprofile"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 15,
+    "fields": {
+        "app_label": "projects",
+        "model": "project"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 16,
+    "fields": {
+        "app_label": "projects",
+        "model": "investmentterm"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 17,
+    "fields": {
+        "app_label": "projects",
+        "model": "investment"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 18,
+    "fields": {
+        "app_label": "projects",
+        "model": "reward"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 19,
+    "fields": {
+        "app_label": "projects",
+        "model": "pledge"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 20,
+    "fields": {
+        "app_label": "projects",
+        "model": "headerlink"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 21,
+    "fields": {
+        "app_label": "projects",
+        "model": "footersection"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 22,
+    "fields": {
+        "app_label": "projects",
+        "model": "socialmedialink"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 23,
+    "fields": {
+        "app_label": "projects",
+        "model": "update"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 24,
+    "fields": {
+        "app_label": "projects",
+        "model": "heroslider"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 25,
+    "fields": {
+        "app_label": "projects",
+        "model": "testimonial"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "3u5svzcw3oukd7ei4g9likx9ogatgnbl",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEM9MG4dO83kIFhpGpoUtqV8d-1SRe6veec-1KBtrWEreUlTKzOCtTpd4uUHrnugO9Ub7NOc12XKepd0Qdt-jpzfl4O9--gUCvf2hERWDCWQWxyNkqf-jwwIyNQNtx5dt4IjBZBgAUjd6OgH2IiQqfeH_WKOIc:1uErpI:YnESQCmnzdvEpKztUR3p41F-nafz6eb7_nlP1ig557Q",
+        "expire_date": "2025-05-27T15:45:52.205Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "9kdxeriw06egnp9bwqggdatwl0661lm2",
+    "fields": {
+        "session_data": ".eJxVjDsOwyAQBe9CHSFY83PK9D4Dgl0ITiKQjF1FuXtsyUXSzsx7b-bDtha_9bT4mdiVAbv8shjwmeoh6BHqvXFsdV3myI-En7bzqVF63c7276CEXva1lUYrFRGESUlIAEJwREqPg4qSrKLopNmZQT0gDSJlGp2FDM7mYCT7fAHK6Td0:1tlxwa:wFIoD-rq57iNe-zqZn9GSI75MQa7vHGABmU2Gq6apVw",
+        "expire_date": "2025-03-08T22:25:56.425Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "a2ck7yzhaodr9nenokybag3xr3eukg1i",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEM9MG4dO83kIFhpGpoUtqV8d-1SRe6veec-1KBtrWEreUlTKzOCtTpd4uUHrnugO9Ub7NOc12XKepd0Qdt-jpzfl4O9--gUCvf2hERWDCWQWxyNkqf-jwwIyNQNtx5dt4IjBZBgAUjd6OgH2IiQqfeH_WKOIc:1twpxI:mGw3Rvxk4fAsb52vzmdVgbbFkwrwgYuR28E3wOXLXWY",
+        "expire_date": "2025-04-07T22:07:36.116Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "czouwv84xg71w05351g6lt1oc5kry8mz",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEM9MG4dO83kIFhpGpoUtqV8d-1SRe6veec-1KBtrWEreUlTKzOCtTpd4uUHrnugO9Ub7NOc12XKepd0Qdt-jpzfl4O9--gUCvf2hERWDCWQWxyNkqf-jwwIyNQNtx5dt4IjBZBgAUjd6OgH2IiQqfeH_WKOIc:1u6ouV:hMUJNZ9_RB3iOweD9yDx86CJ27Rlz-L4i3MA0SLVEXQ",
+        "expire_date": "2025-05-05T11:01:59.015Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "dlgd1ysa3xbaojvdp19uu2x024bm7uxq",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEM9MG4dO83kIFhpGpoUtqV8d-1SRe6veec-1KBtrWEreUlTKzOCtTpd4uUHrnugO9Ub7NOc12XKepd0Qdt-jpzfl4O9--gUCvf2hERWDCWQWxyNkqf-jwwIyNQNtx5dt4IjBZBgAUjd6OgH2IiQqfeH_WKOIc:1u7FQy:XGwhBfJyV-76Q_ncygLYbbhmI8dLNjPFd6oaDi2yMWg",
+        "expire_date": "2025-05-06T15:21:16.822Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "kl3c668eazh9uv3wii178x2mxg7ipqhc",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEM9MG4dO83kIFhpGpoUtqV8d-1SRe6veec-1KBtrWEreUlTKzOCtTpd4uUHrnugO9Ub7NOc12XKepd0Qdt-jpzfl4O9--gUCvf2hERWDCWQWxyNkqf-jwwIyNQNtx5dt4IjBZBgAUjd6OgH2IiQqfeH_WKOIc:1tlvrz:DlR719_YwzUkXE4jBnmOV-zg7LGVMMakMcqBVAus9kk",
+        "expire_date": "2025-03-08T20:13:03.578Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "lmrcyqz6qa6vv9vg91hy3vam0ywnvhdj",
+    "fields": {
+        "session_data": "e30:1tlHAz:pQf1pHacfc8OFpxb2M8-poFei4DD0KYADW7bbIP287c",
+        "expire_date": "2025-03-07T00:45:57.592Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "n0n7zati5tusvrxzapdej0iambxk2nxe",
+    "fields": {
+        "session_data": "e30:1tlHBY:TJj4fQK1JvGQbYH_JHKOulpl-UaUVDD95kOFiYjQmp4",
+        "expire_date": "2025-03-07T00:46:32.524Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "vxwitc5fg15zf3bo9oa0a406w15uovzt",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEM9MG4dO83kIFhpGpoUtqV8d-1SRe6veec-1KBtrWEreUlTKzOCtTpd4uUHrnugO9Ub7NOc12XKepd0Qdt-jpzfl4O9--gUCvf2hERWDCWQWxyNkqf-jwwIyNQNtx5dt4IjBZBgAUjd6OgH2IiQqfeH_WKOIc:1u820Q:jVuCqXw_36ADRA3MhqinuQqTwBZws66SRVvacrfEU2Y",
+        "expire_date": "2025-05-08T19:13:06.678Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "yv8t45mepy67sdpvhqjgdfwdw5ru6rk1",
+    "fields": {
+        "session_data": ".eJxVjM0OwiAQhN-FsyGEnwU9evcZyC4LUjWQlPZkfHfbpAc9TTLfN_MWEdelxnXkOU4sLsKK029HmJ657YAf2O5dpt6WeSK5K_KgQ94659f1cP8OKo66rYPRRRUF5gwmMRYdLLELOgOGtAVaYwigWCbK6H3WzikAnTxZixjE5wvk-jgH:1tyBEA:9sWlCVFn5ciqxvRcU0EzdD6qOWrDXuo6hmdNrYMfeLY",
+        "expire_date": "2025-04-11T15:02:34.177Z"
+    }
+},
+{
+    "model": "projects.customuser",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$870000$CQp16IQcjAf9VCIwxYipuc$J6+HOaGA2ZCfisxBpAHh6RYV2bmTkgbG0MYDSxMD3ZQ=",
+        "last_login": "2025-05-13T15:45:52.203Z",
+        "is_superuser": true,
+        "username": "onahjonah",
+        "first_name": "Jonah",
+        "last_name": "Onah",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2025-02-21T00:34:31Z",
+        "user_type": "founder",
+        "phone_number": "09015170830",
+        "profile_completed": true,
+        "location": "Enugu, Nigeria",
+        "address_line1": "No 1 Okoro Street, Airport Hillview Phase IV, Enugu, Nigeria",
+        "address_line2": "",
+        "city": "Enugu",
+        "state_province": "Enugu",
+        "postal_code": "400102",
+        "country": "NG",
+        "email_verified": false,
+        "email": "onahjonah@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "projects.customuser",
+    "pk": 2,
+    "fields": {
+        "password": "pbkdf2_sha256$870000$9EPS9lZ9B2gjQJk8NVWHar$PdsYSlhkXNOA8ZLnnSVQXioxXo3/NdyDZvkdeB7BD38=",
+        "last_login": "2025-04-21T10:41:53.833Z",
+        "is_superuser": false,
+        "username": "ruchina09@gmail.com",
+        "first_name": "Ruth",
+        "last_name": "Ogboji",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2025-02-22T13:46:06.154Z",
+        "user_type": "investor",
+        "phone_number": "08061265550",
+        "profile_completed": true,
+        "location": null,
+        "address_line1": null,
+        "address_line2": null,
+        "city": null,
+        "state_province": null,
+        "postal_code": null,
+        "country": null,
+        "email_verified": false,
+        "email": "ruchina09@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "projects.customuser",
+    "pk": 3,
+    "fields": {
+        "password": "pbkdf2_sha256$870000$pN2KEDjgbKhqsjpKFcgjLB$UTTQuc0+xPuBSRhIVi1cUPwGFGyeeXOp0zKpkvPcuFU=",
+        "last_login": "2025-02-22T18:11:39.373Z",
+        "is_superuser": false,
+        "username": "info@rutonalinkages.ng",
+        "first_name": "Jonah",
+        "last_name": "Onah",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2025-02-22T18:11:38.442Z",
+        "user_type": "founder",
+        "phone_number": "09015170830",
+        "profile_completed": true,
+        "location": null,
+        "address_line1": null,
+        "address_line2": null,
+        "city": null,
+        "state_province": null,
+        "postal_code": null,
+        "country": null,
+        "email_verified": false,
+        "email": "info@rutonalinkages.ng",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "projects.customuser",
+    "pk": 4,
+    "fields": {
+        "password": "pbkdf2_sha256$870000$NPRtx882oiMjmFrqzsSUno$1T8F1vtcRzx2SmNGfXlY6W+2hx9Wzt+sC80yuc0DUNA=",
+        "last_login": "2025-03-28T15:02:34.165Z",
+        "is_superuser": false,
+        "username": "mailonahjonah@gmail.com",
+        "first_name": "Jonah",
+        "last_name": "Onah",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2025-03-28T15:02:30.878Z",
+        "user_type": "investor",
+        "phone_number": "09015170830",
+        "profile_completed": true,
+        "location": null,
+        "address_line1": null,
+        "address_line2": null,
+        "city": null,
+        "state_province": null,
+        "postal_code": null,
+        "country": null,
+        "email_verified": false,
+        "email": "mailonahjonah@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "projects.founderprofile",
+    "pk": 1,
+    "fields": {
+        "user": 3,
+        "image": "profile_images/Photo_Jonah.jpg",
+        "company_name": "RutOna Linkages",
+        "industry": null,
+        "experience": null,
+        "cv": "",
+        "website": "https://www.rutonalinkages.ng",
+        "bio": "My BIO"
+    }
+},
+{
+    "model": "projects.founderprofile",
+    "pk": 2,
+    "fields": {
+        "user": 1,
+        "image": "profile_images/Onah_Jonah.jpeg",
+        "company_name": "RutOna Linkages",
+        "industry": "Software Development",
+        "experience": "I love startups. I have Experience creating them",
+        "cv": "founder_cvs/Jonah_Onah_-_Software_Developer_.pdf",
+        "website": "https://www.rutonalinkages.ng",
+        "bio": "RutOna Makes Sense"
+    }
+},
+{
+    "model": "projects.investorprofile",
+    "pk": 1,
+    "fields": {
+        "user": 2,
+        "investment_focus": "Digital Founders",
+        "preferred_industries": "Technology"
+    }
+},
+{
+    "model": "projects.investorprofile",
+    "pk": 2,
+    "fields": {
+        "user": 4,
+        "investment_focus": "I want invest in local product that have high growth tendencies",
+        "preferred_industries": "Technology, Agric and Health"
+    }
+},
+{
+    "model": "projects.category",
+    "pk": 1,
+    "fields": {
+        "name": "Technology"
+    }
+},
+{
+    "model": "projects.category",
+    "pk": 2,
+    "fields": {
+        "name": "Digital"
+    }
+},
+{
+    "model": "projects.category",
+    "pk": 3,
+    "fields": {
+        "name": "Fintech"
+    }
+},
+{
+    "model": "projects.category",
+    "pk": 4,
+    "fields": {
+        "name": "Freelancing"
+    }
+},
+{
+    "model": "projects.category",
+    "pk": 5,
+    "fields": {
+        "name": "Agriculture"
+    }
+},
+{
+    "model": "projects.category",
+    "pk": 6,
+    "fields": {
+        "name": "Education"
+    }
+},
+{
+    "model": "projects.category",
+    "pk": 7,
+    "fields": {
+        "name": "Health"
+    }
+},
+{
+    "model": "projects.category",
+    "pk": 8,
+    "fields": {
+        "name": "Engineering"
+    }
+},
+{
+    "model": "projects.fundingtype",
+    "pk": 2,
+    "fields": {
+        "name": "Donation",
+        "description": "Freewill donation to support a Founder"
+    }
+},
+{
+    "model": "projects.fundingtype",
+    "pk": 4,
+    "fields": {
+        "name": "Equity",
+        "description": "Investment"
+    }
+},
+{
+    "model": "projects.project",
+    "pk": 4,
+    "fields": {
+        "title": "WorkDey",
+        "description": "<p>This is Workdey</p>",
+        "funding_goal": "100000.00",
+        "amount_raised": "23800.00",
+        "total_investment_raised": "0.00",
+        "created_at": "2025-02-21T23:21:20Z",
+        "deadline": "2025-05-31T00:00:00Z",
+        "creator": 1,
+        "image": "project_images/Conference-Registration-02-15-2025_11_20_AM_NWBG6Vh.png",
+        "category": 1,
+        "funding_type": 2,
+        "location": "Abuja",
+        "short_description": null,
+        "video_url": null,
+        "status": "approved",
+        "admin_notes": ""
+    }
+},
+{
+    "model": "projects.project",
+    "pk": 5,
+    "fields": {
+        "title": "RutOna",
+        "description": "<p>A digital agency</p>",
+        "funding_goal": "20000.00",
+        "amount_raised": "59500.00",
+        "total_investment_raised": "9000.00",
+        "created_at": "2025-02-22T10:55:28Z",
+        "deadline": "2025-06-22T05:05:00Z",
+        "creator": 1,
+        "image": "project_images/EatRight-02-04-2025_03_53_PM.png",
+        "category": 1,
+        "funding_type": 4,
+        "location": "Jos",
+        "short_description": null,
+        "video_url": null,
+        "status": "approved",
+        "admin_notes": ""
+    }
+},
+{
+    "model": "projects.project",
+    "pk": 6,
+    "fields": {
+        "title": "Flutter School",
+        "description": "<p>A School for Flutter Enthusiasts</p>",
+        "funding_goal": "10000.00",
+        "amount_raised": "300.00",
+        "total_investment_raised": "0.00",
+        "created_at": "2025-02-22T18:13:56Z",
+        "deadline": "2025-04-01T00:00:00Z",
+        "creator": 3,
+        "image": "project_images/Flutter-School--Build-for-anywhere--01-05-2025_11_46_AM.png",
+        "category": 2,
+        "funding_type": 2,
+        "location": "Lagos",
+        "short_description": null,
+        "video_url": null,
+        "status": "approved",
+        "admin_notes": ""
+    }
+},
+{
+    "model": "projects.project",
+    "pk": 7,
+    "fields": {
+        "title": "Gitako",
+        "description": "<p>In the heart of rural Africa, farmers rise with the sun. They clear fields by hand, nurture the soil, and plant with hope&mdash;yet despite their efforts, many still face low yields, poor access to quality inputs, and limited markets for their produce. We believe it doesn&rsquo;t have to be this way.</p>\r\n\r\n<p><strong>Gitako is our answer.</strong></p>\r\n\r\n<p>What is Gitako?</p>\r\n\r\n<p>Gitako is an <strong>all-in-one AgricTech platform</strong> designed to empower smallholder farmers by giving them the tools to <strong>digitally manage their farms, access critical agricultural inputs, and sell directly to buyers</strong>&mdash;all from a single platform.</p>\r\n\r\n<p>With Gitako, farmers can:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p><strong>Track every activity</strong> from land clearing to harvesting</p>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Get personalized recommendations</strong> for fertilizer, pesticides, and weed control based on their farm&rsquo;s history or location</p>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Access verified input suppliers</strong> to buy seeds, equipment, and fertilizers at fair prices</p>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Sell their produce directly</strong> to off-takers and buyers through the Gitako marketplace</p>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Monitor financial performance</strong>, track yields, and forecast production with ease</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Why Gitako Matters</p>\r\n\r\n<p>Africa is home to <strong>over 33 million smallholder farms</strong>, many of which operate without digital support. These farmers lose billions annually due to poor record keeping, lack of information, and middlemen who exploit them.</p>\r\n\r\n<p>Gitako is more than a tool&mdash;it&#39;s a movement to <strong>digitally include every farmer</strong>, improve food security, and <strong>unlock the true potential of African agriculture</strong>.</p>\r\n\r\n<p>We&rsquo;re starting with pilot farms in Nigeria&mdash;and our early results are promising. One farm using Gitako increased yield tracking efficiency by over <strong>60%</strong> and reduced input waste by <strong>40%</strong>. Now, we want to bring Gitako to <strong>thousands more farmers.</strong></p>\r\n\r\n<p>Why We Need You</p>\r\n\r\n<p>We&rsquo;ve built the prototype. We&rsquo;ve tested it. Now we need your support to:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>Launch the Gitako mobile and web app across multiple regions</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>Onboard 1,000+ farmers in rural communities</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>Enhance the AI-based recommendation engine</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>Build a network of input suppliers and off-takers</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Your backing will <strong>change lives</strong>&mdash;from the farmer planting cassava in Enugu to the woman leading her village&rsquo;s first organized harvest group.</p>\r\n\r\n<p>Join Us</p>\r\n\r\n<p>We&rsquo;re not just raising funds&mdash;we&rsquo;re raising a movement. By supporting Gitako, you&rsquo;re investing in <strong>a future where farmers are empowered, food systems are strengthened, and technology bridges the gap between potential and prosperity.</strong></p>\r\n\r\n<p>Together, let&rsquo;s put power back in the hands of the people who feed us all.</p>\r\n\r\n<p><strong>Back Gitako. Grow the future.</strong></p>",
+        "funding_goal": "30000.00",
+        "amount_raised": "0.00",
+        "total_investment_raised": "0.00",
+        "created_at": "2025-04-22T15:23:20Z",
+        "deadline": "2025-08-10T20:25:00Z",
+        "creator": 1,
+        "image": "project_images/Dashboard-Gitako-Farm-Management-04-22-2025_03_24_PM.png",
+        "category": 1,
+        "funding_type": 4,
+        "location": "Kogi",
+        "short_description": null,
+        "video_url": null,
+        "status": "approved",
+        "admin_notes": ""
+    }
+},
+{
+    "model": "projects.project",
+    "pk": 8,
+    "fields": {
+        "title": "Gitako",
+        "description": "<p>In the heart of rural Africa, farmers rise with the sun. They clear fields by hand, nurture the soil, and plant with hope&mdash;yet despite their efforts, many still face low yields, poor access to quality inputs, and limited markets for their produce. We believe it doesn&rsquo;t have to be this way.</p>\r\n\r\n<p><strong>Gitako is our answer.</strong></p>\r\n\r\n<p>What is Gitako?</p>\r\n\r\n<p>Gitako is an <strong>all-in-one AgricTech platform</strong> designed to empower smallholder farmers by giving them the tools to <strong>digitally manage their farms, access critical agricultural inputs, and sell directly to buyers</strong>&mdash;all from a single platform.</p>\r\n\r\n<p>With Gitako, farmers can:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p><strong>Track every activity</strong> from land clearing to harvesting</p>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Get personalized recommendations</strong> for fertilizer, pesticides, and weed control based on their farm&rsquo;s history or location</p>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Access verified input suppliers</strong> to buy seeds, equipment, and fertilizers at fair prices</p>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Sell their produce directly</strong> to off-takers and buyers through the Gitako marketplace</p>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Monitor financial performance</strong>, track yields, and forecast production with ease</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Why Gitako Matters</p>\r\n\r\n<p>Africa is home to <strong>over 33 million smallholder farms</strong>, many of which operate without digital support. These farmers lose billions annually due to poor record keeping, lack of information, and middlemen who exploit them.</p>\r\n\r\n<p>Gitako is more than a tool&mdash;it&#39;s a movement to <strong>digitally include every farmer</strong>, improve food security, and <strong>unlock the true potential of African agriculture</strong>.</p>\r\n\r\n<p>We&rsquo;re starting with pilot farms in Nigeria&mdash;and our early results are promising. One farm using Gitako increased yield tracking efficiency by over <strong>60%</strong> and reduced input waste by <strong>40%</strong>. Now, we want to bring Gitako to <strong>thousands more farmers.</strong></p>\r\n\r\n<p>Why We Need You</p>\r\n\r\n<p>We&rsquo;ve built the prototype. We&rsquo;ve tested it. Now we need your support to:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>Launch the Gitako mobile and web app across multiple regions</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>Onboard 1,000+ farmers in rural communities</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>Enhance the AI-based recommendation engine</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>Build a network of input suppliers and off-takers</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Your backing will <strong>change lives</strong>&mdash;from the farmer planting cassava in Enugu to the woman leading her village&rsquo;s first organized harvest group.</p>\r\n\r\n<p>Join Us</p>\r\n\r\n<p>We&rsquo;re not just raising funds&mdash;we&rsquo;re raising a movement. By supporting Gitako, you&rsquo;re investing in <strong>a future where farmers are empowered, food systems are strengthened, and technology bridges the gap between potential and prosperity.</strong></p>\r\n\r\n<p>Together, let&rsquo;s put power back in the hands of the people who feed us all.</p>\r\n\r\n<p><strong>Back Gitako. Grow the future.</strong></p>",
+        "funding_goal": "30000.00",
+        "amount_raised": "0.00",
+        "total_investment_raised": "0.00",
+        "created_at": "2025-04-22T15:23:22.961Z",
+        "deadline": "2025-06-01T18:23:00Z",
+        "creator": 1,
+        "image": "project_images/Dashboard-Gitako-Farm-Management-04-22-2025_03_24_PM_S5Q6mVO.png",
+        "category": 1,
+        "funding_type": 4,
+        "location": "Kogi",
+        "short_description": null,
+        "video_url": null,
+        "status": "pending",
+        "admin_notes": null
+    }
+},
+{
+    "model": "projects.investmentterm",
+    "pk": 1,
+    "fields": {
+        "project": 5,
+        "equity_offered": "10.00",
+        "minimum_investment": "20000.00",
+        "maximum_investment": null,
+        "valuation": "200000.00",
+        "deadline": "2025-03-09T00:00:00Z"
+    }
+},
+{
+    "model": "projects.investmentterm",
+    "pk": 2,
+    "fields": {
+        "project": 8,
+        "equity_offered": "10.00",
+        "minimum_investment": "500.00",
+        "maximum_investment": null,
+        "valuation": "300000.00",
+        "deadline": "2025-08-31T23:59:00Z"
+    }
+},
+{
+    "model": "projects.investment",
+    "pk": 1,
+    "fields": {
+        "project": 5,
+        "investor": 2,
+        "amount": "9000.00",
+        "equity_percentage": "0.00",
+        "actual_return": "0.00",
+        "terms": 1,
+        "status": "active",
+        "created_at": "2025-02-22T20:20:25.232Z",
+        "is_counted": true
+    }
+},
+{
+    "model": "projects.investment",
+    "pk": 18,
+    "fields": {
+        "project": 5,
+        "investor": 2,
+        "amount": "2000.00",
+        "equity_percentage": "0.00",
+        "actual_return": "0.00",
+        "terms": 1,
+        "status": "active",
+        "created_at": "2025-02-22T23:48:29.872Z",
+        "is_counted": true
+    }
+},
+{
+    "model": "projects.investment",
+    "pk": 19,
+    "fields": {
+        "project": 5,
+        "investor": 2,
+        "amount": "3000.00",
+        "equity_percentage": "0.00",
+        "actual_return": "0.00",
+        "terms": 1,
+        "status": "active",
+        "created_at": "2025-02-23T00:03:05.917Z",
+        "is_counted": true
+    }
+},
+{
+    "model": "projects.investment",
+    "pk": 20,
+    "fields": {
+        "project": 5,
+        "investor": 2,
+        "amount": "20000.00",
+        "equity_percentage": "0.00",
+        "actual_return": null,
+        "terms": 1,
+        "status": "active",
+        "created_at": "2025-02-23T12:52:05.750Z",
+        "is_counted": false
+    }
+},
+{
+    "model": "projects.investment",
+    "pk": 23,
+    "fields": {
+        "project": 5,
+        "investor": 2,
+        "amount": "25000.00",
+        "equity_percentage": "0.00",
+        "actual_return": null,
+        "terms": 1,
+        "status": "active",
+        "created_at": "2025-02-23T13:43:04.934Z",
+        "is_counted": false
+    }
+},
+{
+    "model": "projects.investment",
+    "pk": 24,
+    "fields": {
+        "project": 5,
+        "investor": 1,
+        "amount": "20000.00",
+        "equity_percentage": "10.00",
+        "actual_return": null,
+        "terms": 1,
+        "status": "pending",
+        "created_at": "2025-04-21T19:11:03.357Z",
+        "is_counted": false
+    }
+},
+{
+    "model": "projects.investment",
+    "pk": 25,
+    "fields": {
+        "project": 5,
+        "investor": 1,
+        "amount": "500.00",
+        "equity_percentage": "0.25",
+        "actual_return": null,
+        "terms": 1,
+        "status": "pending",
+        "created_at": "2025-04-21T19:26:53.946Z",
+        "is_counted": false
+    }
+},
+{
+    "model": "projects.investment",
+    "pk": 26,
+    "fields": {
+        "project": 5,
+        "investor": 1,
+        "amount": "500.00",
+        "equity_percentage": "0.25",
+        "actual_return": null,
+        "terms": 1,
+        "status": "active",
+        "created_at": "2025-04-21T19:35:21.420Z",
+        "is_counted": false
+    }
+},
+{
+    "model": "projects.investment",
+    "pk": 27,
+    "fields": {
+        "project": 8,
+        "investor": 1,
+        "amount": "500.00",
+        "equity_percentage": "0.17",
+        "actual_return": null,
+        "terms": 2,
+        "status": "pending",
+        "created_at": "2025-04-25T02:52:47.435Z",
+        "is_counted": false
+    }
+},
+{
+    "model": "projects.reward",
+    "pk": 1,
+    "fields": {
+        "project": 4,
+        "title": "Branded T-Shirt",
+        "description": "You will get a customized branded T-shirt",
+        "amount": "2000.00"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 1,
+    "fields": {
+        "project": 4,
+        "backer": 1,
+        "amount": "2500.00",
+        "reward": 1,
+        "pledged_at": "2025-02-21T23:41:06.637Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 2,
+    "fields": {
+        "project": 4,
+        "backer": 1,
+        "amount": "1700.00",
+        "reward": 1,
+        "pledged_at": "2025-02-22T00:00:24.598Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 3,
+    "fields": {
+        "project": 4,
+        "backer": 2,
+        "amount": "2000.00",
+        "reward": 1,
+        "pledged_at": "2025-02-23T15:06:34.314Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 4,
+    "fields": {
+        "project": 4,
+        "backer": 2,
+        "amount": "2000.00",
+        "reward": 1,
+        "pledged_at": "2025-02-23T15:10:07.590Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 5,
+    "fields": {
+        "project": 4,
+        "backer": 2,
+        "amount": "3000.00",
+        "reward": 1,
+        "pledged_at": "2025-02-23T15:20:20.928Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 6,
+    "fields": {
+        "project": 4,
+        "backer": 2,
+        "amount": "10000.00",
+        "reward": 1,
+        "pledged_at": "2025-02-23T15:24:25.005Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 7,
+    "fields": {
+        "project": 4,
+        "backer": 4,
+        "amount": "5000.00",
+        "reward": 1,
+        "pledged_at": "2025-03-28T15:05:29.969Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 8,
+    "fields": {
+        "project": 4,
+        "backer": 2,
+        "amount": "500.00",
+        "reward": 1,
+        "pledged_at": "2025-04-21T11:00:42.416Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 9,
+    "fields": {
+        "project": 4,
+        "backer": 1,
+        "amount": "300.00",
+        "reward": null,
+        "pledged_at": "2025-04-21T11:12:23.015Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 10,
+    "fields": {
+        "project": 4,
+        "backer": 1,
+        "amount": "5000.00",
+        "reward": 1,
+        "pledged_at": "2025-04-21T11:23:03.188Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 11,
+    "fields": {
+        "project": 4,
+        "backer": 1,
+        "amount": "3000.00",
+        "reward": null,
+        "pledged_at": "2025-04-21T14:33:14.828Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 12,
+    "fields": {
+        "project": 4,
+        "backer": 1,
+        "amount": "300.00",
+        "reward": null,
+        "pledged_at": "2025-04-21T14:34:34.987Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 13,
+    "fields": {
+        "project": 6,
+        "backer": 1,
+        "amount": "300.00",
+        "reward": null,
+        "pledged_at": "2025-04-21T14:42:54.346Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 14,
+    "fields": {
+        "project": 6,
+        "backer": 1,
+        "amount": "300.00",
+        "reward": null,
+        "pledged_at": "2025-04-21T14:42:55.770Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 15,
+    "fields": {
+        "project": 6,
+        "backer": 1,
+        "amount": "1.00",
+        "reward": null,
+        "pledged_at": "2025-04-21T19:03:01.123Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 16,
+    "fields": {
+        "project": 6,
+        "backer": 1,
+        "amount": "1.00",
+        "reward": null,
+        "pledged_at": "2025-04-21T19:04:57.762Z"
+    }
+},
+{
+    "model": "projects.pledge",
+    "pk": 17,
+    "fields": {
+        "project": 6,
+        "backer": 1,
+        "amount": "1.00",
+        "reward": null,
+        "pledged_at": "2025-04-24T19:29:58.108Z"
+    }
+},
+{
+    "model": "projects.sitesettings",
+    "pk": 1,
+    "fields": {
+        "site_name": "Ripples",
+        "logo": "site/logo/ripple_logo_1_wgFtU8P.png",
+        "favicon": "site/favicon/ripples_fav.png",
+        "primary_color": "#28a745",
+        "secondary_color": "#2c3e50"
+    }
+},
+{
+    "model": "projects.heroslider",
+    "pk": 1,
+    "fields": {
+        "title": "Funding African Innovation",
+        "subtitle": "Underrepresented founders need our support.",
+        "image": "slider_images/2148908788.jpg",
+        "is_active": true,
+        "created_at": "2025-02-22T13:13:37.876Z"
+    }
+},
+{
+    "model": "projects.heroslider",
+    "pk": 2,
+    "fields": {
+        "title": "A Place For Underrepresented Founders",
+        "subtitle": "We Love to See Underrepresented Founders Thrive",
+        "image": "slider_images/113378.jpg",
+        "is_active": true,
+        "created_at": "2025-04-24T18:59:39.584Z"
+    }
+},
+{
+    "model": "projects.themesettings",
+    "pk": 1,
+    "fields": {
+        "primary_color": "#28a745",
+        "secondary_color": "#2c3e50",
+        "custom_css": ""
+    }
+},
+{
+    "model": "projects.testimonial",
+    "pk": 1,
+    "fields": {
+        "name": "Michael Okafor",
+        "position": "Angel Investor",
+        "company": null,
+        "image": "testimonials/ryan-hoffman-Ft4p5E9HjTQ-unsplash.jpg",
+        "content": "\"As an investor, I've found incredible opportunities on Ripple that I wouldn't have discovered elsewhere. The platform makes due diligence easy and transparent.\"",
+        "rating": 5,
+        "is_active": true,
+        "created_at": "2025-04-22T18:56:29.865Z"
+    }
+},
+{
+    "model": "projects.testimonial",
+    "pk": 2,
+    "fields": {
+        "name": "Adeola Johnson",
+        "position": "Founder",
+        "company": "FarmConnect",
+        "image": "testimonials/clay-elliot-mpDV4xaFP8c-unsplash.jpg",
+        "content": "Ripple helped me secure funding for my agritech startup when traditional investors wouldn't take a chance. Now we're expanding across three countries!",
+        "rating": 5,
+        "is_active": true,
+        "created_at": "2025-04-22T18:59:11.631Z"
+    }
+},
+{
+    "model": "projects.testimonial",
+    "pk": 3,
+    "fields": {
+        "name": "Ruth Goodness",
+        "position": "Investor",
+        "company": "RutOna Linkages",
+        "image": "testimonials/alex-starnes-WYE2UhXsU1Y-unsplash.jpg",
+        "content": "As an investor, Ripple really aggregated the best crop of founders that could easily be managed and give great ROI.",
+        "rating": 5,
+        "is_active": true,
+        "created_at": "2025-04-22T19:02:42.063Z"
+    }
+}
+]
