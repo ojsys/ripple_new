@@ -107,35 +107,38 @@
                     </li>
                     {% else %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
-                        <li class="nav-item"><a class="btn btn-primary ms-2" href="{% url 'signup' %}">Sign Up</a></li>
+                        <li class="nav-item"><a class="btn btn-success ms-2" href="{% url 'signup' %}">Sign Up</a></li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
     
-    {% if messages %}
-    <div class="container mt-3">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 
-    {% for announcement in active_announcements %}
-    <div class="announcement alert-{{ announcement.style }}">
-        <div class="container">
-            {{ announcement.message }}
-        </div>
-    </div>
-    {% endfor %}
 
     <!-- Content -->
     <main class="flex-shrink-0">
-        {% block content %}{% endblock %}
+        {% block content %}
+            {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        
+            {% for announcement in active_announcements %}
+            <div class="announcement alert-{{ announcement.style }}">
+                <div class="container">
+                    {{ announcement.message }}
+                </div>
+            </div>
+            {% endfor %}
+        
+        {% endblock %}
     </main>
 
 
