@@ -4,6 +4,28 @@ from crispy_forms.layout import Layout, Field, Submit
 from .models import (Project, Reward, InvestmentTerm, Investment, 
                      Pledge, FundingType, CustomUser, FounderProfile, InvestorProfile)
 from ckeditor.widgets import CKEditorWidget
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth import get_user_model
+from .signals import send_password_reset_email
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+
+class CustomPasswordResetForm(PasswordResetForm):
+    def send_mail(self, subject_template_name, email_template_name,
+                  context, from_email, to_email, html_email_template_name=None):
+        """
+        Override the send_mail method to use our custom email function
+        """
+        user = context['user']
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = context['token']
+        
+        # Create the reset URL
+        reset_url = f"{context['protocol']}://{context['domain']}/reset/{uid}/{token}/"
+        
+        # Use our custom email function
+        send_password_reset_email(user, reset_url)
 
 
 class SignUpForm(forms.ModelForm):

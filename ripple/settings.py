@@ -23,7 +23,8 @@ STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.startupripple.com', 'startupripple.com']
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['www.startupripple.com', 'startupripple.com']
 
 AUTH_USER_MODEL = 'projects.CustomUser'
 
