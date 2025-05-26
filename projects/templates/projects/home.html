@@ -67,7 +67,7 @@
                     
                     <div class="card-body p-4">
                         <h3 class="h4 card-title mb-3">{{ project.title }}</h3>
-                        <p class="card-text text-muted">{{ project.description|truncatechars:100 }}</p>
+                        <p class="card-text text-muted">{{ project.description|safe|truncatechars:100 }}</p>
                         
                         <div class="mt-4">
                             <div class="d-flex justify-content-between align-items-center mb-2">
