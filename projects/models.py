@@ -11,12 +11,13 @@ from ckeditor.fields import RichTextField
 
 class CustomUser(AbstractUser):
     USER_TYPES = (
+        ('', 'Select User Type'),
         ('founder', 'Founder'),
         ('donor', 'Donor/Pledger'),
         ('investor', 'Investor'),
     )
     
-    user_type = models.CharField(max_length=20, choices=USER_TYPES)
+    user_type = models.CharField(max_length=20, choices=USER_TYPES, blank=False, null=False)
     phone_number = models.CharField(max_length=20)
     profile_completed = models.BooleanField(default=False)
     location = models.CharField(max_length=100, blank=True, null=True)
