@@ -20,7 +20,7 @@ def send_welcome_email_with_verification(sender, instance, created, **kwargs):
             # Create verification URL
             verify_url = f"{settings.SITE_URL}{reverse('verify_email', kwargs={'uidb64': uid, 'token': token})}"
             
-            subject = "Welcome to Ripples - Please Verify Your Email"
+            subject = "Welcome to StartUpRipples - Please Verify Your Email"
             
             html_message = f"""
             <!DOCTYPE html>
@@ -44,7 +44,7 @@ def send_welcome_email_with_verification(sender, instance, created, **kwargs):
                     
                     <p>This link will expire in 24 hours for security reasons.</p>
                     
-                    <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+                    <p style="margin-top: 30px;">Best regards,<br>The StartUpRipples Team</p>
                 </div>
             </body>
             </html>
@@ -105,7 +105,7 @@ def send_pledge_confirmation_after_payment(pledge):
                     <a href="{pledge.project.get_absolute_url()}" style="display: inline-block; padding: 10px 20px; background-color: #27ae60; color: white; text-decoration: none; border-radius: 5px;">View Project</a>
                 </p>
                 
-                <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+                <p style="margin-top: 30px;">Best regards,<br>The StartUpRipples Team</p>
             </div>
         </body>
         </html>
@@ -120,7 +120,7 @@ def send_pledge_confirmation_after_payment(pledge):
         You can track the project's progress and updates here: {pledge.project.get_absolute_url()}
         
         Best regards,
-        The Ripples Team
+        The StartUpRipples Team
         """
         
         email = EmailMessage(
@@ -163,7 +163,7 @@ def notify_founder_new_investment_after_payment(investment):
                     <a href="{investment.project.get_absolute_url()}" style="display: inline-block; padding: 10px 20px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px;">View Project</a>
                 </p>
                 
-                <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+                <p style="margin-top: 30px;">Best regards,<br>The StartUpRipples Team</p>
             </div>
         </body>
         </html>
@@ -182,7 +182,7 @@ def notify_founder_new_investment_after_payment(investment):
         View it here: {investment.project.get_absolute_url()}
         
         Best regards,
-        The Ripples Team
+        The STartUpRipples Team
         """
         
         email = EmailMessage(
@@ -231,7 +231,7 @@ def send_project_rejection_email(project):
                 
                 <p>You can make the necessary changes and resubmit your project for review. If you have any questions or need clarification, please don't hesitate to contact our support team.</p>
                 
-                <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+                <p style="margin-top: 30px;">Best regards,<br>The StartUpRipples Team</p>
             </div>
         </body>
         </html>
@@ -249,7 +249,7 @@ def send_project_rejection_email(project):
         You can make the necessary changes and resubmit your project for review. If you have any questions or need clarification, please don't hesitate to contact our support team.
         
         Best regards,
-        The Ripples Team
+        The StartUpRipples Team
         """
         
         email = EmailMessage(
@@ -295,7 +295,7 @@ def send_project_approval_email(project):
                 
                 <p>Start promoting your project to your network to maximize your chances of success!</p>
                 
-                <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+                <p style="margin-top: 30px;">Best regards,<br>The StartUpRipples Team</p>
             </div>
         </body>
         </html>
@@ -316,7 +316,7 @@ def send_project_approval_email(project):
         Start promoting your project to your network to maximize your chances of success!
         
         Best regards,
-        The Ripples Team
+        The StartUpRipples Team
         """
         
         email = EmailMessage(
@@ -335,7 +335,7 @@ def send_project_approval_email(project):
 
 def send_password_reset_email(user, reset_url):
     try:
-        subject = "Reset Your Ripples Password"
+        subject = "Reset Your StartUpRipples Password"
         
         html_message = f"""
         <!DOCTYPE html>
@@ -346,7 +346,7 @@ def send_password_reset_email(user, reset_url):
                 
                 <p>Hello {user.get_full_name() or user.username},</p>
                 
-                <p>We received a request to reset your password for your Ripples account. If you didn't make this request, you can safely ignore this email.</p>
+                <p>We received a request to reset your password for your StartUpRipples account. If you didn't make this request, you can safely ignore this email.</p>
                 
                 <p>To reset your password, please click the button below:</p>
                 
@@ -359,7 +359,7 @@ def send_password_reset_email(user, reset_url):
                 
                 <p>This link will expire in 24 hours for security reasons.</p>
                 
-                <p style="margin-top: 30px;">Best regards,<br>The Ripples Team</p>
+                <p style="margin-top: 30px;">Best regards,<br>The StartUpRipples Team</p>
             </div>
         </body>
         </html>
@@ -369,7 +369,7 @@ def send_password_reset_email(user, reset_url):
         text_message = f"""
         Hello {user.get_full_name() or user.username},
         
-        We received a request to reset your password for your Ripples account. If you didn't make this request, you can safely ignore this email.
+        We received a request to reset your password for your StartUpRipples account. If you didn't make this request, you can safely ignore this email.
         
         To reset your password, please visit this link:
         {reset_url}
@@ -377,7 +377,7 @@ def send_password_reset_email(user, reset_url):
         This link will expire in 24 hours for security reasons.
         
         Best regards,
-        The Ripples Team
+        The StartUpRipples Team
         """
         
         email = EmailMessage(

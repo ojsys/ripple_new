@@ -23,7 +23,7 @@ from django.db.models.functions import Coalesce
 from datetime import datetime
 from decimal import Decimal
 from django import forms
-from .models import (Project, FundingType, InvestmentTerm, Investment, Pledge, 
+from .models import (Project, FundingType, InvestmentTerm, Investment, Pledge, SiteSettings,
                      Reward, Category, FounderProfile, InvestorProfile, HeroSlider, Testimonial)
 from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, EditProfileForm,
                     PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm, InvestmentAgreementForm)
@@ -31,6 +31,13 @@ from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm,
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
+def site_settings(request):
+    return {
+        'site_settings': SiteSettings.objects.first()
+    }
+    
+    
 
 def signup(request):
     if request.method == 'POST':

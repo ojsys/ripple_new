@@ -228,7 +228,7 @@ class Update(models.Model):
     
 
 class SiteSettings(models.Model):
-    site_name = models.CharField(max_length=100, default='Ripples')
+    site_name = models.CharField(max_length=100, default='StartUpRipples')
     logo = models.ImageField(upload_to='site/logo/', blank=True)
     favicon = models.ImageField(upload_to='site/favicon/', blank=True)
     primary_color = models.CharField(max_length=7, default='#28a745')
