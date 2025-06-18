@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Thank You for Applying{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center align-items-center">
+        <div class="col-md-8">
+            <img src="{% static 'images/thank_you.svg' %}" alt="Thank You" class="img-fluid mb-4" style="max-height: 300px;">
+            
+            <h1 class="display-5 fw-bold text-success">Thank You for Your Application!</h1>
+            <p class="lead mt-3 mb-4">
+                We've received your submission for the <strong>Accelerator</strong> program. Our team will review your application and contact you if you're shortlisted.
+            </p>
+
+            <div class="d-grid gap-2 d-md-block mt-4">
+                <a href="{% url 'home' %}" class="btn btn-outline-primary me-2">Back to Home</a>
+                <a href="{% url 'incubator_accelerator_page' %}" class="btn btn-success">Explore the Program</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

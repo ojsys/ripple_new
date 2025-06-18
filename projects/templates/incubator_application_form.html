@@ -1,32 +1,97 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}{# Assuming you use crispy_forms for better form rendering #}
-
-{% block title %}Apply to Incubator/Accelerator Program{% endblock %}
+{% load crispy_forms_tags static %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h2 class="mb-0">Incubator/Accelerator Application</h2>
-                </div>
-                <div class="card-body">
-                    <p class="lead">Fill out the form below to apply for our program. We're excited to hear about your venture!</p>
-                    <hr>
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        {{ form|crispy }}
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-lg btn-success">Submit Application</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="card-footer text-muted">
-                    <p class="mb-0">If you have any questions, please <a href="{% url 'contact_page' %}">contact us</a>.</p> {# Assuming you have a contact page #}
-                </div>
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100 shadow-lg rounded overflow-hidden" style="max-width: 1200px; height: 90vh;">
+        
+        <!-- Left Column (Image) -->
+        <div class="col-md-6 d-none d-md-block p-0">
+            <img src="{% static 'images/accelerator_side.jpg' %}" alt="Accelerator" class="img-fluid h-100 w-100 object-fit-cover">
+        </div>
+
+        <!-- Right Column (Form) -->
+        <div class="col-md-6 bg-white p-5 overflow-auto">
+            <h2 class="mb-4 text-center">Accelerator Application</h2>
+
+            <!-- Progress Bar -->
+            <div class="progress mb-4">
+                <div id="formProgress" class="progress-bar bg-success" role="progressbar" style="width: 33%"></div>
             </div>
+
+            <form id="applicationForm" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Step 1 -->
+                <div class="form-step active">
+                    {{ form.applicant_name|as_crispy_field }}
+                    {{ form.applicant_email|as_crispy_field }}
+                    {{ form.applicant_phone|as_crispy_field }}
+                </div>
+
+                <!-- Step 2 -->
+                <div class="form-step">
+                    {{ form.project|as_crispy_field }}
+                    {{ form.industry|as_crispy_field }}
+                    {{ form.stage|as_crispy_field }}
+                    {{ form.website|as_crispy_field }}
+                </div>
+
+                <!-- Step 3 -->
+                <div class="form-step">
+                    {{ form.application_text|as_crispy_field }}
+                    {{ form.team_background|as_crispy_field }}
+                    {{ form.pitch_deck|as_crispy_field }}
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" id="prevBtn" class="btn btn-outline-secondary" onclick="nextPrev(-1)">Back</button>
+                    <button type="button" id="nextBtn" class="btn btn-success" onclick="nextPrev(1)">Next</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary d-none">Submit</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<!-- Styles -->
+<style>
+    .form-step { display: none; }
+    .form-step.active { display: block; }
+    .object-fit-cover { object-fit: cover; }
+</style>
+
+<!-- JavaScript for Navigation -->
+<script>
+    let currentStep = 0;
+    const steps = document.querySelectorAll(".form-step");
+    const progress = document.getElementById("formProgress");
+    const nextBtn = document.getElementById("nextBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const submitBtn = document.getElementById("submitBtn");
+
+    showStep(currentStep);
+
+    function showStep(n) {
+        steps.forEach((step, index) => {
+            step.classList.remove("active");
+            if (index === n) step.classList.add("active");
+        });
+
+        // Progress bar
+        const progressPercent = ((n + 1) / steps.length) * 100;
+        progress.style.width = progressPercent + "%";
+
+        // Button logic
+        prevBtn.style.display = n === 0 ? "none" : "inline-block";
+        nextBtn.style.display = n === steps.length - 1 ? "none" : "inline-block";
+        submitBtn.classList.toggle("d-none", n !== steps.length - 1);
+    }
+
+    function nextPrev(n) {
+        currentStep += n;
+        showStep(currentStep);
+    }
+</script>
 {% endblock %}

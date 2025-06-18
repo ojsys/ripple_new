@@ -482,16 +482,56 @@ class EditProfileForm(forms.ModelForm):
 class IncubatorApplicationForm(forms.ModelForm):
     class Meta:
         model = IncubatorApplication
-        fields = ['project', 'applicant_name', 'applicant_email', 'applicant_phone', 'applicant_company', 'application_text']
-        widgets = {
-            'application_text': forms.Textarea(attrs={'rows': 5}),
+        fields = [
+            'project',
+            'applicant_name',
+            'applicant_email',
+            'applicant_phone',
+            'applicant_company',
+            'website',
+            'industry',
+            'stage',
+            'application_text',
+            'traction',
+            'team_background',
+            'goals_for_program',
+            'funding_raised',
+            'funding_needed',
+            'pitch_deck',
+        ]
+        labels = {
+            'applicant_name': 'Full Name',
+            'applicant_email': 'Email Address',
+            'applicant_phone': 'Phone Number',
+            'applicant_company': 'Startup / Company Name',
+            'application_text': 'Describe Your Startup'
         }
-    
+        widgets = {
+            'application_text': CKEditorWidget(),
+            'traction': CKEditorWidget(),
+            'team_background': CKEditorWidget(),
+            'goals_for_program': forms.Textarea(attrs={'rows': 3}),
+            'funding_raised': forms.TextInput(attrs={'placeholder': 'e.g. $5,000 in grants'}),
+            'funding_needed': forms.TextInput(attrs={'placeholder': 'e.g. $25,000 seed round'}),
+            'pitch_deck': forms.FileInput(),
+        }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['project'].queryset = Project.objects.filter(status='approved') # Example: only allow application for approved projects
-        self.fields['project'].empty_label = "Select the project you are applying for"
-        # Add more customizations if needed
+        
+        
+        # Optional UI enhancements
+        self.fields['applicant_name'].widget.attrs.update({'placeholder': 'e.g. Adamu Eze Olabisi'})
+        self.fields['applicant_email'].widget.attrs.update({'placeholder': 'e.g. mymail@email.com'})
+        self.fields['applicant_phone'].widget.attrs.update({'placeholder': 'e.g. +234 803 111 2223'})
+        self.fields['website'].widget.attrs.update({'placeholder': 'https://yourstartup.com'})
+        self.fields['traction'].label = "Startup Traction"
+        self.fields['application_text'].widget.attrs.update({'placeholder': 'Enter your startup description'})
+        self.fields['team_background'].label = "Founding Team Background"
+        self.fields['goals_for_program'].label = "What Are You Hoping to Achieve?"
+        self.fields['pitch_deck'].label = "Upload Pitch Deck (PDF, Max 10MB)"
+
+
 
 class BaseProfileForm(forms.ModelForm):
     class Meta:

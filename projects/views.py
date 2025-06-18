@@ -25,9 +25,9 @@ from decimal import Decimal
 from django import forms
 from .models import (Project, FundingType, InvestmentTerm, Investment, Pledge, SiteSettings,
                      Reward, Category, FounderProfile, InvestorProfile, HeroSlider, Testimonial, 
-                     AboutPage, IncubatorAcceleratorPage, IncubatorApplication) 
+                     AboutPage, IncubatorAcceleratorPage, IncubatorApplication, TeamMember) 
 from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, EditProfileForm,
-                    PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm, InvestmentAgreementForm)
+                    PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm, InvestmentAgreementForm, IncubatorApplicationForm)
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -618,12 +618,17 @@ def pledge_payment_callback(request):
 
 def about_page_view(request):
     try:
-        # Fetch the single AboutPage entry, assuming there's only one or you want the most recently updated.
-        # If you plan to have multiple, you might need a different logic, e.g., filtering by a slug or ID.
         content = AboutPage.objects.latest('last_updated')
     except AboutPage.DoesNotExist:
         content = None
-    return render(request, 'about_page.html', {'content': content})
+
+    # Fetch all team members (you can order them however you want)
+    team = TeamMember.objects.all().order_by('position')  # or 'id' or 'name'
+
+    return render(request, 'about_page.html', {
+        'content': content,
+        'team': team,
+    })
 
 def incubator_accelerator_page_view(request):
     try:
@@ -634,23 +639,30 @@ def incubator_accelerator_page_view(request):
     return render(request, 'incubator_accelerator_page.html', {'content': content})
 
 
+
 def incubator_application_view(request):
     if request.method == 'POST':
-        form = IncubatorApplicationForm(request.POST)
+        form = IncubatorApplicationForm(request.POST, request.FILES) 
         if form.is_valid():
             application = form.save(commit=False)
+
+            # Optional: Link to logged-in user if model has a user FK
             # if request.user.is_authenticated:
-            #     application.applicant_user = request.user # If you add a user FK to IncubatorApplication
+            #     application.applicant_user = request.user
+
             application.save()
             messages.success(request, 'Your application has been submitted successfully!')
-            return redirect('incubator_accelerator_page') # Or a thank you page
+            return redirect('application_thank_you')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
         form = IncubatorApplicationForm()
-    
+
     return render(request, 'incubator_application_form.html', {'form': form})
 
+
+def application_thank_you(request):
+    return render(request, 'thank_you.html')
 
 
 @login_required

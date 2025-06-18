@@ -53,6 +53,8 @@ urlpatterns = [
     path('about/', about_page_view, name='about_page'),
     path('incubator-accelerator/', incubator_accelerator_page_view, name='incubator_accelerator_page'),
     path('incubator-accelerator/apply/', incubator_application_view, name='incubator_apply'),
+    path('application/thank-you/', views.application_thank_you, name='application_thank_you'),
+
 ]
 
 

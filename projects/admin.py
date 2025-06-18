@@ -8,7 +8,7 @@ from django.contrib.auth.admin import UserAdmin
 from .models import (
     CustomUser, Category, Project, FundingType, HeaderLink, FooterSection, FounderProfile, InvestorProfile,
     Reward, Pledge, InvestmentTerm, Investment, SiteSettings, SocialMediaLink, HeroSlider, Testimonial,
-    AboutPage, IncubatorAcceleratorPage, IncubatorApplication
+    AboutPage, IncubatorAcceleratorPage, IncubatorApplication, TeamMember
 )
 
 class HeaderLinkInline(admin.TabularInline):
@@ -116,6 +116,12 @@ admin.site.register(InvestmentTerm)
 admin.site.register(Investment)
 
 
+@admin.register(TeamMember)
+class TeamMemberAdmin(admin.ModelAdmin):
+    list_display = ('name', 'position', 'created_at')  # Customize as needed
+    search_fields = ('name', 'position')
+    ordering = ('name',)
+    
 
 @admin.register(AboutPage)
 class AboutPageAdmin(admin.ModelAdmin):
@@ -124,12 +130,12 @@ class AboutPageAdmin(admin.ModelAdmin):
 
 @admin.register(IncubatorAcceleratorPage)
 class IncubatorAcceleratorPageAdmin(admin.ModelAdmin):
-    list_display = ('title', 'is_accepting_applications', 'application_deadline', 'last_updated')
+    list_display = ('title', 'image', 'is_accepting_applications', 'application_deadline', 'last_updated')
     list_filter = ('is_accepting_applications',)
     search_fields = ('title', 'program_description')
     fieldsets = (
         (None, {
-            'fields': ('title', 'program_description')
+            'fields': ('title','image', 'program_description')
         }),
         ('Application Details', {
             'fields': ('application_info', 'application_deadline', 'is_accepting_applications')

@@ -11,11 +11,19 @@
             <div class="col-md-10 offset-md-1">
                 <div class="text-center mb-5">
                     <h1>{{ content.title }}</h1>
+                
+                    {% if content.image %}
+                        <div class="w-100 mb-4">
+                            <img src="{{ content.image.url }}" alt="{{ content.title }}" class="img-fluid w-100 shadow-sm" style="max-height: 500px; object-fit: cover; object-position: center;">
+                        </div>
+                    {% endif %}
+                
                     <hr class="my-4">
                 </div>
 
+
                 <div class="program-description mb-5 p-4 bg-light rounded shadow-sm">
-                    <h2 class="text-primary">About Our Program</h2>
+                    <h2 class="text-success">About Our Program</h2>
                     {{ content.program_description|safe }}
                 </div>
                 
