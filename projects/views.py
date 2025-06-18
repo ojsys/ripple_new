@@ -24,7 +24,8 @@ from datetime import datetime
 from decimal import Decimal
 from django import forms
 from .models import (Project, FundingType, InvestmentTerm, Investment, Pledge, SiteSettings,
-                     Reward, Category, FounderProfile, InvestorProfile, HeroSlider, Testimonial)
+                     Reward, Category, FounderProfile, InvestorProfile, HeroSlider, Testimonial, 
+                     AboutPage, IncubatorAcceleratorPage, IncubatorApplication) 
 from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, EditProfileForm,
                     PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm, InvestmentAgreementForm)
 
@@ -613,6 +614,43 @@ def pledge_payment_callback(request):
         # API call failed
         messages.error(request, "Payment verification failed. Please try again.")
         return redirect('project_list')
+
+
+def about_page_view(request):
+    try:
+        # Fetch the single AboutPage entry, assuming there's only one or you want the most recently updated.
+        # If you plan to have multiple, you might need a different logic, e.g., filtering by a slug or ID.
+        content = AboutPage.objects.latest('last_updated')
+    except AboutPage.DoesNotExist:
+        content = None
+    return render(request, 'about_page.html', {'content': content})
+
+def incubator_accelerator_page_view(request):
+    try:
+        # Similar to AboutPage, fetch the single or latest IncubatorAcceleratorPage entry.
+        content = IncubatorAcceleratorPage.objects.latest('last_updated')
+    except IncubatorAcceleratorPage.DoesNotExist:
+        content = None
+    return render(request, 'incubator_accelerator_page.html', {'content': content})
+
+
+def incubator_application_view(request):
+    if request.method == 'POST':
+        form = IncubatorApplicationForm(request.POST)
+        if form.is_valid():
+            application = form.save(commit=False)
+            # if request.user.is_authenticated:
+            #     application.applicant_user = request.user # If you add a user FK to IncubatorApplication
+            application.save()
+            messages.success(request, 'Your application has been submitted successfully!')
+            return redirect('incubator_accelerator_page') # Or a thank you page
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = IncubatorApplicationForm()
+    
+    return render(request, 'incubator_application_form.html', {'form': form})
+
 
 
 @login_required

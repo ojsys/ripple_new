@@ -7,7 +7,8 @@ from django_json_widget.widgets import JSONEditorWidget
 from django.contrib.auth.admin import UserAdmin
 from .models import (
     CustomUser, Category, Project, FundingType, HeaderLink, FooterSection, FounderProfile, InvestorProfile,
-    Reward, Pledge, InvestmentTerm, Investment, SiteSettings, SocialMediaLink, HeroSlider, Testimonial
+    Reward, Pledge, InvestmentTerm, Investment, SiteSettings, SocialMediaLink, HeroSlider, Testimonial,
+    AboutPage, IncubatorAcceleratorPage, IncubatorApplication
 )
 
 class HeaderLinkInline(admin.TabularInline):
@@ -115,4 +116,30 @@ admin.site.register(InvestmentTerm)
 admin.site.register(Investment)
 
 
-# Add this to your admin.py f
+
+@admin.register(AboutPage)
+class AboutPageAdmin(admin.ModelAdmin):
+    list_display = ('title', 'last_updated')
+    search_fields = ('title',)
+
+@admin.register(IncubatorAcceleratorPage)
+class IncubatorAcceleratorPageAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_accepting_applications', 'application_deadline', 'last_updated')
+    list_filter = ('is_accepting_applications',)
+    search_fields = ('title', 'program_description')
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'program_description')
+        }),
+        ('Application Details', {
+            'fields': ('application_info', 'application_deadline', 'is_accepting_applications')
+        }),
+    )
+
+    
+
+@admin.register(IncubatorApplication)
+class IncubatorApplicationAdmin(admin.ModelAdmin):
+    list_display = ('project', 'applicant_name', 'application_date', 'status')
+    list_filter = ('status', 'application_date')
+    search_fields = ('project__title', 'applicant_name', 'applicant_email')

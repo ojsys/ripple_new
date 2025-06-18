@@ -226,7 +226,73 @@ class Update(models.Model):
 
     def __str__(self):
         return self.title
-    
+
+
+class TeamMember(models.Model):
+    name = models.CharField(max_length=100)
+    position = models.CharField(max_length=100)
+    bio = RichTextField()
+    image = models.ImageField(upload_to='team/', blank=True)
+    linkedin_url = models.URLField(blank=True)
+    email = models.EmailField(blank=True, help_text="Contact email for the team member")
+    is_active = models.BooleanField(default=True, help_text="Indicate if the team member is currently active")
+    is_visible = models.BooleanField(default=True, help_text="Indicate if the team member should be visible on the site")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+class AboutPage(models.Model):
+    title = models.CharField(max_length=200)
+    content = RichTextField()
+    mission = models.TextField()
+    vision = models.TextField()
+    core_values = models.TextField()
+    about_image = models.ImageField(upload_to='about/', blank=True)
+    about_video = models.FileField(upload_to='about/videos/', blank=True)
+    about_video_thumbnail = models.ImageField(upload_to='about/thumbnails/', blank=True)
+    about_video_description = models.TextField(blank=True)
+    about_video_url = models.URLField(blank=True)
+    about_video_embed_code = models.TextField(blank=True, help_text="Embed code for the video, e.g., from YouTube")
+    team_members = models.ManyToManyField(TeamMember, blank=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name_plural = "About Page Content"
+
+
+class IncubatorAcceleratorPage(models.Model):
+    title = models.CharField(max_length=200)
+    program_description = RichTextField()
+    application_info = RichTextField(help_text="Information about the call for applications, eligibility, timeline, etc.")
+    application_deadline = models.DateTimeField(null=True, blank=True)
+    is_accepting_applications = models.BooleanField(default=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name_plural = "Incubator/Accelerator Page Content"
+
+
+class IncubatorApplication(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='incubator_applications')
+    applicant_name = models.CharField(max_length=200)
+    applicant_email = models.EmailField()
+    applicant_phone = models.CharField(max_length=20, blank=True)
+    applicant_company = models.CharField(max_length=200, blank=True)
+    application_text = models.TextField(blank=True, help_text="Additional information about the application")
+    application_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='pending')
+
+    def __str__(self):
+        return f"Application for {self.project} by {self.applicant}"
+
 
 class SiteSettings(models.Model):
     site_name = models.CharField(max_length=100, default='StartUpRipples')
@@ -376,4 +442,18 @@ class Testimonial(models.Model):
     class Meta:
         ordering = ['-created_at']
     
+
+class Contact(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.subject}"
+
+    class Meta:
+        ordering = ['-created_at']
+
 

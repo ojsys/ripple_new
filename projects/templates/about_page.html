@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if content %}{{ content.title }}{% else %}About Us{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    {% if content %}
+        <div class="row">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h1>{{ content.title }}</h1>
+                <hr class="my-4">
+            </div>
+        </div>
+
+        {% if content.about_image %}
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <img src="{{ content.about_image.url }}" alt="{{ content.title }}" class="img-fluid rounded shadow-sm" style="max-height: 400px;">
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-lg-10 offset-lg-1">
+                <div class="lead mb-4">
+                    {{ content.content|safe }}
+                </div>
+
+                {% if content.mission %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title text-primary">Our Mission</h3>
+                        <p class="card-text">{{ content.mission|safe }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if content.vision %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title text-primary">Our Vision</h3>
+                        <p class="card-text">{{ content.vision|safe }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if content.core_values %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title text-primary">Our Core Values</h3>
+                        <p class="card-text">{{ content.core_values|safe }}</p> {# Assuming core_values might also be RichText #}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if content.about_video_embed_code %}
+                <div class="video-section my-5 text-center">
+                    <h3 class="mb-3">Watch Our Story</h3>
+                    <div class="embed-responsive embed-responsive-16by9 shadow-sm rounded">
+                        {{ content.about_video_embed_code|safe }}
+                    </div>
+                    {% if content.about_video_description %}
+                        <p class="mt-2 text-muted">{{ content.about_video_description }}</p>
+                    {% endif %}
+                </div>
+                {% elif content.about_video_url %}
+                <div class="video-section my-5 text-center">
+                    <h3 class="mb-3">Watch Our Story</h3>
+                    <a href="{{ content.about_video_url }}" target="_blank" class="btn btn-outline-primary btn-lg">Watch Video</a>
+                     {% if content.about_video_description %}
+                        <p class="mt-2 text-muted">{{ content.about_video_description }}</p>
+                    {% endif %}
+                </div>
+                {% elif content.about_video %}
+                 <div class="video-section my-5 text-center">
+                    <h3 class="mb-3">Watch Our Story</h3>
+                    <video controls width="100%" class="rounded shadow-sm" {% if content.about_video_thumbnail %}poster="{{ content.about_video_thumbnail.url }}"{% endif %}>
+                        <source src="{{ content.about_video.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                     {% if content.about_video_description %}
+                        <p class="mt-2 text-muted">{{ content.about_video_description }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if content.team_members.all %}
+                <div class="team-section mt-5">
+                    <h2 class="text-center mb-4">Meet Our Team</h2>
+                    <div class="row">
+                        {% for member in content.team_members.all %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 text-center shadow-sm">
+                                {% if member.image %}
+                                    <img src="{{ member.image.url }}" class="card-img-top" alt="{{ member.name }}" style="height: 200px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{% static 'images/default-avatar.png' %}" class="card-img-top" alt="Default Avatar" style="height: 200px; object-fit: cover;">
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ member.name }}</h5>
+                                    <p class="card-text text-muted">{{ member.title }}</p>
+                                    {% if member.bio %}
+                                        <p class="card-text">{{ member.bio|truncatewords:20 }}</p>
+                                    {% endif %}
+                                    {# Add social links if available in TeamMember model #}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h1>About Us</h1>
+                <p class="lead">Content for the About Us page is not yet available. Please check back later.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

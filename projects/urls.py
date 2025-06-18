@@ -2,6 +2,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
+from .views import about_page_view, incubator_accelerator_page_view, incubator_application_view # Add these to your imports
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -49,8 +50,9 @@ urlpatterns = [
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
     path('complete-profile/', views.complete_profile, name='complete_profile'),
-
-
+    path('about/', about_page_view, name='about_page'),
+    path('incubator-accelerator/', incubator_accelerator_page_view, name='incubator_accelerator_page'),
+    path('incubator-accelerator/apply/', incubator_application_view, name='incubator_apply'),
 ]
 
 
