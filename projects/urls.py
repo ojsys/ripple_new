@@ -10,6 +10,10 @@ urlpatterns = [
     
 
     path('signup/', views.signup, name='signup'),
+    # Registration payment URLs
+    path('registration-payment/', views.registration_payment, name='registration_payment'),
+    path('registration-payment/initialize/', views.initialize_registration_payment, name='initialize_registration_payment'),
+    path('registration-payment/callback/', views.registration_payment_callback, name='registration_payment_callback'),
     # Add this to your urlpatterns
     path('verify-email/<uidb64>/<token>/', views.verify_email, name='verify_email'),
     # Authentication

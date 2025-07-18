@@ -16,7 +16,7 @@ import io
 from .models import (
     CustomUser, Category, Project, FundingType, HeaderLink, FooterSection, FounderProfile, InvestorProfile,
     Reward, Pledge, InvestmentTerm, Investment, SiteSettings, SocialMediaLink, HeroSlider, Testimonial,
-    AboutPage, IncubatorAcceleratorPage, IncubatorApplication, TeamMember
+    AboutPage, IncubatorAcceleratorPage, IncubatorApplication, TeamMember, RegistrationPayment
 )
 
 # Try to import optional models
@@ -401,3 +401,16 @@ if HAS_ANNOUNCEMENT:
         
         def get_export_fields(self):
             return ['message', 'start_date', 'end_date', 'is_active', 'style']
+
+
+@admin.register(RegistrationPayment)
+class RegistrationPaymentAdmin(admin.ModelAdmin, ExcelExportMixin):
+    list_display = ('user', 'amount_usd', 'amount_ngn', 'status', 'created_at', 'paystack_reference')
+    list_filter = ('status', 'created_at')
+    search_fields = ('user__email', 'user__first_name', 'user__last_name', 'paystack_reference')
+    readonly_fields = ('paystack_reference', 'created_at', 'updated_at')
+    actions = ['export_to_excel']
+    
+    def get_export_fields(self):
+        return ['user__email', 'user__first_name', 'user__last_name', 'user__user_type', 
+                'amount_usd', 'amount_ngn', 'paystack_reference', 'status', 'created_at', 'updated_at']

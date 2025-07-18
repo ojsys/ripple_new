@@ -25,9 +25,12 @@ from decimal import Decimal
 from django import forms
 from .models import (Project, FundingType, InvestmentTerm, Investment, Pledge, SiteSettings,
                      Reward, Category, FounderProfile, InvestorProfile, HeroSlider, Testimonial, 
-                     AboutPage, IncubatorAcceleratorPage, IncubatorApplication, TeamMember) 
+                     AboutPage, IncubatorAcceleratorPage, IncubatorApplication, TeamMember, RegistrationPayment, CustomUser) 
 from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, EditProfileForm,
                     PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm, InvestmentAgreementForm, IncubatorApplicationForm)
+
+# Import registration payment views
+from .views_registration import registration_payment, initialize_registration_payment, registration_payment_callback
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -44,9 +47,11 @@ def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
+            # Create user but don't save yet
             user = form.save(commit=False)
             user.username = user.email  # Use email as username
             user.set_password(form.cleaned_data['password'])
+            user.is_active = False  # User will be activated after payment
             user.save()
             
             # Create profile based on user type
@@ -54,9 +59,12 @@ def signup(request):
                 FounderProfile.objects.create(user=user)
             elif user.user_type == 'investor':
                 InvestorProfile.objects.create(user=user)
-                
-            login(request, user)
-            return redirect('dashboard')
+            
+            # Store user ID in session for payment processing
+            request.session['pending_user_id'] = user.id
+            
+            # Redirect to payment page
+            return redirect('registration_payment')
     else:
         form = SignUpForm()
     return render(request, 'signup.html', {'form': form})

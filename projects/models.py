@@ -30,6 +30,7 @@ class CustomUser(AbstractUser):
     postal_code = models.CharField(max_length=20, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     email_verified = models.BooleanField(default=False)
+    registration_fee_paid = models.BooleanField(default=False)
     
     # Add these if missing
     email = models.EmailField(unique=True)
@@ -40,6 +41,19 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f"{self.get_full_name()} ({self.get_user_type_display()})"
+    
+    def get_registration_fee(self):
+        """Get the registration fee amount based on user type"""
+        if self.user_type == 'founder':
+            return 5.00  # $5 USD
+        elif self.user_type in ['donor', 'investor']:
+            return 25.00  # $25 USD
+        return 0.00
+    
+    def get_registration_fee_ngn(self):
+        """Get the registration fee in NGN (using the same conversion rate as other payments)"""
+        usd_amount = self.get_registration_fee()
+        return int(usd_amount * 1600)  # 1 USD = 1600 NGN
 
 
 class FounderProfile(models.Model):
@@ -197,6 +211,26 @@ class Investment(models.Model):
                     )
         except Exception as e:
             raise ValidationError(f"Error saving investment: {str(e)}")
+
+
+class RegistrationPayment(models.Model):
+    """Model to track registration fee payments"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('successful', 'Successful'),
+        ('failed', 'Failed'),
+    ]
+    
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='registration_payment')
+    amount_usd = models.DecimalField(max_digits=10, decimal_places=2)
+    amount_ngn = models.DecimalField(max_digits=10, decimal_places=2)
+    paystack_reference = models.CharField(max_length=100, unique=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Registration payment for {self.user.email} - ${self.amount_usd}"
 
     
 class Reward(models.Model):

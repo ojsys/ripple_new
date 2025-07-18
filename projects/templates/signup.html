@@ -8,10 +8,21 @@
             <div class="card shadow">
                 <div class="card-body p-5">
                     <h2 class="mb-4">Join StartUpRipples</h2>
+                    
+                    <div class="alert alert-info mb-4">
+                        <h6><i class="fas fa-info-circle"></i> Registration Fee Information</h6>
+                        <p class="mb-2">To maintain platform quality, we require a one-time registration fee:</p>
+                        <ul class="mb-0">
+                            <li><strong>Founders:</strong> $5 USD</li>
+                            <li><strong>Donors & Investors:</strong> $25 USD</li>
+                        </ul>
+                        <small class="text-muted">You'll be redirected to payment after registration.</small>
+                    </div>
+                    
                     <form method="post">
                         {% csrf_token %}
                         {{ form|crispy }}
-                        <button type="submit" class="btn btn-success mt-3">Sign Up</button>
+                        <button type="submit" class="btn btn-success mt-3">Continue to Payment</button>
                     </form>
                 </div>
             </div>
