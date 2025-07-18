@@ -18,6 +18,12 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 AUTH_USER_MODEL = 'projects.CustomUser'
 
+# Silence specific system checks
+SILENCED_SYSTEM_CHECKS = [
+    'ckeditor.W001',  # CKEditor security warning
+    'mysql.W002',     # MariaDB Strict Mode warning
+]
+
 # Application definition
 INSTALLED_APPS = [
     'jazzmin',
@@ -162,8 +168,17 @@ CKEDITOR_CONFIGS = {
         ],
         'height': 300,
         'width': '100%',
+        # Security settings
+        'removePlugins': 'elementspath',
+        'forcePasteAsPlainText': True,
+        'disableNativeSpellChecker': False,
+        'removeDialogTabs': 'image:advanced;link:advanced',
     },
 }
+
+# Suppress CKEditor deprecation warning
+import warnings
+warnings.filterwarnings('ignore', message='.*CKEditor.*', category=UserWarning)
 
 # Security settings for development (less strict)
 SECURE_CONTENT_TYPE_NOSNIFF = False

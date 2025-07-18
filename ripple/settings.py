@@ -28,6 +28,12 @@ ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'projects.CustomUser'
 
+# Silence specific system checks
+SILENCED_SYSTEM_CHECKS = [
+    'ckeditor.W001',  # CKEditor security warning
+    'mysql.W002',     # MariaDB Strict Mode warning
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -102,6 +108,11 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': 'localhost',
         'PORT': '3306',
+        'OPTIONS': {
+            'sql_mode': 'STRICT_TRANS_TABLES',
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -207,8 +218,20 @@ CKEDITOR_CONFIGS = {
         ],
         'height': 300,
         'width': '100%',
+        # Security settings
+        'removePlugins': 'elementspath',
+        'forcePasteAsPlainText': True,
+        'disableNativeSpellChecker': False,
+        'removeDialogTabs': 'image:advanced;link:advanced',
     },
 }
+
+# Suppress CKEditor deprecation warning
+import warnings
+import sys
+if not sys.warnoptions:
+    warnings.filterwarnings('ignore', message='.*CKEditor.*')
+    warnings.filterwarnings('ignore', module='ckeditor.*')
 
 
 # Add Jazzmin settings at the end of the file
