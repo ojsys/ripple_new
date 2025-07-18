@@ -6,60 +6,60 @@ from django.contrib.auth import login
 from django.urls import reverse
 from django.conf import settings
 import requests
-from .models import CustomUser, RegistrationPayment
+from .models import CustomUser, RegistrationPayment, PendingRegistration, FounderProfile, InvestorProfile
 
 
 def registration_payment(request):
     """Display registration payment page"""
-    if 'pending_user_id' not in request.session:
+    if 'pending_registration_id' not in request.session:
         messages.error(request, "No pending registration found. Please start registration again.")
         return redirect('signup')
     
     try:
-        user = CustomUser.objects.get(id=request.session['pending_user_id'])
-        if user.registration_fee_paid:
+        pending_registration = PendingRegistration.objects.get(id=request.session['pending_registration_id'])
+        
+        # Check if registration has expired
+        if pending_registration.is_expired():
+            pending_registration.delete()
+            del request.session['pending_registration_id']
+            messages.error(request, "Registration session expired. Please start registration again.")
+            return redirect('signup')
+        
+        # Check if payment already successful
+        if pending_registration.payment_status == 'successful':
             messages.info(request, "Registration fee already paid.")
             return redirect('login')
         
-        # Calculate fee amounts
-        fee_usd = user.get_registration_fee()
-        fee_ngn = user.get_registration_fee_ngn()
-        
         context = {
-            'user': user,
-            'fee_usd': fee_usd,
-            'fee_ngn': fee_ngn,
+            'pending_registration': pending_registration,
+            'fee_usd': pending_registration.amount_usd,
+            'fee_ngn': pending_registration.amount_ngn,
             'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY,
         }
         
         return render(request, 'registration_payment.html', context)
-    except CustomUser.DoesNotExist:
+    except PendingRegistration.DoesNotExist:
         messages.error(request, "Invalid registration session. Please start registration again.")
         return redirect('signup')
 
 
 def initialize_registration_payment(request):
     """Initialize registration payment with Paystack"""
-    if request.method == 'POST' and 'pending_user_id' in request.session:
+    if request.method == 'POST' and 'pending_registration_id' in request.session:
         try:
-            user = CustomUser.objects.get(id=request.session['pending_user_id'])
+            pending_registration = PendingRegistration.objects.get(id=request.session['pending_registration_id'])
             
-            # Check if payment already exists
-            if RegistrationPayment.objects.filter(user=user).exists():
+            # Check if registration has expired
+            if pending_registration.is_expired():
+                pending_registration.delete()
+                del request.session['pending_registration_id']
+                messages.error(request, "Registration session expired. Please start registration again.")
+                return redirect('signup')
+            
+            # Check if payment already initiated
+            if pending_registration.payment_status != 'pending':
                 messages.error(request, "Registration payment already initiated.")
                 return redirect('registration_payment')
-            
-            # Generate unique reference
-            reference = f"reg_{user.id}_{uuid.uuid4().hex[:8]}"
-            
-            # Create payment record
-            payment = RegistrationPayment.objects.create(
-                user=user,
-                amount_usd=user.get_registration_fee(),
-                amount_ngn=user.get_registration_fee_ngn(),
-                paystack_reference=reference,
-                status='pending'
-            )
             
             # Initialize payment with Paystack
             url = "https://api.paystack.co/transaction/initialize"
@@ -69,14 +69,14 @@ def initialize_registration_payment(request):
             }
             
             data = {
-                'email': user.email,
-                'amount': int(payment.amount_ngn * 100),  # Paystack expects amount in kobo
-                'reference': reference,
+                'email': pending_registration.email,
+                'amount': int(pending_registration.amount_ngn * 100),  # Paystack expects amount in kobo
+                'reference': pending_registration.paystack_reference,
                 'callback_url': request.build_absolute_uri(reverse('registration_payment_callback')),
                 'metadata': {
-                    'user_id': user.id,
+                    'pending_registration_id': pending_registration.id,
                     'payment_type': 'registration_fee',
-                    'user_type': user.user_type,
+                    'user_type': pending_registration.user_type,
                 }
             }
             
@@ -89,11 +89,10 @@ def initialize_registration_payment(request):
                     return redirect(authorization_url)
             
             # If we reach here, payment initialization failed
-            payment.delete()
             messages.error(request, "Payment initialization failed. Please try again.")
             return redirect('registration_payment')
             
-        except CustomUser.DoesNotExist:
+        except PendingRegistration.DoesNotExist:
             messages.error(request, "Invalid registration session.")
             return redirect('signup')
         except Exception as e:
@@ -111,8 +110,14 @@ def registration_payment_callback(request):
         return redirect('signup')
     
     try:
-        # Get payment record
-        payment = RegistrationPayment.objects.get(paystack_reference=reference)
+        # Get pending registration record
+        pending_registration = PendingRegistration.objects.get(paystack_reference=reference)
+        
+        # Check if registration has expired
+        if pending_registration.is_expired():
+            pending_registration.delete()
+            messages.error(request, "Registration session expired. Please start registration again.")
+            return redirect('signup')
         
         # Verify payment with Paystack
         url = f"https://api.paystack.co/transaction/verify/{reference}"
@@ -125,19 +130,45 @@ def registration_payment_callback(request):
         if response.status_code == 200:
             response_data = response.json()
             if response_data['status'] and response_data['data']['status'] == 'success':
-                # Payment successful
-                payment.status = 'successful'
-                payment.save()
+                # Payment successful - NOW CREATE THE USER
+                pending_registration.payment_status = 'successful'
+                pending_registration.save()
                 
-                # Activate user account
-                user = payment.user
-                user.is_active = True
-                user.registration_fee_paid = True
-                user.save()
+                # Create the actual user account
+                user = CustomUser.objects.create(
+                    username=pending_registration.email,
+                    email=pending_registration.email,
+                    first_name=pending_registration.first_name,
+                    last_name=pending_registration.last_name,
+                    phone_number=pending_registration.phone_number,
+                    user_type=pending_registration.user_type,
+                    password=pending_registration.password_hash,  # Already hashed
+                    is_active=True,
+                    registration_fee_paid=True,
+                    email_verified=True,  # Consider email verified after payment
+                )
+                
+                # Create profile based on user type
+                if user.user_type == 'founder':
+                    FounderProfile.objects.create(user=user)
+                elif user.user_type == 'investor':
+                    InvestorProfile.objects.create(user=user)
+                
+                # Create registration payment record for admin tracking
+                RegistrationPayment.objects.create(
+                    user=user,
+                    amount_usd=pending_registration.amount_usd,
+                    amount_ngn=pending_registration.amount_ngn,
+                    paystack_reference=reference,
+                    status='successful'
+                )
+                
+                # Clean up - delete pending registration
+                pending_registration.delete()
                 
                 # Clear session
-                if 'pending_user_id' in request.session:
-                    del request.session['pending_user_id']
+                if 'pending_registration_id' in request.session:
+                    del request.session['pending_registration_id']
                 
                 # Log user in
                 login(request, user)
@@ -150,8 +181,8 @@ def registration_payment_callback(request):
                 return redirect('dashboard')
             else:
                 # Payment failed
-                payment.status = 'failed'
-                payment.save()
+                pending_registration.payment_status = 'failed'
+                pending_registration.save()
                 messages.error(request, "Payment verification failed. Please try again.")
                 return redirect('registration_payment')
         else:
@@ -159,7 +190,7 @@ def registration_payment_callback(request):
             messages.error(request, "Payment verification failed. Please try again.")
             return redirect('registration_payment')
             
-    except RegistrationPayment.DoesNotExist:
+    except PendingRegistration.DoesNotExist:
         messages.error(request, "Invalid payment reference.")
         return redirect('signup')
     except Exception as e:

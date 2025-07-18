@@ -16,7 +16,7 @@ import io
 from .models import (
     CustomUser, Category, Project, FundingType, HeaderLink, FooterSection, FounderProfile, InvestorProfile,
     Reward, Pledge, InvestmentTerm, Investment, SiteSettings, SocialMediaLink, HeroSlider, Testimonial,
-    AboutPage, IncubatorAcceleratorPage, IncubatorApplication, TeamMember, RegistrationPayment
+    AboutPage, IncubatorAcceleratorPage, IncubatorApplication, TeamMember, RegistrationPayment, PendingRegistration
 )
 
 # Try to import optional models
@@ -414,3 +414,24 @@ class RegistrationPaymentAdmin(admin.ModelAdmin, ExcelExportMixin):
     def get_export_fields(self):
         return ['user__email', 'user__first_name', 'user__last_name', 'user__user_type', 
                 'amount_usd', 'amount_ngn', 'paystack_reference', 'status', 'created_at', 'updated_at']
+
+
+@admin.register(PendingRegistration)
+class PendingRegistrationAdmin(admin.ModelAdmin, ExcelExportMixin):
+    list_display = ('email', 'first_name', 'last_name', 'user_type', 'payment_status', 'created_at', 'expires_at')
+    list_filter = ('user_type', 'payment_status', 'created_at')
+    search_fields = ('email', 'first_name', 'last_name', 'paystack_reference')
+    readonly_fields = ('paystack_reference', 'password_hash', 'created_at', 'expires_at')
+    actions = ['export_to_excel', 'delete_expired_registrations']
+    
+    def delete_expired_registrations(self, request, queryset):
+        """Delete expired pending registrations"""
+        from django.utils import timezone
+        expired_count = queryset.filter(expires_at__lt=timezone.now()).count()
+        queryset.filter(expires_at__lt=timezone.now()).delete()
+        self.message_user(request, f'{expired_count} expired registrations deleted.')
+    delete_expired_registrations.short_description = "Delete expired registrations"
+    
+    def get_export_fields(self):
+        return ['email', 'first_name', 'last_name', 'user_type', 'phone_number', 
+                'amount_usd', 'amount_ngn', 'paystack_reference', 'payment_status', 'created_at', 'expires_at']

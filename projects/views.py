@@ -25,7 +25,7 @@ from decimal import Decimal
 from django import forms
 from .models import (Project, FundingType, InvestmentTerm, Investment, Pledge, SiteSettings,
                      Reward, Category, FounderProfile, InvestorProfile, HeroSlider, Testimonial, 
-                     AboutPage, IncubatorAcceleratorPage, IncubatorApplication, TeamMember, RegistrationPayment, CustomUser) 
+                     AboutPage, IncubatorAcceleratorPage, IncubatorApplication, TeamMember, RegistrationPayment, CustomUser, PendingRegistration) 
 from .forms import (ProjectForm, RewardForm, InvestmentTermForm, InvestmentForm, EditProfileForm,
                     PledgeForm, SignUpForm, BaseProfileForm, FounderProfileForm, InvestorProfileForm, InvestmentAgreementForm, IncubatorApplicationForm)
 
@@ -47,21 +47,55 @@ def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            # Create user but don't save yet
-            user = form.save(commit=False)
-            user.username = user.email  # Use email as username
-            user.set_password(form.cleaned_data['password'])
-            user.is_active = False  # User will be activated after payment
-            user.save()
+            # Check if email already exists in CustomUser
+            if CustomUser.objects.filter(email=form.cleaned_data['email']).exists():
+                form.add_error('email', 'A user with this email already exists.')
+                return render(request, 'signup.html', {'form': form})
             
-            # Create profile based on user type
-            if user.user_type == 'founder':
-                FounderProfile.objects.create(user=user)
-            elif user.user_type == 'investor':
-                InvestorProfile.objects.create(user=user)
+            # Check if email already has a pending registration
+            existing_pending = PendingRegistration.objects.filter(
+                email=form.cleaned_data['email']
+            ).first()
             
-            # Store user ID in session for payment processing
-            request.session['pending_user_id'] = user.id
+            if existing_pending:
+                if not existing_pending.is_expired():
+                    # Redirect to payment page for existing pending registration
+                    request.session['pending_registration_id'] = existing_pending.id
+                    return redirect('registration_payment')
+                else:
+                    # Delete expired registration and continue
+                    existing_pending.delete()
+            
+            # Create pending registration (NO USER CREATED YET)
+            from django.utils import timezone
+            from datetime import timedelta
+            from django.contrib.auth.hashers import make_password
+            import uuid
+            
+            # Generate unique reference
+            reference = f"reg_{uuid.uuid4().hex[:8]}"
+            
+            # Create pending registration
+            pending_registration = PendingRegistration.objects.create(
+                first_name=form.cleaned_data['first_name'],
+                last_name=form.cleaned_data['last_name'],
+                email=form.cleaned_data['email'],
+                phone_number=form.cleaned_data['phone_number'],
+                user_type=form.cleaned_data['user_type'],
+                password_hash=make_password(form.cleaned_data['password']),
+                paystack_reference=reference,
+                amount_usd=0,  # Will be set based on user type
+                amount_ngn=0,  # Will be set based on user type
+                expires_at=timezone.now() + timedelta(hours=24),  # 24 hours expiry
+            )
+            
+            # Set amounts based on user type
+            pending_registration.amount_usd = pending_registration.get_registration_fee()
+            pending_registration.amount_ngn = pending_registration.get_registration_fee_ngn()
+            pending_registration.save()
+            
+            # Store pending registration ID in session
+            request.session['pending_registration_id'] = pending_registration.id
             
             # Redirect to payment page
             return redirect('registration_payment')

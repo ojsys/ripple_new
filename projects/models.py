@@ -232,6 +232,51 @@ class RegistrationPayment(models.Model):
     def __str__(self):
         return f"Registration payment for {self.user.email} - ${self.amount_usd}"
 
+
+class PendingRegistration(models.Model):
+    """Model to store registration data temporarily before payment confirmation"""
+    # User data
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=20)
+    user_type = models.CharField(max_length=20, choices=CustomUser.USER_TYPES)
+    password_hash = models.CharField(max_length=128)  # Store hashed password
+    
+    # Payment tracking
+    paystack_reference = models.CharField(max_length=100, unique=True)
+    amount_usd = models.DecimalField(max_digits=10, decimal_places=2)
+    amount_ngn = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('successful', 'Successful'),
+        ('failed', 'Failed'),
+    ], default='pending')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()  # Registration expires after 24 hours
+    
+    def __str__(self):
+        return f"Pending registration for {self.email} - {self.get_user_type_display()}"
+    
+    def is_expired(self):
+        from django.utils import timezone
+        return timezone.now() > self.expires_at
+    
+    def get_registration_fee(self):
+        """Get the registration fee amount based on user type"""
+        if self.user_type == 'founder':
+            return 5.00  # $5 USD
+        elif self.user_type in ['donor', 'investor']:
+            return 25.00  # $25 USD
+        return 0.00
+    
+    def get_registration_fee_ngn(self):
+        """Get the registration fee in NGN"""
+        usd_amount = self.get_registration_fee()
+        return int(usd_amount * 1600)  # 1 USD = 1600 NGN
+
     
 class Reward(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='rewards')

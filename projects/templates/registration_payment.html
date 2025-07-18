@@ -14,10 +14,14 @@
                     
                     <div class="alert alert-info">
                         <h5><i class="fas fa-info-circle"></i> Registration Fee Required</h5>
-                        <p class="mb-0">
+                        <p class="mb-2">
                             To prevent spam registrations and ensure the quality of our platform, 
                             we require a one-time registration fee. This fee helps us maintain 
                             a professional community of serious entrepreneurs and investors.
+                        </p>
+                        <p class="mb-0">
+                            <strong>Important:</strong> This registration session expires at {{ pending_registration.expires_at|date:"M d, Y H:i" }}. 
+                            Complete payment before then to secure your account.
                         </p>
                     </div>
                     
@@ -26,10 +30,10 @@
                             <div class="card h-100">
                                 <div class="card-body text-center">
                                     <h5 class="card-title">Account Details</h5>
-                                    <p><strong>Name:</strong> {{ user.get_full_name }}</p>
-                                    <p><strong>Email:</strong> {{ user.email }}</p>
+                                    <p><strong>Name:</strong> {{ pending_registration.first_name }} {{ pending_registration.last_name }}</p>
+                                    <p><strong>Email:</strong> {{ pending_registration.email }}</p>
                                     <p><strong>Account Type:</strong> 
-                                        <span class="badge badge-primary">{{ user.get_user_type_display }}</span>
+                                        <span class="badge badge-primary">{{ pending_registration.get_user_type_display }}</span>
                                     </p>
                                 </div>
                             </div>
