@@ -235,7 +235,7 @@
                                 </div>
                             </div>
                             <div class="small text-muted mb-3">
-                                {{ project.description|truncatechars:120 }}
+                                {{ project.description|safe|truncatechars:120 }}
                             </div>
                             <div class="d-flex justify-content-between small text-muted">
                                 <div>Equity Offers</div>

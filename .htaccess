@@ -3,7 +3,20 @@ PassengerAppRoot "/home/startupr/ripple"
 PassengerBaseURI "/"
 PassengerPython "/home/startupr/virtualenv/ripple/3.11/bin/python"
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
 # DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION BEGIN
 <IfModule Litespeed>
 </IfModule>
 # DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION END
+
+# Serve static files
+Alias /static /home/startupr/ripple/staticfiles
+<Directory /home/startupr/ripple/staticfiles>
+    Require all granted
+</Directory>
+
+# Serve media files
+Alias /media /home/startupr/ripple/media
+<Directory /home/startupr/ripple/media>
+    Require all granted
+</Directory>

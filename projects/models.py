@@ -239,6 +239,10 @@ class TeamMember(models.Model):
     is_visible = models.BooleanField(default=True, help_text="Indicate if the team member should be visible on the site")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    order = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        ordering = ['order']
 
     def __str__(self):
         return self.name

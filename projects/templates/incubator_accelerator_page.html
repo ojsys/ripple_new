@@ -1,57 +1,131 @@
 {% extends "base.html" %}
 
 {% block title %}
-    {% if content %}{{ content.title }}{% else %}Incubator/Accelerator Program{% endif %}
+    {% if content %}{{ content.title }}{% else %}LaunchPadi Program{% endif %}
 {% endblock %}
 
 {% block content %}
+
+<!-- Particles Background -->
+<div id="particles-js"></div>
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        background: #f8f9fa;
+    }
+
+    #particles-js {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 0;
+        background: #f8f9fa;
+    }
+
+    .container {
+        position: relative;
+        z-index: 1;
+    }
+</style>
+
 <div class="container mt-5 mb-5">
     {% if content %}
         <div class="row">
             <div class="col-md-10 offset-md-1">
                 <div class="text-center mb-5">
-                    <h1>{{ content.title }}</h1>
-                
+                    <h1 class="fw-bold text-success">{{ content.title }}</h1>
+
                     {% if content.image %}
-                        <div class="w-100 mb-4">
+                        <div class="w-100 mb-4 mt-5">
                             <img src="{{ content.image.url }}" alt="{{ content.title }}" class="img-fluid w-100 shadow-sm" style="max-height: 500px; object-fit: cover; object-position: center;">
                         </div>
                     {% endif %}
-                
+
                     <hr class="my-4">
                 </div>
-
 
                 <div class="program-description mb-5 p-4 bg-light rounded shadow-sm">
                     <h2 class="text-success">About Our Program</h2>
                     {{ content.program_description|safe }}
                 </div>
-                
-                <div class="application-info p-4 border rounded shadow-sm">
+
+                <div class="application-info p-4 border rounded shadow-sm bg-white">
                     <h2 class="text-success">Join Our Next Cohort!</h2>
                     {{ content.application_info|safe }}
-                    
+
                     {% if content.application_deadline %}
-                        <p class="mt-3"><strong><i class="fas fa-calendar-alt"></i> Application Deadline:</strong> <span class="badge bg-warning text-dark">{{ content.application_deadline|date:"F d, Y, P" }}</span></p>
+                        <p class="mt-3">
+                            <strong><i class="fas fa-calendar-alt"></i> Application Deadline:</strong>
+                            <span class="badge bg-warning text-dark">{{ content.application_deadline|date:"F d, Y, P" }}</span>
+                        </p>
                     {% endif %}
-                    
+
                     {% if content.is_accepting_applications %}
-                        <p class="mt-3"><strong class="text-success"><i class="fas fa-check-circle"></i> Status:</strong> We are currently accepting applications!</p>
-                        {# Link to the application form page #}
+                        <p class="mt-3">
+                            <strong class="text-success"><i class="fas fa-check-circle"></i> Status:</strong> We are currently accepting applications!
+                        </p>
                         <div class="text-center mt-4">
                             <a href="{% url 'incubator_apply' %}" class="btn btn-lg btn-success">Apply Now</a>
                         </div>
                     {% else %}
-                        <p class="mt-3"><strong class="text-danger"><i class="fas fa-times-circle"></i> Status:</strong> Applications are currently closed. Please check back later or contact us for more information.</p>
+                        <p class="mt-3">
+                            <strong class="text-danger"><i class="fas fa-times-circle"></i> Status:</strong> Applications are currently closed. Please check back later or contact us for more information.
+                        </p>
                     {% endif %}
                 </div>
             </div>
         </div>
     {% else %}
         <div class="text-center">
-            <h1>Incubator/Accelerator Program</h1>
-            <p class="lead">Details about our Incubator/Accelerator Program are not yet available. Please check back later.</p>
+            <h1>LaunchPadi Program</h1>
+            <p class="lead">Details about our LaunchPadi Program are not yet available. Please check back later.</p>
         </div>
     {% endif %}
 </div>
+
+
+
+<!-- Load particles.js -->
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+<!-- Initialize particles.js -->
+<script>
+    particlesJS("particles-js", {
+        particles: {
+            number: { value: 60, density: { enable: true, value_area: 800 } },
+            color: { value: "#5dbb83" },
+            shape: { type: "circle" },
+            opacity: { value: 0.4, random: true },
+            size: { value: 3, random: true },
+            line_linked: {
+                enable: true,
+                distance: 120,
+                color: "#c2e5d4",
+                opacity: 0.3,
+                width: 1
+            },
+            move: {
+                enable: true,
+                speed: 1.2,
+                direction: "none",
+                random: false,
+                straight: false,
+                out_mode: "bounce"
+            }
+        },
+        interactivity: {
+            detect_on: "canvas",
+            events: {
+                onhover: { enable: false },
+                onclick: { enable: false }
+            }
+        },
+        retina_detect: true
+    });
+</script>
 {% endblock %}

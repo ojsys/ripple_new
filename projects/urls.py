@@ -7,7 +7,7 @@ from .views import about_page_view, incubator_accelerator_page_view, incubator_a
 urlpatterns = [
     path('', views.home, name='home'),
     path('projects/', views.project_list, name='project_list'),
-    path('projects/<int:project_id>/', views.project_detail, name='project_detail'),
+    
 
     path('signup/', views.signup, name='signup'),
     # Add this to your urlpatterns

@@ -2,6 +2,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X4B31YQ55V"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-X4B31YQ55V');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% with seo=SEOSettings.load %}
@@ -20,11 +29,9 @@
     <title>StartUpRipples - {% block title %}{{ site_settings.site_name }}{% endblock %}</title>
     
     <!-- Favicon -->
-    {% if site_settings.favicon %}
-    <link rel="icon" type="image/png" href="{{ site_settings.favicon.url }}">
-    {% else %}
+    
     <link rel="icon" type="image/png" href="{% static 'images/ripples_fav.png' %}">
-    {% endif %}
+    
     
     <!-- Other head content -->
     
@@ -74,7 +81,7 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Discover</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'project_list' %}">Projects</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'about_page' %}">About</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'incubator_accelerator_page' %}">Accelerator</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'incubator_accelerator_page' %}">LaunchPadi</a></li>
     
                     {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
@@ -164,6 +171,7 @@
     <script type="text/javascript" src="https://cdn.datatables.net/v/bs5/dt-1.11.3/datatables.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
 </body>
 </html>
 <!-- Add this right after your navbar or at the beginning of your main content area -->

@@ -1,97 +1,496 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags static %}
-
 {% block content %}
-<div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
-    <div class="row w-100 shadow-lg rounded overflow-hidden" style="max-width: 1200px; height: 90vh;">
-        
-        <!-- Left Column (Image) -->
-        <div class="col-md-6 d-none d-md-block p-0">
-            <img src="{% static 'images/accelerator_side.jpg' %}" alt="Accelerator" class="img-fluid h-100 w-100 object-fit-cover">
-        </div>
-
-        <!-- Right Column (Form) -->
-        <div class="col-md-6 bg-white p-5 overflow-auto">
-            <h2 class="mb-4 text-center">Accelerator Application</h2>
-
-            <!-- Progress Bar -->
-            <div class="progress mb-4">
-                <div id="formProgress" class="progress-bar bg-success" role="progressbar" style="width: 33%"></div>
+<div class="container-fluid py-3">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+            <div class="card shadow-lg border-0">
+                <div class="row g-0">
+                    <!-- Left Column (Image) - Hidden on mobile -->
+                    <div class="col-lg-5 d-none d-lg-block">
+                        <img src="{% static 'images/accelerator_side.jpg' %}" alt="Accelerator" class="img-fluid h-100 w-100 object-fit-cover rounded-start">
+                    </div>
+                    
+                    <!-- Right Column (Form) -->
+                    <div class="col-12 col-lg-7">
+                        <div class="card-body p-4">
+                            <h2 class="text-center mb-4">LaunchPad Application</h2>
+                            
+                            <!-- Progress Bar -->
+                            <div class="progress mb-4" style="height: 8px;">
+                                <div id="formProgress" class="progress-bar bg-success" role="progressbar" style="width: 25%"></div>
+                            </div>
+                            
+                            <!-- Display form errors if any -->
+                            {% if form.errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    <h6>Please correct the following errors:</h6>
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <div>{{ field|title }}: {{ error }}</div>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Display messages -->
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            
+                            <form id="applicationForm" method="POST" enctype="multipart/form-data" novalidate>
+                                {% csrf_token %}
+                                
+                                <!-- Step 1: Personal Information -->
+                                <div class="form-step active">
+                                    <h4 class="mb-3">Personal Information</h4>
+                                    <div class="mb-3">
+                                        {{ form.applicant_name.label_tag }}
+                                        {{ form.applicant_name }}
+                                        {% if form.applicant_name.errors %}
+                                            <div class="text-danger small">{{ form.applicant_name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.applicant_email.label_tag }}
+                                        {{ form.applicant_email }}
+                                        {% if form.applicant_email.errors %}
+                                            <div class="text-danger small">{{ form.applicant_email.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.applicant_phone.label_tag }}
+                                        {{ form.applicant_phone }}
+                                        {% if form.applicant_phone.errors %}
+                                            <div class="text-danger small">{{ form.applicant_phone.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.applicant_company.label_tag }}
+                                        {{ form.applicant_company }}
+                                        {% if form.applicant_company.errors %}
+                                            <div class="text-danger small">{{ form.applicant_company.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Step 2: Project Information -->
+                                <div class="form-step">
+                                    <h4 class="mb-3">Project Information</h4>
+                                    <div class="mb-3">
+                                        {{ form.project.label_tag }}
+                                        {{ form.project }}
+                                        {% if form.project.errors %}
+                                            <div class="text-danger small">{{ form.project.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.website.label_tag }}
+                                        {{ form.website }}
+                                        {% if form.website.errors %}
+                                            <div class="text-danger small">{{ form.website.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.industry.label_tag }}
+                                        {{ form.industry }}
+                                        {% if form.industry.errors %}
+                                            <div class="text-danger small">{{ form.industry.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.stage.label_tag }}
+                                        {{ form.stage }}
+                                        {% if form.stage.errors %}
+                                            <div class="text-danger small">{{ form.stage.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Step 3: Detailed Information -->
+                                <div class="form-step">
+                                    <h4 class="mb-3">Project Details</h4>
+                                    <div class="mb-3">
+                                        {{ form.application_text.label_tag }}
+                                        {{ form.application_text }}
+                                        {% if form.application_text.errors %}
+                                            <div class="text-danger small">{{ form.application_text.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.traction.label_tag }}
+                                        {{ form.traction }}
+                                        {% if form.traction.errors %}
+                                            <div class="text-danger small">{{ form.traction.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.team_background.label_tag }}
+                                        {{ form.team_background }}
+                                        {% if form.team_background.errors %}
+                                            <div class="text-danger small">{{ form.team_background.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Step 4: Goals and Funding -->
+                                <div class="form-step">
+                                    <h4 class="mb-3">Goals & Funding</h4>
+                                    <div class="mb-3">
+                                        {{ form.goals_for_program.label_tag }}
+                                        {{ form.goals_for_program }}
+                                        {% if form.goals_for_program.errors %}
+                                            <div class="text-danger small">{{ form.goals_for_program.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.funding_raised.label_tag }}
+                                        {{ form.funding_raised }}
+                                        {% if form.funding_raised.errors %}
+                                            <div class="text-danger small">{{ form.funding_raised.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.funding_needed.label_tag }}
+                                        {{ form.funding_needed }}
+                                        {% if form.funding_needed.errors %}
+                                            <div class="text-danger small">{{ form.funding_needed.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form.pitch_deck.label_tag }}
+                                        {{ form.pitch_deck }}
+                                        {% if form.pitch_deck.errors %}
+                                            <div class="text-danger small">{{ form.pitch_deck.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Upload your pitch deck (PDF or PowerPoint, max 10MB)</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Navigation Buttons -->
+                                <div class="navigation-buttons d-flex justify-content-between mt-4 pt-3 border-top">
+                                    <button type="button" id="prevBtn" class="btn btn-outline-secondary px-4" style="visibility: hidden;">
+                                        <i class="fas fa-arrow-left me-2"></i>Back
+                                    </button>
+                                    <button type="button" id="nextBtn" class="btn btn-success px-4">
+                                        Next<i class="fas fa-arrow-right ms-2"></i>
+                                    </button>
+                                    <button type="submit" id="submitBtn" class="btn btn-primary px-4" style="display: none;">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Application
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <form id="applicationForm" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-
-                <!-- Step 1 -->
-                <div class="form-step active">
-                    {{ form.applicant_name|as_crispy_field }}
-                    {{ form.applicant_email|as_crispy_field }}
-                    {{ form.applicant_phone|as_crispy_field }}
-                </div>
-
-                <!-- Step 2 -->
-                <div class="form-step">
-                    {{ form.project|as_crispy_field }}
-                    {{ form.industry|as_crispy_field }}
-                    {{ form.stage|as_crispy_field }}
-                    {{ form.website|as_crispy_field }}
-                </div>
-
-                <!-- Step 3 -->
-                <div class="form-step">
-                    {{ form.application_text|as_crispy_field }}
-                    {{ form.team_background|as_crispy_field }}
-                    {{ form.pitch_deck|as_crispy_field }}
-                </div>
-
-                <!-- Navigation Buttons -->
-                <div class="d-flex justify-content-between mt-4">
-                    <button type="button" id="prevBtn" class="btn btn-outline-secondary" onclick="nextPrev(-1)">Back</button>
-                    <button type="button" id="nextBtn" class="btn btn-success" onclick="nextPrev(1)">Next</button>
-                    <button type="submit" id="submitBtn" class="btn btn-primary d-none">Submit</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
 
-<!-- Styles -->
 <style>
-    .form-step { display: none; }
-    .form-step.active { display: block; }
-    .object-fit-cover { object-fit: cover; }
+    .form-step {
+        display: none;
+        min-height: 400px;
+    }
+    
+    .form-step.active {
+        display: block;
+    }
+    
+    .object-fit-cover {
+        object-fit: cover;
+    }
+    
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .progress {
+        border-radius: 10px;
+    }
+    
+    /* Django form widget styling */
+    input[type="text"], input[type="email"], input[type="tel"], 
+    input[type="url"], textarea, select, input[type="file"] {
+        width: 100% !important;
+        border-radius: 8px !important;
+        border: 2px solid #e9ecef !important;
+        padding: 12px !important;
+        font-size: 16px !important;
+        transition: border-color 0.3s ease !important;
+        box-sizing: border-box !important;
+    }
+    
+    input[type="text"]:focus, input[type="email"]:focus, 
+    input[type="tel"]:focus, input[type="url"]:focus, 
+    textarea:focus, select:focus {
+        border-color: #198754 !important;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+        outline: none !important;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #495057;
+        display: block;
+    }
+    
+    /* CKEditor styling */
+    .django-ckeditor-widget {
+        width: 100% !important;
+    }
+    
+    .cke {
+        border: 2px solid #e9ecef !important;
+        border-radius: 8px !important;
+    }
+    
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        min-height: 44px;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 10px;
+        }
+        
+        .card-body {
+            padding: 20px !important;
+        }
+        
+        .form-step {
+            min-height: auto;
+        }
+        
+        .btn {
+            min-height: 48px;
+            font-size: 16px;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+        }
+        
+        h4 {
+            font-size: 1.25rem;
+        }
+        
+        input[type="text"], input[type="email"], input[type="tel"], 
+        input[type="url"], textarea, select, input[type="file"] {
+            font-size: 16px !important;
+            padding: 14px !important;
+        }
+        
+        textarea {
+            min-height: 120px !important;
+        }
+        
+        /* Ensure navigation is always accessible */
+        .navigation-buttons {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 15px 0;
+            margin: 0 -20px;
+            padding-left: 20px;
+            padding-right: 20px;
+            border-top: 2px solid #f8f9fa;
+            z-index: 100;
+        }
+    }
+    
+    /* Very small screens */
+    @media (max-width: 480px) {
+        .navigation-buttons {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .navigation-buttons .btn {
+            width: 100%;
+        }
+    }
+    
+    /* Error styling */
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    /* Loading state */
+    .btn.loading {
+        position: relative;
+        color: transparent !important;
+    }
+    
+    .btn.loading::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
 </style>
 
-<!-- JavaScript for Navigation -->
 <script>
-    let currentStep = 0;
-    const steps = document.querySelectorAll(".form-step");
-    const progress = document.getElementById("formProgress");
-    const nextBtn = document.getElementById("nextBtn");
-    const prevBtn = document.getElementById("prevBtn");
-    const submitBtn = document.getElementById("submitBtn");
-
-    showStep(currentStep);
-
-    function showStep(n) {
-        steps.forEach((step, index) => {
-            step.classList.remove("active");
-            if (index === n) step.classList.add("active");
-        });
-
-        // Progress bar
-        const progressPercent = ((n + 1) / steps.length) * 100;
-        progress.style.width = progressPercent + "%";
-
-        // Button logic
-        prevBtn.style.display = n === 0 ? "none" : "inline-block";
-        nextBtn.style.display = n === steps.length - 1 ? "none" : "inline-block";
-        submitBtn.classList.toggle("d-none", n !== steps.length - 1);
-    }
-
-    function nextPrev(n) {
-        currentStep += n;
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentStep = 0;
+        const totalSteps = 4;
+        const steps = document.querySelectorAll(".form-step");
+        const progress = document.getElementById("formProgress");
+        const nextBtn = document.getElementById("nextBtn");
+        const prevBtn = document.getElementById("prevBtn");
+        const submitBtn = document.getElementById("submitBtn");
+        const form = document.getElementById("applicationForm");
+        
+        // Initialize
         showStep(currentStep);
-    }
+        
+        function showStep(n) {
+            // Hide all steps
+            steps.forEach((step, index) => {
+                step.classList.toggle("active", index === n);
+            });
+            
+            // Update progress bar
+            const progressPercent = ((n + 1) / totalSteps) * 100;
+            progress.style.width = progressPercent + "%";
+            
+            // Update buttons
+            if (n === 0) {
+                prevBtn.style.visibility = "hidden";
+            } else {
+                prevBtn.style.visibility = "visible";
+            }
+            
+            if (n === totalSteps - 1) {
+                // Last step
+                nextBtn.style.display = "none";
+                submitBtn.style.display = "inline-block";
+            } else {
+                nextBtn.style.display = "inline-block";
+                submitBtn.style.display = "none";
+            }
+            
+            // Scroll to top on mobile
+            if (window.innerWidth <= 768) {
+                document.querySelector('.card-body').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }
+        }
+        
+        function nextStep() {
+            if (currentStep < totalSteps - 1) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+        
+        // Event listeners
+        nextBtn.addEventListener('click', nextStep);
+        prevBtn.addEventListener('click', prevStep);
+        
+        // Handle form submission
+        form.addEventListener('submit', function(e) {
+            // Show loading state
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+            
+            // Let form submit naturally
+            console.log('Form submitting...');
+        });
+        
+        // Handle enter key navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.target.matches('textarea')) {
+                e.preventDefault();
+                if (currentStep < totalSteps - 1) {
+                    nextStep();
+                }
+            }
+        });
+        
+        // Auto-save form data to localStorage (optional enhancement)
+        function saveFormData() {
+            const formData = new FormData(form);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                if (value instanceof File) continue; // Skip files
+                data[key] = value;
+            }
+            localStorage.setItem('incubatorApplicationDraft', JSON.stringify(data));
+        }
+        
+        function loadFormData() {
+            const saved = localStorage.getItem('incubatorApplicationDraft');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    Object.keys(data).forEach(key => {
+                        const field = form.querySelector(`[name="${key}"]`);
+                        if (field && field.type !== 'file') {
+                            field.value = data[key];
+                        }
+                    });
+                } catch (e) {
+                    console.log('Could not load saved form data');
+                }
+            }
+        }
+        
+        // Load saved data on page load
+        loadFormData();
+        
+        // Save data on input (debounced)
+        let saveTimeout;
+        form.addEventListener('input', function() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveFormData, 1000);
+        });
+        
+        // Clear saved data on successful submission
+        form.addEventListener('submit', function() {
+            localStorage.removeItem('incubatorApplicationDraft');
+        });
+        
+        console.log('Form initialized successfully');
+    });
 </script>
+
 {% endblock %}
