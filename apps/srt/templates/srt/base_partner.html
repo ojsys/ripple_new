@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/partner-dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="partner-layout">
+    <!-- Sidebar -->
+    <aside class="partner-sidebar">
+        <div class="sidebar-header">
+            <div class="partner-info">
+                <div class="partner-avatar">
+                    {% if partner_profile.image %}
+                    <img src="{{ partner_profile.image.url }}" alt="Profile" class="rounded-circle">
+                    {% else %}
+                    <div class="avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="partner-details">
+                    <h6 class="mb-0">{{ user.get_full_name|default:user.email }}</h6>
+                    <small class="text-muted">{{ partner_profile.partner_id|default:"SRT Partner" }}</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Balance Widget -->
+        <div class="token-balance-widget p-3 m-3 rounded-3">
+            <small class="text-muted d-block mb-1">Token Balance</small>
+            <div class="token-amount">
+                <span class="token-display">{{ account.token_balance|floatformat:2 }}</span>
+                <span class="token-symbol">SRT</span>
+            </div>
+            <small class="text-muted">Available: {{ account.available_tokens|floatformat:2 }} SRT</small>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'partner_dashboard' %}active{% endif %}" href="{% url 'srt:dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'buy_tokens' %}active{% endif %}" href="{% url 'srt:buy_tokens' %}">
+                        <i class="fas fa-coins"></i>
+                        <span>Buy Tokens</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'withdraw_tokens' or request.resolver_match.url_name == 'my_withdrawals' %}active{% endif %}" href="{% url 'srt:withdraw_tokens' %}">
+                        <i class="fas fa-wallet"></i>
+                        <span>Withdraw</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'venture_list' %}active{% endif %}" href="{% url 'srt:venture_list' %}">
+                        <i class="fas fa-rocket"></i>
+                        <span>Ventures</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'my_investments' %}active{% endif %}" href="{% url 'srt:my_investments' %}">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>My Investments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'transaction_history' %}active{% endif %}" href="{% url 'srt:transaction_history' %}">
+                        <i class="fas fa-history"></i>
+                        <span>Transactions</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'partner_profile' %}active{% endif %}" href="{% url 'srt:partner_profile' %}">
+                        <i class="fas fa-user-cog"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Quick Actions -->
+        <div class="p-3 mt-auto">
+            <a href="{% url 'srt:buy_tokens' %}" class="btn btn-success w-100 mb-2">
+                <i class="fas fa-plus me-2"></i>Buy Tokens
+            </a>
+            <a href="{% url 'srt:venture_list' %}" class="btn btn-outline-success w-100">
+                <i class="fas fa-search me-2"></i>Find Ventures
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="partner-main" style="margin-top: 80px;">
+        <div class="p-4">
+            {% block partner_content %}{% endblock %}
+        </div>
+    </main></div>
+{% endblock %}

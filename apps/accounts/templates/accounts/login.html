@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    :root {
+        --brand-green: #26af59;
+        --brand-green-hover: #1e8e48;
+    }
+    
+    .auth-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        background-color: #f8f9fa;
+        padding: 120px 0 2rem;
+    }
+    
+    .auth-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    
+    .auth-header {
+        background-color: #fff;
+        padding: 2rem 2rem 1rem;
+        text-align: center;
+    }
+    
+    .auth-logo {
+        color: var(--brand-green);
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-brand {
+        background-color: var(--brand-green);
+        border-color: var(--brand-green);
+        color: white;
+        padding: 0.8rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-brand:hover {
+        background-color: var(--brand-green-hover);
+        border-color: var(--brand-green-hover);
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .form-floating:focus-within {
+        border-color: var(--brand-green);
+    }
+    
+    .form-control:focus {
+        border-color: var(--brand-green);
+        box-shadow: 0 0 0 0.25rem rgba(38, 175, 89, 0.25);
+    }
+    
+    .auth-link {
+        color: var(--brand-green);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+    
+    .auth-link:hover {
+        color: var(--brand-green-hover);
+        text-decoration: underline;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="auth-card card">
+                    <div class="auth-header">
+                        <div class="auth-logo">
+                            <i class="fas fa-ripple"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">Welcome Back</h3>
+                        <p class="text-muted">Sign in to continue to StartUpRipples</p>
+                    </div>
+                    
+                    <div class="card-body p-4 pt-0">
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            {% if form.errors %}
+                            <div class="alert alert-danger py-2 small">
+                                <i class="fas fa-exclamation-circle me-1"></i> Invalid email or password.
+                            </div>
+                            {% endif %}
+                            
+                            <div class="form-floating mb-3">
+                                <input type="text" name="username" class="form-control" id="floatingInput" placeholder="name@example.com" required>
+                                <label for="floatingInput">Email Address</label>
+                            </div>
+                            
+                            <div class="form-floating mb-4">
+                                <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Password" required>
+                                <label for="floatingPassword">Password</label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-brand w-100 mb-3">
+                                Sign In
+                            </button>
+                            
+                            <div class="text-center mb-3">
+                                <a href="{% url 'accounts:password_reset' %}" class="small text-muted text-decoration-none">
+                                    Forgot your password?
+                                </a>
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <div class="text-center">
+                                <span class="text-muted small">New to StartUpRipples?</span>
+                                <a href="{% url 'accounts:signup' %}" class="auth-link ms-1 small">Create an account</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

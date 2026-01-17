@@ -1,0 +1,252 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}Partner Profile - StartUpRipple{% endblock %}
+
+{% block partner_content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'srt:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Profile</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Profile Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="fas fa-user me-2 text-success"></i>Partner Profile</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    {% if partner_profile.image %}
+                    <img src="{{ partner_profile.image.url }}" class="rounded-circle me-4" style="width: 100px; height: 100px; object-fit: cover;" alt="Profile">
+                    {% else %}
+                    <div class="avatar-placeholder rounded-circle me-4" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h3 class="mb-1">{{ user.get_full_name }}</h3>
+                        <p class="text-muted mb-2">{{ user.email }}</p>
+                        {% if partner_profile %}
+                        <span class="badge bg-{% if partner_profile.accreditation_status == 'verified' %}success{% elif partner_profile.accreditation_status == 'pending' %}warning{% else %}danger{% endif %} me-2">
+                            <i class="fas fa-{% if partner_profile.accreditation_status == 'verified' %}check{% elif partner_profile.accreditation_status == 'pending' %}clock{% else %}times{% endif %}-circle me-1"></i>
+                            {{ partner_profile.get_accreditation_status_display }}
+                        </span>
+                        {% if partner_profile.kyc_completed %}
+                        <span class="badge bg-info">
+                            <i class="fas fa-id-card me-1"></i>KYC Verified
+                        </span>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if partner_profile %}
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Partner ID</label>
+                        <p class="fw-bold mb-0">{{ partner_profile.partner_id }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Risk Profile</label>
+                        <p class="fw-bold mb-0">
+                            <span class="badge bg-{% if partner_profile.risk_profile == 'conservative' %}success{% elif partner_profile.risk_profile == 'moderate' %}warning{% else %}danger{% endif %}">
+                                {{ partner_profile.get_risk_profile_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Company</label>
+                        <p class="fw-bold mb-0">{{ partner_profile.company_name|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Occupation</label>
+                        <p class="fw-bold mb-0">{{ partner_profile.occupation|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Phone Number</label>
+                        <p class="fw-bold mb-0">{{ user.phone_number|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Monthly Investment Limit</label>
+                        <p class="fw-bold mb-0">&#8358;{{ partner_profile.monthly_investment_limit|floatformat:0|intcomma }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Member Since</label>
+                        <p class="fw-bold mb-0">{{ partner_profile.created_at|date:"F d, Y" }}</p>
+                    </div>
+                </div>
+
+                {% if partner_profile.bio %}
+                <hr>
+                <label class="form-label text-muted">Bio</label>
+                <p class="mb-0">{{ partner_profile.bio }}</p>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Your partner profile is not complete. Please complete your profile to access all features.
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white">
+                <a href="{% url 'accounts:edit_profile' %}" class="btn btn-success">
+                    <i class="fas fa-edit me-2"></i>Edit Profile
+                </a>
+            </div>
+        </div>
+
+        <!-- Address Information -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Address Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-12">
+                        <label class="form-label text-muted">Address Line 1</label>
+                        <p class="fw-bold mb-0">{{ user.address_line1|default:"-" }}</p>
+                    </div>
+                    {% if user.address_line2 %}
+                    <div class="col-md-12">
+                        <label class="form-label text-muted">Address Line 2</label>
+                        <p class="fw-bold mb-0">{{ user.address_line2 }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-4">
+                        <label class="form-label text-muted">City</label>
+                        <p class="fw-bold mb-0">{{ user.city|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted">State/Province</label>
+                        <p class="fw-bold mb-0">{{ user.state_province|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted">Country</label>
+                        <p class="fw-bold mb-0">{{ user.country|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Account Summary -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="fas fa-wallet me-2 text-success"></i>Account Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="token-display">{{ account.token_balance|floatformat:2|intcomma }}</div>
+                    <span class="text-muted">SRT Token Balance</span>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total Purchased</span>
+                    <strong>{{ account.total_tokens_purchased|floatformat:2|intcomma }} SRT</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total Invested</span>
+                    <strong>{{ account.total_tokens_invested|floatformat:2|intcomma }} SRT</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total Earned</span>
+                    <strong class="text-success">{{ account.total_tokens_earned|floatformat:2|intcomma }} SRT</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Locked Tokens</span>
+                    <strong class="text-warning">{{ account.locked_tokens|floatformat:2|intcomma }} SRT</strong>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <a href="{% url 'srt:buy_tokens' %}" class="btn btn-success btn-sm w-100">
+                    <i class="fas fa-plus me-2"></i>Buy More Tokens
+                </a>
+            </div>
+        </div>
+
+        <!-- Verification Status -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="fas fa-shield-alt me-2 text-info"></i>Verification Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-3">
+                        {% if user.email_verified %}
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                        {% else %}
+                        <i class="fas fa-times-circle fa-2x text-danger"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <strong>Email</strong>
+                        <br>
+                        <small class="text-{% if user.email_verified %}success{% else %}danger{% endif %}">
+                            {% if user.email_verified %}Verified{% else %}Not Verified{% endif %}
+                        </small>
+                    </div>
+                </div>
+
+                {% if partner_profile %}
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-3">
+                        {% if partner_profile.kyc_completed %}
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                        {% else %}
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <strong>KYC</strong>
+                        <br>
+                        <small class="text-{% if partner_profile.kyc_completed %}success{% else %}warning{% endif %}">
+                            {% if partner_profile.kyc_completed %}Completed{% else %}Pending{% endif %}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        {% if partner_profile.accreditation_status == 'verified' %}
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                        {% elif partner_profile.accreditation_status == 'pending' %}
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                        {% else %}
+                        <i class="fas fa-times-circle fa-2x text-danger"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <strong>Accreditation</strong>
+                        <br>
+                        <small class="text-{% if partner_profile.accreditation_status == 'verified' %}success{% elif partner_profile.accreditation_status == 'pending' %}warning{% else %}danger{% endif %}">
+                            {{ partner_profile.get_accreditation_status_display }}
+                        </small>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <a href="{% url 'srt:dashboard' %}" class="btn btn-outline-success w-100 mb-2">
+                    <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                </a>
+                <a href="{% url 'srt:transaction_history' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-history me-2"></i>View Transactions
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,297 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}My Withdrawals - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        padding: 20px;
+        border: none;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: none;
+        overflow: hidden;
+    }
+
+    .table-card .card-header {
+        background: var(--teal-50);
+        border-bottom: 1px solid var(--teal-100);
+        padding: 20px 24px;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-approved { background: #d1fae5; color: #065f46; }
+    .status-processing { background: #dbeafe; color: #1e40af; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .status-cancelled { background: #f3f4f6; color: #4b5563; }
+
+    .filter-btn {
+        border: 1px solid #e5e7eb;
+        background: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        color: #6b7280;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+        background: var(--teal-primary);
+        border-color: var(--teal-primary);
+        color: white;
+    }
+
+    .btn-view {
+        background: var(--teal-50);
+        border: 1px solid var(--teal-100);
+        color: var(--teal-primary);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+
+    .btn-view:hover {
+        background: var(--teal-primary);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #e5e7eb;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block partner_content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1"><i class="fas fa-history me-2" style="color: var(--teal-primary);"></i>Withdrawal History</h2>
+        <p class="text-muted mb-0">View all your token withdrawal requests</p>
+    </div>
+    <a href="{% url 'srt:withdraw_tokens' %}" class="btn btn-success">
+        <i class="fas fa-plus me-2"></i>New Withdrawal
+    </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1">Total Withdrawn</p>
+                    <h3 class="mb-0">{{ stats.total_withdrawn|floatformat:2|intcomma }}</h3>
+                    <small class="text-muted">SRT Tokens</small>
+                </div>
+                <div class="stat-icon" style="background: var(--teal-50);">
+                    <i class="fas fa-wallet fa-lg" style="color: var(--teal-primary);"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1">Pending</p>
+                    <h3 class="mb-0">{{ stats.pending_count }}</h3>
+                    <small class="text-muted">Requests</small>
+                </div>
+                <div class="stat-icon" style="background: #fef3c7;">
+                    <i class="fas fa-clock fa-lg" style="color: #d97706;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1">Completed</p>
+                    <h3 class="mb-0">{{ stats.completed_count }}</h3>
+                    <small class="text-muted">Withdrawals</small>
+                </div>
+                <div class="stat-icon" style="background: #d1fae5;">
+                    <i class="fas fa-check-circle fa-lg" style="color: #059669;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Buttons -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+    <a href="{% url 'srt:my_withdrawals' %}" class="filter-btn {% if not current_status %}active{% endif %}">
+        All
+    </a>
+    <a href="{% url 'srt:my_withdrawals' %}?status=pending" class="filter-btn {% if current_status == 'pending' %}active{% endif %}">
+        Pending
+    </a>
+    <a href="{% url 'srt:my_withdrawals' %}?status=approved" class="filter-btn {% if current_status == 'approved' %}active{% endif %}">
+        Approved
+    </a>
+    <a href="{% url 'srt:my_withdrawals' %}?status=processing" class="filter-btn {% if current_status == 'processing' %}active{% endif %}">
+        Processing
+    </a>
+    <a href="{% url 'srt:my_withdrawals' %}?status=completed" class="filter-btn {% if current_status == 'completed' %}active{% endif %}">
+        Completed
+    </a>
+    <a href="{% url 'srt:my_withdrawals' %}?status=rejected" class="filter-btn {% if current_status == 'rejected' %}active{% endif %}">
+        Rejected
+    </a>
+</div>
+
+<!-- Withdrawals Table -->
+<div class="table-card card">
+    <div class="card-header">
+        <h5 class="mb-0" style="color: var(--teal-dark);">
+            <i class="fas fa-list me-2" style="color: var(--teal-primary);"></i>Withdrawals
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {% if withdrawals %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background: #f9fafb;">
+                    <tr>
+                        <th class="px-4 py-3">Reference</th>
+                        <th class="py-3">Amount</th>
+                        <th class="py-3">Bank</th>
+                        <th class="py-3">Date</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3 text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for withdrawal in withdrawals %}
+                    <tr>
+                        <td class="px-4 py-3">
+                            <span class="font-monospace">{{ withdrawal.reference }}</span>
+                        </td>
+                        <td class="py-3">
+                            <strong>{{ withdrawal.tokens|floatformat:2 }} SRT</strong>
+                            <br>
+                            <small class="text-muted">{{ withdrawal.amount_ngn|intcomma }} NGN</small>
+                        </td>
+                        <td class="py-3">
+                            {{ withdrawal.get_bank_name_display }}
+                            <br>
+                            <small class="text-muted">{{ withdrawal.account_number }}</small>
+                        </td>
+                        <td class="py-3">
+                            {{ withdrawal.created_at|date:"M d, Y" }}
+                            <br>
+                            <small class="text-muted">{{ withdrawal.created_at|time:"H:i" }}</small>
+                        </td>
+                        <td class="py-3">
+                            <span class="status-badge status-{{ withdrawal.status }}">
+                                {{ withdrawal.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 text-end pe-4">
+                            <a href="{% url 'srt:withdrawal_detail' withdrawal.reference %}" class="btn-view">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if withdrawals.has_other_pages %}
+        <div class="d-flex justify-content-center py-4">
+            <nav>
+                <ul class="pagination mb-0">
+                    {% if withdrawals.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ withdrawals.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in withdrawals.paginator.page_range %}
+                    {% if withdrawals.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link" style="background: var(--teal-primary); border-color: var(--teal-primary);">{{ num }}</span>
+                    </li>
+                    {% elif num > withdrawals.number|add:'-3' and num < withdrawals.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if current_status %}&status={{ current_status }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if withdrawals.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ withdrawals.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h5>No Withdrawals Found</h5>
+            <p class="text-muted mb-4">
+                {% if current_status %}
+                No {{ current_status }} withdrawal requests.
+                {% else %}
+                You haven't made any withdrawal requests yet.
+                {% endif %}
+            </p>
+            <a href="{% url 'srt:withdraw_tokens' %}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Request Withdrawal
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

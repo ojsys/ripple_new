@@ -1,0 +1,350 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}Withdrawal {{ withdrawal.reference }} - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: none;
+        overflow: hidden;
+    }
+
+    .detail-header {
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        color: white;
+        padding: 30px;
+    }
+
+    .status-badge-lg {
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-approved { background: #d1fae5; color: #065f46; }
+    .status-processing { background: #dbeafe; color: #1e40af; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .status-cancelled { background: #f3f4f6; color: #4b5563; }
+
+    .amount-display {
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    .info-row {
+        padding: 16px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+        padding-bottom: 20px;
+    }
+
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 25px;
+        bottom: 0;
+        width: 2px;
+        background: #e5e7eb;
+    }
+
+    .timeline-item:last-child:before {
+        display: none;
+    }
+
+    .timeline-dot {
+        position: absolute;
+        left: 0;
+        top: 5px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--teal-primary);
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px var(--teal-100);
+    }
+
+    .timeline-dot.pending {
+        background: #fcd34d;
+    }
+
+    .timeline-dot.inactive {
+        background: #e5e7eb;
+    }
+
+    .btn-cancel {
+        border: 2px solid #ef4444;
+        color: #ef4444;
+        background: transparent;
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #ef4444;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block partner_content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'srt:dashboard' %}" style="color: var(--teal-primary);">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'srt:withdraw_tokens' %}" style="color: var(--teal-primary);">Withdraw</a></li>
+        <li class="breadcrumb-item active">{{ withdrawal.reference }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- Main Details -->
+    <div class="col-lg-8">
+        <div class="detail-card">
+            <div class="detail-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <small class="text-white-50 d-block mb-2">Withdrawal Request</small>
+                        <div class="amount-display">{{ withdrawal.tokens|floatformat:2 }} SRT</div>
+                        <div class="text-white-50 mt-1">{{ withdrawal.amount_ngn|intcomma }} NGN</div>
+                    </div>
+                    <span class="status-badge-lg status-{{ withdrawal.status }}">
+                        {{ withdrawal.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <h5 class="mb-4"><i class="fas fa-university me-2" style="color: var(--teal-primary);"></i>Bank Details</h5>
+
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-4">
+                            <span class="info-label">Bank Name</span>
+                        </div>
+                        <div class="col-8">
+                            <span class="info-value">{{ withdrawal.get_bank_name_display }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-4">
+                            <span class="info-label">Account Number</span>
+                        </div>
+                        <div class="col-8">
+                            <span class="info-value">{{ withdrawal.account_number }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-4">
+                            <span class="info-label">Account Name</span>
+                        </div>
+                        <div class="col-8">
+                            <span class="info-value">{{ withdrawal.account_name }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h5 class="mb-4"><i class="fas fa-info-circle me-2" style="color: var(--teal-primary);"></i>Request Details</h5>
+
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-4">
+                            <span class="info-label">Reference</span>
+                        </div>
+                        <div class="col-8">
+                            <span class="info-value font-monospace">{{ withdrawal.reference }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-4">
+                            <span class="info-label">Submitted</span>
+                        </div>
+                        <div class="col-8">
+                            <span class="info-value">{{ withdrawal.created_at|date:"F d, Y H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if withdrawal.processed_at %}
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-4">
+                            <span class="info-label">Processed</span>
+                        </div>
+                        <div class="col-8">
+                            <span class="info-value">{{ withdrawal.processed_at|date:"F d, Y H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if withdrawal.completed_at %}
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-4">
+                            <span class="info-label">Completed</span>
+                        </div>
+                        <div class="col-8">
+                            <span class="info-value">{{ withdrawal.completed_at|date:"F d, Y H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if withdrawal.payment_reference %}
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-4">
+                            <span class="info-label">Payment Reference</span>
+                        </div>
+                        <div class="col-8">
+                            <span class="info-value font-monospace">{{ withdrawal.payment_reference }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if withdrawal.admin_notes %}
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-4">
+                            <span class="info-label">Notes</span>
+                        </div>
+                        <div class="col-8">
+                            <span class="info-value">{{ withdrawal.admin_notes }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if withdrawal.status == 'pending' %}
+                <hr class="my-4">
+                <form method="post" action="{% url 'srt:cancel_withdrawal' withdrawal.reference %}" onsubmit="return confirm('Are you sure you want to cancel this withdrawal request?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-cancel">
+                        <i class="fas fa-times me-2"></i>Cancel Request
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Status Timeline -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="fas fa-stream me-2" style="color: var(--teal-primary);"></i>Status Timeline</h6>
+            </div>
+            <div class="card-body">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <strong>Request Submitted</strong>
+                    <br><small class="text-muted">{{ withdrawal.created_at|date:"M d, Y H:i" }}</small>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot {% if withdrawal.status == 'pending' %}pending{% elif withdrawal.status in 'cancelled,rejected' %}inactive{% endif %}"></div>
+                    <strong>Under Review</strong>
+                    <br><small class="text-muted">
+                        {% if withdrawal.status == 'pending' %}
+                        In progress...
+                        {% elif withdrawal.processed_at %}
+                        {{ withdrawal.processed_at|date:"M d, Y H:i" }}
+                        {% else %}
+                        --
+                        {% endif %}
+                    </small>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot {% if withdrawal.status not in 'approved,processing,completed' %}inactive{% endif %}"></div>
+                    <strong>Processing</strong>
+                    <br><small class="text-muted">
+                        {% if withdrawal.status == 'processing' %}
+                        In progress...
+                        {% elif withdrawal.status == 'completed' and withdrawal.completed_at %}
+                        Completed
+                        {% else %}
+                        --
+                        {% endif %}
+                    </small>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot {% if withdrawal.status != 'completed' %}inactive{% endif %}"></div>
+                    <strong>Completed</strong>
+                    <br><small class="text-muted">
+                        {% if withdrawal.completed_at %}
+                        {{ withdrawal.completed_at|date:"M d, Y H:i" }}
+                        {% else %}
+                        --
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="fas fa-question-circle me-2" style="color: var(--teal-primary);"></i>Need Help?</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">If you have questions about your withdrawal, please contact our support team.</p>
+                <a href="mailto:support@startupripple.com" class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="fas fa-envelope me-2"></i>Contact Support
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

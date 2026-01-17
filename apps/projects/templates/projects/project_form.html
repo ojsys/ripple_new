@@ -1,0 +1,855 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - StartUpRipple{% endblock %}
+
+{% block body_class %}form-page{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    .project-form-hero {
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        padding: 80px 0 100px;
+        margin-top: 76px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .project-form-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .project-form-hero h1 {
+        color: white;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .project-form-hero p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        margin-top: 50px;
+        margin-bottom: 40px;
+        position: relative;
+        z-index: 10;
+        overflow: hidden;
+        max-width: 800px;
+    }
+
+    .progress-container {
+        padding: 30px 40px 25px;
+        background: var(--teal-50);
+        border-bottom: 1px solid var(--teal-100);
+    }
+
+    .step-indicators {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin-bottom: 10px;
+    }
+
+    .step-indicators::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 40px;
+        right: 40px;
+        height: 3px;
+        background: #e5e7eb;
+        z-index: 1;
+    }
+
+    .step-indicator {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .step-indicator.active .step-number {
+        background: var(--teal-primary);
+        color: white;
+        box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
+    }
+
+    .step-indicator.completed .step-number {
+        background: var(--teal-primary);
+        color: white;
+    }
+
+    .step-label {
+        font-size: 0.85rem;
+        color: #9ca3af;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    .step-indicator.active .step-label,
+    .step-indicator.completed .step-label {
+        color: var(--teal-primary);
+    }
+
+    .form-body {
+        padding: 40px 50px 50px;
+    }
+
+    .form-step {
+        display: none;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .form-step.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .step-title {
+        color: var(--teal-dark);
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+    }
+
+    .step-subtitle {
+        color: #6b7280;
+        margin-bottom: 30px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--teal-primary);
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: #9ca3af;
+    }
+
+    /* Summernote styles */
+    .note-editor {
+        border: 2px solid #e5e7eb !important;
+        border-radius: 10px !important;
+        overflow: hidden;
+    }
+
+    .note-editor.note-frame .note-editing-area .note-editable {
+        padding: 20px;
+        min-height: 250px;
+    }
+
+    .note-editor .note-toolbar {
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 10px;
+    }
+
+    .note-btn {
+        border-radius: 6px !important;
+    }
+
+    .note-btn:hover {
+        background: var(--teal-100) !important;
+    }
+
+    .note-btn.active {
+        background: var(--teal-primary) !important;
+        color: white !important;
+    }
+
+    /* File upload */
+    .file-upload-wrapper {
+        position: relative;
+        border: 2px dashed #e5e7eb;
+        border-radius: 10px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: #fafafa;
+    }
+
+    .file-upload-wrapper:hover {
+        border-color: var(--teal-primary);
+        background: var(--teal-50);
+    }
+
+    .file-upload-wrapper input[type="file"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .file-upload-icon {
+        font-size: 2.5rem;
+        color: var(--teal-primary);
+        margin-bottom: 10px;
+    }
+
+    .file-upload-text {
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+
+    .file-upload-text span {
+        color: var(--teal-primary);
+        font-weight: 600;
+    }
+
+    /* Image preview */
+    .image-preview {
+        max-width: 200px;
+        margin-top: 15px;
+        border-radius: 10px;
+        display: none;
+    }
+
+    /* Navigation buttons */
+    .form-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 30px;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 30px;
+    }
+
+    .btn-prev {
+        background: white;
+        border: 2px solid #e5e7eb;
+        color: #6b7280;
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-prev:hover {
+        border-color: var(--teal-primary);
+        color: var(--teal-primary);
+        background: var(--teal-50);
+    }
+
+    .btn-next, .btn-submit {
+        background: var(--teal-primary);
+        border: none;
+        color: white;
+        padding: 12px 32px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-next:hover, .btn-submit:hover {
+        background: var(--teal-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
+        color: white;
+    }
+
+    .btn-cancel {
+        color: #ef4444;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 12px 20px;
+    }
+
+    .btn-cancel:hover {
+        color: #dc2626;
+    }
+
+    /* Tips sidebar */
+    .tips-card {
+        background: var(--teal-50);
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid var(--teal-100);
+    }
+
+    .tips-card h5 {
+        color: var(--teal-dark);
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .tips-card ul {
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .tips-card li {
+        padding: 10px 0;
+        padding-left: 28px;
+        position: relative;
+        color: #4b5563;
+        font-size: 0.9rem;
+        border-bottom: 1px solid rgba(13, 148, 136, 0.1);
+    }
+
+    .tips-card li:last-child {
+        border-bottom: none;
+    }
+
+    .tips-card li::before {
+        content: '\f00c';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        left: 0;
+        color: var(--teal-primary);
+    }
+
+    /* Form field wrapper */
+    .field-wrapper {
+        margin-bottom: 1.5rem;
+    }
+
+    .field-wrapper label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .field-wrapper .form-text {
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }
+
+    /* Form errors */
+    .invalid-feedback, .errorlist {
+        color: #ef4444;
+        font-size: 0.85rem;
+        margin-top: 5px;
+        list-style: none;
+        padding: 0;
+    }
+
+    .is-invalid {
+        border-color: #ef4444 !important;
+    }
+
+    /* Info box */
+    .info-box {
+        background: var(--teal-50);
+        border: 1px solid var(--teal-100);
+        border-radius: 10px;
+        padding: 16px 20px;
+    }
+
+    .info-box i {
+        color: var(--teal-primary);
+    }
+
+    .info-box strong {
+        color: var(--teal-dark);
+    }
+
+    @media (max-width: 768px) {
+        .project-form-hero {
+            padding: 60px 0 80px;
+            margin-top: 60px;
+        }
+
+        .form-body {
+            padding: 25px 20px 30px;
+        }
+
+        .progress-container {
+            padding: 20px 15px;
+        }
+
+        .step-label {
+            display: none;
+        }
+
+        .step-indicators::before {
+            left: 20px;
+            right: 20px;
+        }
+
+        .form-card {
+            margin-top: -40px;
+            border-radius: 12px;
+        }
+
+        .step-title {
+            font-size: 1.25rem;
+        }
+
+        .form-navigation {
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .btn-prev, .btn-next, .btn-submit {
+            padding: 10px 20px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .project-form-hero {
+            padding: 50px 0 70px;
+        }
+
+        .project-form-hero h1 {
+            font-size: 1.5rem;
+        }
+
+        .step-number {
+            width: 35px;
+            height: 35px;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="project-form-hero">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h1>{% if project %}<i class="fas fa-edit me-2"></i>Edit Your Project{% else %}<i class="fas fa-rocket me-2"></i>Start Your Project{% endif %}</h1>
+                <p>{% if project %}Update your project details and keep your backers informed{% else %}Share your vision with the world and find the support you need{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5" style="margin-top: 20px; margin-bottom: 60px;">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <!-- Progress Steps -->
+                <div class="progress-container">
+                    <div class="step-indicators">
+                        <div class="step-indicator active" data-step="1">
+                            <div class="step-number">1</div>
+                            <span class="step-label">Basics</span>
+                        </div>
+                        <div class="step-indicator" data-step="2">
+                            <div class="step-number">2</div>
+                            <span class="step-label">Funding</span>
+                        </div>
+                        <div class="step-indicator" data-step="3">
+                            <div class="step-number">3</div>
+                            <span class="step-label">Story & Media</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Body -->
+                <div class="form-body">
+                    <form id="project-form" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Step 1: The Basics -->
+                        <div class="form-step active" id="step-1">
+                            <h3 class="step-title"><i class="fas fa-lightbulb me-2" style="color: var(--teal-primary);"></i>Project Basics</h3>
+                            <p class="step-subtitle">Start with the essential details about your project</p>
+
+                            <div class="field-wrapper">
+                                <label for="{{ form.title.id_for_label }}">Project Title <span class="text-danger">*</span></label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                <ul class="errorlist">{% for error in form.title.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                {% endif %}
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="field-wrapper">
+                                        <label for="{{ form.category.id_for_label }}">Category <span class="text-danger">*</span></label>
+                                        {{ form.category }}
+                                        {% if form.category.errors %}
+                                        <ul class="errorlist">{% for error in form.category.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="field-wrapper">
+                                        <label for="{{ form.location.id_for_label }}">Location</label>
+                                        {{ form.location }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-wrapper">
+                                <label for="{{ form.short_description.id_for_label }}">Short Description <span class="text-danger">*</span></label>
+                                {{ form.short_description }}
+                                <div class="form-text">This appears on project cards and search results (max 255 characters)</div>
+                                {% if form.short_description.errors %}
+                                <ul class="errorlist">{% for error in form.short_description.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Funding Details -->
+                        <div class="form-step" id="step-2">
+                            <h3 class="step-title"><i class="fas fa-coins me-2" style="color: var(--teal-primary);"></i>Funding Details</h3>
+                            <p class="step-subtitle">Set your funding type, goal and timeline</p>
+
+                            <div class="field-wrapper">
+                                <label for="{{ form.funding_type.id_for_label }}">Funding Type <span class="text-danger">*</span></label>
+                                {{ form.funding_type }}
+                                {% if form.funding_type.errors %}
+                                <ul class="errorlist">{% for error in form.funding_type.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                {% endif %}
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="field-wrapper">
+                                        <label for="{{ form.funding_goal.id_for_label }}">Funding Goal (USD) <span class="text-danger">*</span></label>
+                                        {{ form.funding_goal }}
+                                        {% if form.funding_goal.errors %}
+                                        <ul class="errorlist">{% for error in form.funding_goal.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="field-wrapper">
+                                        <label for="{{ form.deadline.id_for_label }}">Campaign Deadline <span class="text-danger">*</span></label>
+                                        {{ form.deadline }}
+                                        {% if form.deadline.errors %}
+                                        <ul class="errorlist">{% for error in form.deadline.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <div class="d-flex">
+                                    <i class="fas fa-info-circle me-3 mt-1"></i>
+                                    <div>
+                                        <strong>Funding Types Explained</strong>
+                                        <ul class="mb-0 mt-2 small" style="color: #4b5563;">
+                                            <li><strong>Donation:</strong> Supporters donate without expecting returns</li>
+                                            <li><strong>Investment:</strong> Backers invest for equity or profit sharing</li>
+                                            <li><strong>Hybrid:</strong> Combination of donations and investments</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: The Story -->
+                        <div class="form-step" id="step-3">
+                            <h3 class="step-title"><i class="fas fa-book-open me-2" style="color: var(--teal-primary);"></i>Tell Your Story</h3>
+                            <p class="step-subtitle">Share your vision and add compelling media</p>
+
+                            <div class="field-wrapper">
+                                <label for="{{ form.description.id_for_label }}">Project Description <span class="text-danger">*</span></label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <ul class="errorlist">{% for error in form.description.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                {% endif %}
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="field-wrapper">
+                                        <label for="{{ form.image.id_for_label }}">Project Image</label>
+                                        <div class="file-upload-wrapper">
+                                            <i class="fas fa-cloud-upload-alt file-upload-icon"></i>
+                                            <p class="file-upload-text mb-0"><span>Click to upload</span> or drag and drop</p>
+                                            <small class="text-muted">PNG, JPG up to 5MB</small>
+                                            {{ form.image }}
+                                        </div>
+                                        <img id="image-preview" class="image-preview" alt="Preview">
+                                        {% if project.image %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">Current image:</small>
+                                            <img src="{{ project.image.url }}" class="d-block mt-1" style="max-width: 200px; border-radius: 10px;" alt="Current">
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="field-wrapper">
+                                        <label for="{{ form.video_url.id_for_label }}">Video URL (Optional)</label>
+                                        {{ form.video_url }}
+                                        <div class="form-text">YouTube or Vimeo link to showcase your project</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation -->
+                        <div class="form-navigation">
+                            <div>
+                                <button type="button" id="prev-btn" class="btn btn-prev" style="display: none;">
+                                    <i class="fas fa-arrow-left me-2"></i>Previous
+                                </button>
+                            </div>
+                            <a href="{% if project %}{% url 'projects:project_detail' project.id %}{% else %}{% url 'projects:my_projects' %}{% endif %}" class="btn-cancel">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <div>
+                                <button type="button" id="next-btn" class="btn btn-next">
+                                    Next<i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                                <button type="submit" id="submit-btn" class="btn btn-submit" style="display: none;">
+                                    <i class="fas fa-check me-2"></i>{% if project %}Update Project{% else %}Create Project{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Sidebar -->
+        <div class="col-lg-4 mt-4 mt-lg-0 ps-lg-4">
+            <div class="tips-card" style="position: sticky; top: 120px;">
+                <h5><i class="fas fa-lightbulb me-2"></i>Tips for Success</h5>
+                <ul id="tips-list">
+                    <li>Choose a clear, memorable project title</li>
+                    <li>Select the most relevant category</li>
+                    <li>Write a compelling short description</li>
+                    <li>Be specific about your location</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Summernote WYSIWYG Editor
+    if (typeof $ !== 'undefined' && $.fn.summernote) {
+        try {
+            $('#description-editor').summernote({
+                placeholder: 'Tell the world about your project. Explain what makes it unique, why it matters, and how you plan to bring it to life...',
+                height: 300,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'strikethrough', 'clear']],
+                    ['fontsize', ['fontsize']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ],
+                styleTags: ['p', 'h2', 'h3', 'h4', 'blockquote'],
+                fontSizes: ['12', '14', '16', '18', '20', '24'],
+                callbacks: {
+                    onInit: function() {
+                        $('.note-editor').css('border-radius', '10px');
+                    }
+                }
+            });
+        } catch (e) {
+            console.log('Summernote initialization error:', e);
+        }
+    }
+
+    // Form step navigation
+    const formSteps = document.querySelectorAll('.form-step');
+    const stepIndicators = document.querySelectorAll('.step-indicator');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const tipsList = document.getElementById('tips-list');
+
+    let currentStep = 1;
+    const totalSteps = formSteps.length;
+
+    const stepTips = {
+        1: [
+            'Choose a clear, memorable project title',
+            'Select the most relevant category',
+            'Write a compelling short description',
+            'Be specific about your location'
+        ],
+        2: [
+            'Set a realistic funding goal',
+            'Consider your minimum viable budget',
+            'Allow enough time for your campaign',
+            'Choose the right funding type for your needs'
+        ],
+        3: [
+            'Tell a compelling story with emotions',
+            'Use high-quality images',
+            'Add a video to increase engagement',
+            'Break text into readable sections'
+        ]
+    };
+
+    function updateFormSteps() {
+        // Update step content visibility
+        formSteps.forEach((step, index) => {
+            step.classList.remove('active');
+            if (index + 1 === currentStep) {
+                step.classList.add('active');
+            }
+        });
+
+        // Update step indicators
+        stepIndicators.forEach((indicator, index) => {
+            indicator.classList.remove('active', 'completed');
+            if (index + 1 === currentStep) {
+                indicator.classList.add('active');
+            } else if (index + 1 < currentStep) {
+                indicator.classList.add('completed');
+            }
+        });
+
+        // Update navigation buttons
+        if (prevBtn) prevBtn.style.display = currentStep === 1 ? 'none' : 'inline-block';
+        if (nextBtn) nextBtn.style.display = currentStep === totalSteps ? 'none' : 'inline-block';
+        if (submitBtn) submitBtn.style.display = currentStep === totalSteps ? 'inline-block' : 'none';
+
+        // Update tips
+        if (tipsList && stepTips[currentStep]) {
+            tipsList.innerHTML = stepTips[currentStep].map(tip => `<li>${tip}</li>`).join('');
+        }
+    }
+
+    function validateCurrentStep() {
+        const currentStepEl = document.getElementById(`step-${currentStep}`);
+        const requiredInputs = currentStepEl.querySelectorAll('input[required], select[required], textarea[required]');
+        let isValid = true;
+
+        requiredInputs.forEach(input => {
+            // Skip hidden textareas (Summernote replaces them)
+            if (input.tagName === 'TEXTAREA' && input.style.display === 'none') {
+                return;
+            }
+            if (!input.value || !input.value.trim()) {
+                isValid = false;
+                input.classList.add('is-invalid');
+            } else {
+                input.classList.remove('is-invalid');
+            }
+        });
+
+        return isValid;
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (validateCurrentStep() && currentStep < totalSteps) {
+                currentStep++;
+                updateFormSteps();
+                window.scrollTo({ top: 200, behavior: 'smooth' });
+            }
+        });
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentStep > 1) {
+                currentStep--;
+                updateFormSteps();
+                window.scrollTo({ top: 200, behavior: 'smooth' });
+            }
+        });
+    }
+
+    // Image preview
+    const imageInput = document.getElementById('id_image');
+    const imagePreview = document.getElementById('image-preview');
+
+    if (imageInput && imagePreview) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Remove invalid class on input
+    document.querySelectorAll('.form-control, .form-select').forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+        input.addEventListener('change', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+
+    // Initialize
+    updateFormSteps();
+});
+</script>
+{% endblock %}

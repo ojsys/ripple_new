@@ -1,0 +1,302 @@
+from django.contrib import admin
+from django.utils.html import format_html
+from django.urls import reverse
+from .models import (
+    TokenPackage, PartnerCapitalAccount, Venture,
+    VentureInvestment, SRTTransaction, TokenPurchase, TokenWithdrawal
+)
+
+
+@admin.register(TokenPackage)
+class TokenPackageAdmin(admin.ModelAdmin):
+    list_display = ['name', 'tokens', 'bonus_tokens', 'total_tokens_display',
+                    'price_ngn', 'price_usd', 'is_active', 'is_featured', 'order']
+    list_filter = ['is_active', 'is_featured']
+    list_editable = ['is_active', 'is_featured', 'order']
+    search_fields = ['name']
+    ordering = ['order', 'price_ngn']
+
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description')
+        }),
+        ('Token Details', {
+            'fields': ('tokens', 'bonus_tokens', 'price_ngn', 'price_usd')
+        }),
+        ('Display', {
+            'fields': ('is_active', 'is_featured', 'order')
+        }),
+    )
+
+    def total_tokens_display(self, obj):
+        return f"{obj.total_tokens} SRT"
+    total_tokens_display.short_description = "Total Tokens"
+
+
+@admin.register(PartnerCapitalAccount)
+class PartnerCapitalAccountAdmin(admin.ModelAdmin):
+    list_display = ['partner_name', 'partner_id', 'token_balance', 'available_tokens_display',
+                    'locked_tokens', 'total_investment_value_ngn', 'updated_at']
+    list_filter = ['partner__partner_profile__accreditation_status']
+    search_fields = ['partner__email', 'partner__first_name', 'partner__last_name',
+                     'partner__partner_profile__partner_id']
+    readonly_fields = ['partner', 'total_tokens_purchased', 'total_tokens_invested',
+                       'total_tokens_earned', 'created_at', 'updated_at']
+
+    fieldsets = (
+        ('Partner', {
+            'fields': ('partner',)
+        }),
+        ('Token Balance', {
+            'fields': ('token_balance', 'locked_tokens')
+        }),
+        ('Statistics', {
+            'fields': ('total_tokens_purchased', 'total_tokens_invested',
+                       'total_tokens_earned', 'total_investment_value_ngn')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def partner_name(self, obj):
+        return obj.partner.get_full_name() or obj.partner.email
+    partner_name.short_description = "Partner"
+
+    def partner_id(self, obj):
+        try:
+            return obj.partner.partner_profile.partner_id
+        except:
+            return "-"
+    partner_id.short_description = "Partner ID"
+
+    def available_tokens_display(self, obj):
+        return f"{obj.available_tokens:.2f} SRT"
+    available_tokens_display.short_description = "Available"
+
+
+@admin.register(Venture)
+class VentureAdmin(admin.ModelAdmin):
+    list_display = ['title', 'industry', 'stage', 'risk_level', 'status',
+                    'funding_progress', 'investor_count', 'is_featured']
+    list_filter = ['status', 'stage', 'risk_level', 'industry', 'is_featured']
+    list_editable = ['status', 'is_featured']
+    search_fields = ['title', 'description', 'industry']
+    prepopulated_fields = {'slug': ('title',)}
+    readonly_fields = ['amount_raised', 'created_at', 'updated_at']
+
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'slug', 'short_description', 'description', 'image')
+        }),
+        ('Funding', {
+            'fields': ('funding_goal', 'minimum_investment', 'maximum_investment', 'amount_raised')
+        }),
+        ('Investment Terms', {
+            'fields': ('expected_return_rate', 'investment_duration_months')
+        }),
+        ('Classification', {
+            'fields': ('stage', 'risk_level', 'industry', 'status')
+        }),
+        ('Dates', {
+            'fields': ('start_date', 'end_date')
+        }),
+        ('Display', {
+            'fields': ('is_featured', 'order', 'founder')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def funding_progress(self, obj):
+        percent = obj.percent_funded
+        color = 'success' if percent >= 100 else 'warning' if percent >= 50 else 'secondary'
+        return format_html(
+            '<div style="width:100px; background:#e9ecef; border-radius:4px;">'
+            '<div style="width:{}%; background:var(--bs-{}); height:20px; border-radius:4px; text-align:center; color:white; font-size:12px; line-height:20px;">'
+            '{:.1f}%</div></div>',
+            min(percent, 100), color, percent
+        )
+    funding_progress.short_description = "Progress"
+
+
+@admin.register(VentureInvestment)
+class VentureInvestmentAdmin(admin.ModelAdmin):
+    list_display = ['reference', 'partner_name', 'venture', 'tokens_invested',
+                    'expected_return', 'status', 'maturity_date', 'created_at']
+    list_filter = ['status', 'venture', 'created_at']
+    search_fields = ['reference', 'partner__email', 'partner__first_name',
+                     'partner__last_name', 'venture__title']
+    readonly_fields = ['reference', 'partner', 'venture', 'account', 'tokens_invested',
+                       'expected_return', 'investment_date', 'created_at', 'updated_at']
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Investment Details', {
+            'fields': ('reference', 'partner', 'venture', 'account')
+        }),
+        ('Tokens', {
+            'fields': ('tokens_invested', 'expected_return', 'actual_return')
+        }),
+        ('Status', {
+            'fields': ('status', 'maturity_date')
+        }),
+        ('Notes', {
+            'fields': ('notes',)
+        }),
+        ('Timestamps', {
+            'fields': ('investment_date', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def partner_name(self, obj):
+        return obj.partner.get_full_name() or obj.partner.email
+    partner_name.short_description = "Partner"
+
+
+@admin.register(SRTTransaction)
+class SRTTransactionAdmin(admin.ModelAdmin):
+    list_display = ['reference', 'partner_name', 'transaction_type', 'amount_display',
+                    'balance_after', 'venture', 'created_at']
+    list_filter = ['transaction_type', 'created_at']
+    search_fields = ['reference', 'account__partner__email',
+                     'account__partner__first_name', 'account__partner__last_name']
+    readonly_fields = ['account', 'transaction_type', 'amount', 'balance_after',
+                       'venture', 'token_package', 'reference', 'payment_reference',
+                       'payment_method', 'created_at']
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Transaction', {
+            'fields': ('reference', 'transaction_type', 'description')
+        }),
+        ('Account', {
+            'fields': ('account', 'amount', 'balance_after')
+        }),
+        ('Related', {
+            'fields': ('venture', 'token_package')
+        }),
+        ('Payment', {
+            'fields': ('payment_reference', 'payment_method'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamp', {
+            'fields': ('created_at',)
+        }),
+    )
+
+    def partner_name(self, obj):
+        return obj.account.partner.get_full_name() or obj.account.partner.email
+    partner_name.short_description = "Partner"
+
+    def amount_display(self, obj):
+        if obj.amount >= 0:
+            return format_html('<span style="color:green;">+{:.2f}</span>', obj.amount)
+        return format_html('<span style="color:red;">{:.2f}</span>', obj.amount)
+    amount_display.short_description = "Amount"
+
+
+@admin.register(TokenPurchase)
+class TokenPurchaseAdmin(admin.ModelAdmin):
+    list_display = ['paystack_reference', 'partner_name', 'package', 'tokens',
+                    'bonus_tokens', 'amount_ngn', 'status', 'created_at']
+    list_filter = ['status', 'package', 'created_at']
+    search_fields = ['paystack_reference', 'partner__email',
+                     'partner__first_name', 'partner__last_name']
+    readonly_fields = ['partner', 'account', 'package', 'tokens', 'bonus_tokens',
+                       'amount_ngn', 'amount_usd', 'paystack_reference',
+                       'created_at', 'completed_at']
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Purchase', {
+            'fields': ('paystack_reference', 'partner', 'account', 'package')
+        }),
+        ('Tokens', {
+            'fields': ('tokens', 'bonus_tokens')
+        }),
+        ('Payment', {
+            'fields': ('amount_ngn', 'amount_usd', 'status')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'completed_at')
+        }),
+    )
+
+    def partner_name(self, obj):
+        return obj.partner.get_full_name() or obj.partner.email
+    partner_name.short_description = "Partner"
+
+    actions = ['mark_successful']
+
+    def mark_successful(self, request, queryset):
+        for purchase in queryset.filter(status='pending'):
+            purchase.complete_purchase()
+        self.message_user(request, f"Marked {queryset.count()} purchases as successful")
+    mark_successful.short_description = "Mark selected purchases as successful"
+
+
+@admin.register(TokenWithdrawal)
+class TokenWithdrawalAdmin(admin.ModelAdmin):
+    list_display = ['reference', 'partner_name', 'tokens', 'amount_ngn',
+                    'bank_name', 'status', 'created_at']
+    list_filter = ['status', 'bank_name', 'created_at']
+    search_fields = ['reference', 'partner__email', 'partner__first_name',
+                     'partner__last_name', 'account_number', 'account_name']
+    readonly_fields = ['partner', 'account', 'tokens', 'amount_ngn',
+                       'bank_name', 'account_number', 'account_name',
+                       'reference', 'created_at', 'processed_at', 'completed_at']
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Withdrawal Request', {
+            'fields': ('reference', 'partner', 'account', 'status')
+        }),
+        ('Token Details', {
+            'fields': ('tokens', 'amount_ngn')
+        }),
+        ('Bank Details', {
+            'fields': ('bank_name', 'account_number', 'account_name')
+        }),
+        ('Processing', {
+            'fields': ('admin_notes', 'processed_by', 'payment_reference')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'processed_at', 'completed_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def partner_name(self, obj):
+        return obj.partner.get_full_name() or obj.partner.email
+    partner_name.short_description = "Partner"
+
+    actions = ['approve_withdrawals', 'reject_withdrawals', 'mark_completed']
+
+    def approve_withdrawals(self, request, queryset):
+        count = 0
+        for withdrawal in queryset.filter(status='pending'):
+            if withdrawal.approve(request.user):
+                count += 1
+        self.message_user(request, f"Approved {count} withdrawal requests")
+    approve_withdrawals.short_description = "Approve selected withdrawals"
+
+    def reject_withdrawals(self, request, queryset):
+        count = 0
+        for withdrawal in queryset.filter(status='pending'):
+            if withdrawal.reject(request.user, "Rejected by admin"):
+                count += 1
+        self.message_user(request, f"Rejected {count} withdrawal requests")
+    reject_withdrawals.short_description = "Reject selected withdrawals"
+
+    def mark_completed(self, request, queryset):
+        count = 0
+        for withdrawal in queryset.filter(status__in=['approved', 'processing']):
+            if withdrawal.complete():
+                count += 1
+        self.message_user(request, f"Marked {count} withdrawals as completed")
+    mark_completed.short_description = "Mark selected as completed"

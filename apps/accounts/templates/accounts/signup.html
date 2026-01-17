@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<style>
+    :root {
+        --brand-green: #26af59;
+        --brand-green-hover: #1e8e48;
+    }
+    
+    .auth-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        background-color: #f8f9fa;
+        padding: 120px 0 2rem;
+    }
+    
+    .auth-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    
+    .auth-header {
+        background-color: #fff;
+        padding: 2rem 2rem 1rem;
+        text-align: center;
+    }
+    
+    .auth-logo {
+        color: var(--brand-green);
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-brand {
+        background-color: var(--brand-green);
+        border-color: var(--brand-green);
+        color: white;
+        padding: 0.8rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-brand:hover {
+        background-color: var(--brand-green-hover);
+        border-color: var(--brand-green-hover);
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .info-box {
+        background-color: rgba(38, 175, 89, 0.1);
+        border-left: 4px solid var(--brand-green);
+        border-radius: 4px;
+        padding: 1rem;
+    }
+    
+    .info-box h6 {
+        color: var(--brand-green-hover);
+        font-weight: 600;
+    }
+    
+    .auth-link {
+        color: var(--brand-green);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+    
+    .auth-link:hover {
+        color: var(--brand-green-hover);
+        text-decoration: underline;
+    }
+    
+    /* Customizing crispy forms focus */
+    .form-control:focus, .form-select:focus {
+        border-color: var(--brand-green);
+        box-shadow: 0 0 0 0.25rem rgba(38, 175, 89, 0.25);
+    }
+</style>
+
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="auth-card card">
+                    <div class="auth-header">
+                        <div class="auth-logo">
+                            <i class="fas fa-ripple"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">Join StartUpRipple</h3>
+                        <p class="text-muted">Create your account to get started</p>
+                    </div>
+                    
+                    <div class="card-body p-4 pt-0">
+                        <div class="info-box mb-4">
+                            <div class="d-flex">
+                                <i class="fas fa-info-circle mt-1 me-2 text-success"></i>
+                                <div>
+                                    <h6 class="mb-2">Registration Fee Information</h6>
+                                    <p class="mb-2 small">To maintain platform quality, we require a one-time registration fee:</p>
+                                    <ul class="mb-0 small ps-3">
+                                        <li><strong>Founders:</strong> $5 USD</li>
+                                        <li><strong>Donors & Investors:</strong> $25 USD</li>
+                                    </ul>
+                                    <div class="mt-2 text-muted fst-italic" style="font-size: 0.8rem;">
+                                        You'll be redirected to payment after registration.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-brand">
+                                    Continue to Payment <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <span class="text-muted small">Already have an account?</span>
+                                <a href="{% url 'accounts:login' %}" class="auth-link ms-1 small">Sign In</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact Us - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<style>
+    .contact-hero {
+        background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+        padding: 140px 0 80px;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .contact-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -25%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .contact-hero h1 {
+        font-weight: 400;
+        font-size: 3rem;
+        margin-bottom: 16px;
+    }
+
+    .contact-hero p {
+        font-size: 1.25rem;
+        opacity: 0.9;
+        max-width: 600px;
+    }
+
+    .contact-content {
+        padding: 64px 0;
+        background: var(--md-background);
+    }
+
+    .contact-info-card {
+        background: var(--md-surface);
+        border-radius: 16px;
+        padding: 32px;
+        text-align: center;
+        box-shadow: var(--md-elevation-1);
+        transition: all 0.3s var(--md-transition);
+        height: 100%;
+    }
+
+    .contact-info-card:hover {
+        box-shadow: var(--md-elevation-2);
+        transform: translateY(-4px);
+    }
+
+    .contact-info-icon {
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.5rem;
+        margin: 0 auto 20px;
+    }
+
+    .contact-info-card h5 {
+        font-weight: 500;
+        color: var(--md-on-surface);
+        margin-bottom: 8px;
+    }
+
+    .contact-info-card p {
+        color: var(--md-outline);
+        margin: 0;
+    }
+
+    .contact-info-card a {
+        color: var(--md-primary);
+        text-decoration: none;
+        transition: color 0.2s var(--md-transition);
+    }
+
+    .contact-info-card a:hover {
+        color: var(--md-primary-dark);
+    }
+
+    .contact-form-card {
+        background: var(--md-surface);
+        border-radius: 24px;
+        padding: 48px;
+        box-shadow: var(--md-elevation-2);
+    }
+
+    .contact-form-card h3 {
+        font-weight: 500;
+        color: var(--md-on-surface);
+        margin-bottom: 32px;
+    }
+
+    .form-label-md {
+        font-weight: 500;
+        font-size: 0.875rem;
+        color: var(--md-on-surface);
+        margin-bottom: 8px;
+    }
+
+    .form-control-md {
+        border: 1px solid #E0E0E0;
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-size: 1rem;
+        transition: all 0.2s var(--md-transition);
+        width: 100%;
+    }
+
+    .form-control-md:focus {
+        outline: none;
+        border-color: var(--md-primary);
+        box-shadow: 0 0 0 2px rgba(38, 175, 89, 0.1);
+    }
+
+    textarea.form-control-md {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .btn-submit {
+        background: var(--md-primary);
+        color: #fff;
+        border: none;
+        padding: 16px 32px;
+        border-radius: 100px;
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s var(--md-transition);
+        box-shadow: var(--md-elevation-1);
+        width: 100%;
+    }
+
+    .btn-submit:hover {
+        background: var(--md-primary-dark);
+        box-shadow: var(--md-elevation-2);
+        transform: translateY(-2px);
+    }
+
+    .error-text {
+        color: var(--md-error);
+        font-size: 0.875rem;
+        margin-top: 4px;
+    }
+
+    /* Map Section */
+    .map-section {
+        height: 400px;
+        background: #E0E0E0;
+        position: relative;
+    }
+
+    .map-section iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    .map-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .map-placeholder {
+        text-align: center;
+        color: var(--md-outline);
+    }
+
+    .map-placeholder i {
+        font-size: 4rem;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    /* FAQ Section */
+    .faq-section {
+        background: var(--md-surface);
+        padding: 80px 0;
+    }
+
+    .faq-item {
+        background: var(--md-background);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        overflow: hidden;
+    }
+
+    .faq-question {
+        padding: 20px 24px;
+        font-weight: 500;
+        color: var(--md-on-surface);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s var(--md-transition);
+    }
+
+    .faq-question:hover {
+        background: rgba(38, 175, 89, 0.05);
+    }
+
+    .faq-answer {
+        padding: 0 24px 20px;
+        color: var(--md-outline);
+        line-height: 1.6;
+        display: none;
+    }
+
+    .faq-item.active .faq-answer {
+        display: block;
+    }
+
+    .faq-item.active .faq-question i {
+        transform: rotate(180deg);
+    }
+
+    @media (max-width: 767px) {
+        .contact-hero {
+            padding: 120px 0 60px;
+        }
+
+        .contact-hero h1 {
+            font-size: 2.25rem;
+        }
+
+        .contact-form-card {
+            padding: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="contact-hero">
+    <div class="container position-relative" style="z-index: 2;">
+        <h1>Get in Touch</h1>
+        <p>Have questions about StartUpRipple? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+    </div>
+</section>
+
+<!-- Contact Content -->
+<section class="contact-content">
+    <div class="container">
+        <!-- Contact Info Cards -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h5>Email</h5>
+                    <p><a href="mailto:hello@startupripple.com">hello@startupripple.com</a></p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h5>Phone</h5>
+                    <p><a href="tel:+2348000000000">+234 (0) 800 000 0000</a></p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h5>Location</h5>
+                    <p>Lagos, Nigeria</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="contact-form-card">
+                    <h3>Send us a Message</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label-md">Your Name</label>
+                                <input type="text" name="name" class="form-control-md" placeholder="John Doe"
+                                       value="{{ form.name.value|default:'' }}" required>
+                                {% if form.name.errors %}
+                                <div class="error-text">{{ form.name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-md">Your Email</label>
+                                <input type="email" name="email" class="form-control-md" placeholder="john@example.com"
+                                       value="{{ form.email.value|default:'' }}" required>
+                                {% if form.email.errors %}
+                                <div class="error-text">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-md">Subject</label>
+                                <input type="text" name="subject" class="form-control-md" placeholder="How can we help?"
+                                       value="{{ form.subject.value|default:'' }}" required>
+                                {% if form.subject.errors %}
+                                <div class="error-text">{{ form.subject.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-md">Message</label>
+                                <textarea name="message" class="form-control-md" placeholder="Tell us more about your inquiry..." required>{{ form.message.value|default:'' }}</textarea>
+                                {% if form.message.errors %}
+                                <div class="error-text">{{ form.message.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn-submit">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 style="font-weight: 400; color: var(--md-on-surface);">Frequently Asked Questions</h2>
+            <p style="color: var(--md-outline);">Quick answers to common questions</p>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
+                        <span>How do I start a project on StartUpRipple?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Simply create an account as a founder, then click "Create Project" from your dashboard. Fill in your project details, set your funding goal, and submit for approval. Our team typically reviews projects within 2-3 business days.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
+                        <span>What are SRT tokens and how do they work?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        SRT (StartUp Ripple Tokens) are our unique investment mechanism that allows partners to invest in a diversified portfolio of vetted African startups. Purchase tokens, allocate them to ventures, and earn returns as those ventures succeed.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
+                        <span>How does the accelerator program work?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Our 12-week accelerator program provides intensive mentorship, up to $50,000 in seed funding, and access to our network of investors and partners. Apply through the Programs section and our team will review your application.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
+                        <span>What payment methods do you accept?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        We accept payments through Paystack, which supports bank transfers, card payments (Visa, Mastercard), and mobile money across multiple African countries. All transactions are secure and encrypted.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
+                        <span>How can I track my investments?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Log into your dashboard to see real-time updates on all your investments. You'll receive regular updates from project founders and can track funding progress, milestones, and returns directly from your account.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section Placeholder -->
+<section class="map-section">
+    <div class="map-overlay">
+        <div class="map-placeholder">
+            <i class="fas fa-map-marked-alt"></i>
+            <p>Lagos, Nigeria</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

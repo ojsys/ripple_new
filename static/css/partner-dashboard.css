@@ -1,0 +1,449 @@
+/* =============================================================================
+   SRT Partner Dashboard Styles - Teal Theme
+   ============================================================================= */
+
+:root {
+    --teal-primary: #0d9488;
+    --teal-dark: #0f766e;
+    --teal-light: #14b8a6;
+    --teal-100: #ccfbf1;
+    --teal-50: #f0fdfa;
+}
+
+/* Prevent horizontal scroll */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* Fix Bootstrap row overflow */
+.partner-main .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.partner-main .row > [class*="col-"] {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.partner-main .p-4 {
+    overflow-x: hidden;
+}
+
+/* Layout */
+.partner-layout {
+    display: flex;
+    min-height: calc(100vh - 76px);
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+.partner-sidebar {
+    width: 280px;
+    background: #ffffff;
+    border-right: 1px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.partner-main {
+    flex-grow: 1;
+    background: #f8f9fa;
+    min-height: calc(100vh - 76px);
+    overflow-x: hidden;
+    max-width: calc(100% - 280px);
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.partner-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.partner-avatar img,
+.avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    background: linear-gradient(135deg, var(--teal-primary), var(--teal-light));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.partner-details h6 {
+    font-weight: 600;
+    color: #212529;
+}
+
+/* Token Balance Widget */
+.token-balance-widget {
+    background: linear-gradient(135deg, var(--teal-50), var(--teal-100));
+    border: 1px solid var(--teal-100);
+}
+
+.token-amount {
+    margin-top: 0.5rem;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+    padding: 1rem 0;
+}
+
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1.5rem;
+    color: #495057;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    font-weight: 500;
+}
+
+.sidebar-nav .nav-link i {
+    width: 24px;
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.sidebar-nav .nav-link:hover {
+    background: var(--teal-50);
+    color: var(--teal-primary);
+    border-left-color: var(--teal-primary);
+}
+
+.sidebar-nav .nav-link.active {
+    background: var(--teal-50);
+    color: var(--teal-primary);
+    border-left-color: var(--teal-primary);
+}
+
+/* Stat Cards */
+.stat-card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Venture Cards */
+.venture-card {
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.venture-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Risk Badges */
+.badge.bg-low {
+    background-color: #d1fae5 !important;
+    color: #065f46 !important;
+}
+
+.badge.bg-moderate {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+.badge.bg-high {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+}
+
+/* Progress Bars */
+.progress {
+    border-radius: 10px;
+    background: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+/* Cards */
+.card {
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+/* Tables */
+.table thead th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    border-bottom-width: 1px;
+}
+
+/* Buttons */
+.btn-success {
+    background: linear-gradient(135deg, var(--teal-primary), var(--teal-light));
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, var(--teal-dark), var(--teal-primary));
+}
+
+.btn-outline-success {
+    border-color: var(--teal-primary);
+    color: var(--teal-primary);
+}
+
+.btn-outline-success:hover {
+    background: var(--teal-primary);
+    border-color: var(--teal-primary);
+}
+
+/* Token Input */
+.token-input-group .form-control {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    border: 2px solid #e9ecef;
+}
+
+.token-input-group .form-control:focus {
+    border-color: var(--teal-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.25);
+}
+
+/* Alerts */
+.alert {
+    border-radius: 12px;
+    border: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 991.98px) {
+    .partner-layout {
+        flex-direction: column;
+    }
+
+    .partner-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .partner-main {
+        max-width: 100%;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        overflow-x: auto;
+        padding: 0.5rem;
+    }
+
+    .sidebar-nav .nav-item {
+        flex-shrink: 0;
+    }
+
+    .sidebar-nav .nav-link {
+        padding: 0.5rem 1rem;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+    }
+
+    .sidebar-nav .nav-link.active,
+    .sidebar-nav .nav-link:hover {
+        border-left: none;
+        border-bottom-color: var(--teal-primary);
+    }
+
+    .sidebar-nav .nav-link span {
+        display: none;
+    }
+
+    .sidebar-nav .nav-link i {
+        margin-right: 0;
+    }
+
+    .token-balance-widget {
+        display: none;
+    }
+
+    .partner-main {
+        min-height: auto;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Custom Scrollbar */
+.partner-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.partner-sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.partner-sidebar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.partner-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Token Display */
+.token-display {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 2.5rem;
+    color: var(--teal-primary);
+}
+
+.token-symbol {
+    font-size: 1rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Form Styles */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--teal-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.15);
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb-item a {
+    color: var(--teal-primary);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 3rem;
+    text-align: center;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #dee2e6;
+    margin-bottom: 1rem;
+}
+
+/* Hover Effects */
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Badge Styles */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Card Footer */
+.card-footer {
+    background: transparent;
+}
+
+/* Gradient Headers */
+.gradient-header-primary,
+.gradient-header {
+    background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+    color: white;
+}
+
+.gradient-header-info {
+    background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+    color: white;
+}
+
+/* Teal Button Variants */
+.btn-teal {
+    background: var(--teal-primary);
+    border: none;
+    color: white;
+}
+
+.btn-teal:hover {
+    background: var(--teal-dark);
+    color: white;
+}
+
+.btn-outline-teal {
+    border: 2px solid var(--teal-primary);
+    color: var(--teal-primary);
+    background: transparent;
+}
+
+.btn-outline-teal:hover {
+    background: var(--teal-primary);
+    color: white;
+}

@@ -1,0 +1,529 @@
+"""
+Account views for user authentication, registration, and profile management.
+"""
+import uuid
+from datetime import timedelta
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.hashers import make_password
+from django.views.decorators.http import require_GET
+from django.utils.http import urlsafe_base64_decode
+from django.utils import timezone
+from django.contrib import messages
+from django.urls import reverse
+from django.conf import settings
+import requests
+
+from .models import (
+    CustomUser, FounderProfile, InvestorProfile, PartnerProfile,
+    RegistrationPayment, PendingRegistration
+)
+from apps.accounts.forms import (
+    SignUpForm, EditProfileForm, BaseProfileForm,
+    FounderProfileForm, InvestorProfileForm, PartnerProfileForm
+)
+from apps.srt.models import PartnerCapitalAccount
+
+
+
+
+def signup(request):
+    """Handle user registration."""
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            # Check if email already exists in CustomUser
+            if CustomUser.objects.filter(email=form.cleaned_data['email']).exists():
+                form.add_error('email', 'A user with this email already exists.')
+                return render(request, 'accounts/signup.html', {'form': form})
+
+            # Check if email already has a pending registration
+            existing_pending = PendingRegistration.objects.filter(
+                email=form.cleaned_data['email']
+            ).first()
+
+            if existing_pending:
+                if not existing_pending.is_expired():
+                    # Redirect to payment page for existing pending registration
+                    request.session['pending_registration_id'] = existing_pending.id
+                    return redirect('accounts:registration_payment')
+                else:
+                    # Delete expired registration and continue
+                    existing_pending.delete()
+
+            # Generate unique reference
+            reference = f"reg_{uuid.uuid4().hex[:8]}"
+
+            # Create pending registration
+            pending_registration = PendingRegistration.objects.create(
+                first_name=form.cleaned_data['first_name'],
+                last_name=form.cleaned_data['last_name'],
+                email=form.cleaned_data['email'],
+                phone_number=form.cleaned_data['phone_number'],
+                user_type=form.cleaned_data['user_type'],
+                password_hash=make_password(form.cleaned_data['password']),
+                paystack_reference=reference,
+                amount_usd=0,
+                amount_ngn=0,
+                expires_at=timezone.now() + timedelta(hours=24),
+            )
+
+            # Set amounts based on user type
+            pending_registration.amount_usd = pending_registration.get_registration_fee()
+            pending_registration.amount_ngn = pending_registration.get_registration_fee_ngn()
+            pending_registration.save()
+
+            # Store pending registration ID in session
+            request.session['pending_registration_id'] = pending_registration.id
+
+            # Redirect to payment page
+            return redirect('accounts:registration_payment')
+    else:
+        form = SignUpForm()
+    return render(request, 'accounts/signup.html', {'form': form})
+
+
+def verify_email(request, uidb64, token):
+    """Verify user email from verification link."""
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = CustomUser.objects.get(pk=uid)
+
+        if default_token_generator.check_token(user, token):
+            user.is_active = True
+            user.email_verified = True
+            user.save()
+
+            messages.success(request, "Your email has been verified successfully! You can now log in.")
+            return redirect('accounts:login')
+        else:
+            messages.error(request, "The verification link is invalid or has expired.")
+            return redirect('projects:home')
+    except Exception as e:
+        messages.error(request, "An error occurred during verification. Please try again.")
+        return redirect('projects:home')
+
+
+def user_login(request):
+    """Handle user login."""
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('projects:home')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'accounts/login.html', {'form': form})
+
+
+@require_GET
+def user_logout(request):
+    """Handle user logout."""
+    logout(request)
+    return redirect('projects:home')
+
+
+@login_required
+def edit_profile(request):
+    """Edit user profile based on user type."""
+    user = request.user
+
+    # Initialize profile based on user type
+    founder_form = None
+    investor_form = None
+    partner_form = None
+
+    if user.user_type == 'founder':
+        founder_profile, created = FounderProfile.objects.get_or_create(user=user)
+    elif user.user_type == 'investor':
+        investor_profile, created = InvestorProfile.objects.get_or_create(user=user)
+    elif user.user_type == 'partner':
+        partner_profile, created = PartnerProfile.objects.get_or_create(user=user)
+
+    if request.method == 'POST':
+        user_form = EditProfileForm(request.POST, instance=user)
+
+        if user.user_type == 'founder':
+            founder_form = FounderProfileForm(
+                request.POST,
+                request.FILES,
+                instance=founder_profile
+            )
+
+            if user_form.is_valid() and founder_form.is_valid():
+                user_form.save()
+                founder_profile = founder_form.save(commit=False)
+                founder_profile.user = user
+                founder_profile.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('accounts:edit_profile')
+            else:
+                for field, errors in user_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+                for field, errors in founder_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+
+        elif user.user_type == 'investor':
+            investor_form = InvestorProfileForm(
+                request.POST,
+                request.FILES,
+                instance=investor_profile
+            )
+
+            if user_form.is_valid() and investor_form.is_valid():
+                user_form.save()
+                investor_profile = investor_form.save(commit=False)
+                investor_profile.user = user
+                investor_profile.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('accounts:edit_profile')
+            else:
+                for field, errors in user_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+                for field, errors in investor_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+
+        elif user.user_type == 'partner':
+            partner_form = PartnerProfileForm(
+                request.POST,
+                request.FILES,
+                instance=partner_profile
+            )
+
+            if user_form.is_valid() and partner_form.is_valid():
+                user_form.save()
+                partner_profile = partner_form.save(commit=False)
+                partner_profile.user = user
+                partner_profile.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('accounts:edit_profile')
+            else:
+                for field, errors in user_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+                for field, errors in partner_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+        else:
+            if user_form.is_valid():
+                user_form.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('accounts:edit_profile')
+            else:
+                for field, errors in user_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+    else:
+        user_form = EditProfileForm(instance=user)
+        if user.user_type == 'founder':
+            founder_form = FounderProfileForm(instance=founder_profile)
+        elif user.user_type == 'investor':
+            investor_form = InvestorProfileForm(instance=investor_profile)
+        elif user.user_type == 'partner':
+            partner_form = PartnerProfileForm(instance=partner_profile)
+
+    context = {
+        'user_form': user_form,
+        'founder_form': founder_form if user.user_type == 'founder' else None,
+        'investor_form': investor_form if user.user_type == 'investor' else None,
+        'partner_form': partner_form if user.user_type == 'partner' else None,
+    }
+
+    return render(request, 'accounts/edit_profile.html', context)
+
+
+def complete_profile(request):
+    """Complete profile after registration."""
+    if not request.user.is_authenticated:
+        return redirect('accounts:login')
+
+    user = request.user
+    profile_forms = {
+        'founder': FounderProfileForm,
+        'investor': InvestorProfileForm,
+    }
+
+    if request.method == 'POST':
+        base_form = BaseProfileForm(request.POST, instance=user)
+        specific_form = None
+
+        if user.user_type in profile_forms:
+            try:
+                instance = user.founderprofile if user.user_type == 'founder' else user.investorprofile
+            except:
+                instance = None
+            specific_form = profile_forms[user.user_type](request.POST, instance=instance)
+
+        if base_form.is_valid() and (specific_form.is_valid() if specific_form else True):
+            base_form.save()
+            if specific_form:
+                profile = specific_form.save(commit=False)
+                profile.user = user
+                profile.save()
+            user.profile_completed = True
+            user.save()
+            return redirect('accounts:dashboard')
+    else:
+        base_form = BaseProfileForm(instance=user)
+        specific_form = None
+        if user.user_type in profile_forms:
+            try:
+                instance = user.founderprofile if user.user_type == 'founder' else user.investorprofile
+            except:
+                instance = None
+            specific_form = profile_forms[user.user_type](instance=instance)
+
+    return render(request, 'accounts/complete_profile.html', {
+        'base_form': base_form,
+        'specific_form': specific_form,
+        'user_type': user.user_type
+    })
+
+
+@login_required
+def dashboard(request):
+    """
+    Main dashboard view that routes users to appropriate dashboard based on user type.
+    Partners are redirected to SRT dashboard, others see the general dashboard.
+    """
+    user = request.user
+
+    # Redirect partners to SRT dashboard
+    if user.user_type == 'partner':
+        return redirect('srt:dashboard')
+
+    # For founders, investors, and donors - show the general dashboard
+    from apps.projects.models import Project
+    from apps.funding.models import Investment, Pledge
+    from django.utils import timezone
+
+    context = {
+        'user': user,
+        'now': timezone.now(),
+    }
+
+    if user.user_type == 'founder':
+        # Founder-specific context
+        created_projects = Project.objects.filter(creator=user).order_by('-created_at')
+        context.update({
+            'created_projects': created_projects,
+            'total_projects': created_projects.count(),
+            'active_projects': created_projects.filter(deadline__gte=timezone.now()).count(),
+            'total_raised': sum(p.amount_raised for p in created_projects),
+            'avg_funding': sum(p.get_percent_funded() for p in created_projects) / created_projects.count() if created_projects.count() > 0 else 0,
+        })
+
+    if user.user_type in ['investor', 'donor']:
+        # Get investments for investors
+        investments = Investment.objects.filter(investor=user).select_related('project', 'terms').order_by('-created_at')
+        context['investments'] = investments
+
+    if user.user_type == 'donor':
+        # Get pledges for donors
+        pledges = Pledge.objects.filter(backer=user).select_related('project', 'reward').order_by('-pledged_at')
+        context['pledges'] = pledges
+
+    # Recommended projects for investors
+    if user.user_type == 'investor':
+        recommended_projects = Project.objects.filter(
+            status='approved',
+            deadline__gte=timezone.now()
+        ).exclude(creator=user).order_by('-created_at')[:6]
+        context['recommended_projects'] = recommended_projects
+
+    return render(request, 'dashboard.html', context)
+
+
+# Registration Payment Views
+def registration_payment(request):
+    """Display registration payment page."""
+    if 'pending_registration_id' not in request.session:
+        messages.error(request, "No pending registration found. Please start registration again.")
+        return redirect('accounts:signup')
+
+    try:
+        pending_registration = PendingRegistration.objects.get(id=request.session['pending_registration_id'])
+
+        if pending_registration.is_expired():
+            pending_registration.delete()
+            del request.session['pending_registration_id']
+            messages.error(request, "Registration session expired. Please start registration again.")
+            return redirect('accounts:signup')
+
+        if pending_registration.payment_status == 'successful':
+            messages.info(request, "Registration fee already paid.")
+            return redirect('accounts:login')
+
+        context = {
+            'pending_registration': pending_registration,
+            'fee_usd': pending_registration.amount_usd,
+            'fee_ngn': pending_registration.amount_ngn,
+            'paystack_public_key': settings.PAYSTACK_PUBLIC_KEY,
+        }
+
+        return render(request, 'accounts/registration_payment.html', context)
+    except PendingRegistration.DoesNotExist:
+        messages.error(request, "Invalid registration session. Please start registration again.")
+        return redirect('accounts:signup')
+
+
+def initialize_registration_payment(request):
+    """Initialize registration payment with Paystack."""
+    if request.method == 'POST' and 'pending_registration_id' in request.session:
+        try:
+            pending_registration = PendingRegistration.objects.get(id=request.session['pending_registration_id'])
+
+            if pending_registration.is_expired():
+                pending_registration.delete()
+                del request.session['pending_registration_id']
+                messages.error(request, "Registration session expired. Please start registration again.")
+                return redirect('accounts:signup')
+
+            if pending_registration.payment_status != 'pending':
+                messages.error(request, "Registration payment already initiated.")
+                return redirect('accounts:registration_payment')
+
+            # Initialize payment with Paystack
+            url = "https://api.paystack.co/transaction/initialize"
+            headers = {
+                'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
+                'Content-Type': 'application/json',
+            }
+
+            data = {
+                'email': pending_registration.email,
+                'amount': int(pending_registration.amount_ngn * 100),
+                'reference': pending_registration.paystack_reference,
+                'callback_url': request.build_absolute_uri(reverse('accounts:registration_payment_callback')),
+                'metadata': {
+                    'pending_registration_id': pending_registration.id,
+                    'payment_type': 'registration_fee',
+                    'user_type': pending_registration.user_type,
+                }
+            }
+
+            response = requests.post(url, headers=headers, json=data)
+
+            if response.status_code == 200:
+                response_data = response.json()
+                if response_data['status']:
+                    authorization_url = response_data['data']['authorization_url']
+                    return redirect(authorization_url)
+
+            messages.error(request, "Payment initialization failed. Please try again.")
+            return redirect('accounts:registration_payment')
+
+        except PendingRegistration.DoesNotExist:
+            messages.error(request, "Invalid registration session.")
+            return redirect('accounts:signup')
+        except Exception as e:
+            messages.error(request, f"Error initializing payment: {str(e)}")
+            return redirect('accounts:registration_payment')
+
+    return redirect('accounts:signup')
+
+
+def registration_payment_callback(request):
+    """Handle payment callback from Paystack."""
+    reference = request.GET.get('reference')
+    if not reference:
+        messages.error(request, "Invalid payment reference.")
+        return redirect('accounts:signup')
+
+    try:
+        pending_registration = PendingRegistration.objects.get(paystack_reference=reference)
+
+        if pending_registration.is_expired():
+            pending_registration.delete()
+            messages.error(request, "Registration session expired. Please start registration again.")
+            return redirect('accounts:signup')
+
+        # Verify payment with Paystack
+        url = f"https://api.paystack.co/transaction/verify/{reference}"
+        headers = {
+            'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
+        }
+
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            response_data = response.json()
+            if response_data['status'] and response_data['data']['status'] == 'success':
+                pending_registration.payment_status = 'successful'
+                pending_registration.save()
+
+                # Create the actual user account
+                user = CustomUser.objects.create(
+                    username=pending_registration.email,
+                    email=pending_registration.email,
+                    first_name=pending_registration.first_name,
+                    last_name=pending_registration.last_name,
+                    phone_number=pending_registration.phone_number,
+                    user_type=pending_registration.user_type,
+                    password=pending_registration.password_hash,
+                    is_active=True,
+                    registration_fee_paid=True,
+                    email_verified=True,
+                )
+
+                # Create profile based on user type
+                if user.user_type == 'founder':
+                    FounderProfile.objects.create(user=user)
+                elif user.user_type == 'investor':
+                    InvestorProfile.objects.create(user=user)
+                elif user.user_type == 'partner':
+                    # Generate unique partner ID
+                    import random
+                    partner_id = f"SRT-{random.randint(1000, 9999)}"
+                    while PartnerProfile.objects.filter(partner_id=partner_id).exists():
+                        partner_id = f"SRT-{random.randint(1000, 9999)}"
+                    PartnerProfile.objects.create(user=user, partner_id=partner_id)
+                    PartnerCapitalAccount.objects.create(partner=user)
+
+                # Create registration payment record
+                RegistrationPayment.objects.create(
+                    user=user,
+                    amount_usd=pending_registration.amount_usd,
+                    amount_ngn=pending_registration.amount_ngn,
+                    paystack_reference=reference,
+                    status='successful'
+                )
+
+                # Clean up
+                pending_registration.delete()
+
+                if 'pending_registration_id' in request.session:
+                    del request.session['pending_registration_id']
+
+                login(request, user)
+
+                messages.success(
+                    request,
+                    f"Registration fee paid successfully! Welcome to StartUpRipple, {user.get_full_name()}!"
+                )
+
+                return redirect('accounts:dashboard')
+            else:
+                pending_registration.payment_status = 'failed'
+                pending_registration.save()
+                messages.error(request, "Payment verification failed. Please try again.")
+                return redirect('accounts:registration_payment')
+        else:
+            messages.error(request, "Payment verification failed. Please try again.")
+            return redirect('accounts:registration_payment')
+
+    except PendingRegistration.DoesNotExist:
+        messages.error(request, "Invalid payment reference.")
+        return redirect('accounts:signup')
+    except Exception as e:
+        messages.error(request, f"Error processing payment: {str(e)}")
+        return redirect('accounts:registration_payment')

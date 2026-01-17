@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Project - StartUpRipple{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Delete Project</h4>
+                </div>
+                <div class="card-body text-center py-5">
+                    <h5 class="mb-3">Are you sure you want to delete this project?</h5>
+                    <p class="text-muted mb-4">
+                        <strong>{{ project.title }}</strong><br>
+                        This action cannot be undone. All project data, updates, and rewards will be permanently removed.
+                    </p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Yes, Delete Project
+                            </button>
+                            <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

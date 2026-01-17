@@ -1,0 +1,1116 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Create Project - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<!-- Summernote CSS -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+<style>
+    :root {
+        --step-inactive: #E0E0E0;
+        --step-active: #26af59;
+        --step-completed: #0d9488;
+    }
+
+    /* Hide default navbar padding issue */
+    .create-page {
+        margin-top: -1px;
+    }
+
+    /* Hero Section */
+    .create-hero {
+        background: linear-gradient(135deg, #26af59 0%, #1e8e48 100%);
+        padding: 120px 0 100px;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .create-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .create-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-content h1 {
+        font-size: 2.75rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .hero-content p {
+        font-size: 1.125rem;
+        opacity: 0.9;
+        max-width: 500px;
+    }
+
+    /* Main Content Area */
+    .create-main {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding-bottom: 80px;
+    }
+
+    /* Progress Container */
+    .progress-container {
+        background: #fff;
+        border-radius: 20px;
+        padding: 28px 40px;
+        margin-top: -50px;
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        margin-bottom: 40px;
+    }
+
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    .progress-steps::before {
+        content: '';
+        position: absolute;
+        top: 24px;
+        left: 60px;
+        right: 60px;
+        height: 4px;
+        background: var(--step-inactive);
+        border-radius: 2px;
+        z-index: 1;
+    }
+
+    .progress-line {
+        position: absolute;
+        top: 24px;
+        left: 60px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--step-completed) 0%, var(--step-active) 100%);
+        border-radius: 2px;
+        z-index: 2;
+        transition: width 0.5s ease;
+        width: 0%;
+    }
+
+    .step-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 3;
+        cursor: pointer;
+        flex: 1;
+    }
+
+    .step-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #fff;
+        border: 4px solid var(--step-inactive);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.125rem;
+        color: #9E9E9E;
+        transition: all 0.3s ease;
+    }
+
+    .step-item.active .step-circle {
+        border-color: var(--step-active);
+        color: var(--step-active);
+        box-shadow: 0 0 0 8px rgba(38, 175, 89, 0.15);
+    }
+
+    .step-item.completed .step-circle {
+        background: var(--step-completed);
+        border-color: var(--step-completed);
+        color: #fff;
+    }
+
+    .step-item.completed .step-circle span {
+        display: none;
+    }
+
+    .step-item.completed .step-circle::after {
+        content: '\f00c';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        font-size: 1rem;
+    }
+
+    .step-info {
+        margin-top: 12px;
+        text-align: center;
+    }
+
+    .step-title {
+        font-weight: 600;
+        font-size: 0.9375rem;
+        color: #9E9E9E;
+        transition: color 0.3s ease;
+    }
+
+    .step-item.active .step-title,
+    .step-item.completed .step-title {
+        color: #212121;
+    }
+
+    .step-desc {
+        font-size: 0.75rem;
+        color: #BDBDBD;
+        margin-top: 2px;
+    }
+
+    /* Form Container */
+    .form-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 32px;
+        align-items: start;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    .form-header {
+        margin-bottom: 32px;
+    }
+
+    .form-header h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #212121;
+        margin-bottom: 8px;
+    }
+
+    .form-header p {
+        color: #757575;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    /* Form Steps */
+    .form-step {
+        display: none;
+    }
+
+    .form-step.active {
+        display: block;
+        animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form Groups */
+    .form-group {
+        margin-bottom: 28px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.9375rem;
+        color: #212121;
+        margin-bottom: 10px;
+    }
+
+    .form-label .required {
+        color: #ef4444;
+        margin-left: 2px;
+    }
+
+    .form-label .optional {
+        color: #9E9E9E;
+        font-weight: 400;
+        font-size: 0.8125rem;
+        margin-left: 6px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 16px 20px;
+        border: 2px solid #E8E8E8;
+        border-radius: 14px;
+        font-size: 1rem;
+        color: #212121;
+        transition: all 0.2s ease;
+        background: #fff;
+    }
+
+    .form-input:hover {
+        border-color: #BDBDBD;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #26af59;
+        box-shadow: 0 0 0 4px rgba(38, 175, 89, 0.1);
+    }
+
+    .form-input::placeholder {
+        color: #BDBDBD;
+    }
+
+    textarea.form-input {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    select.form-input {
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 16px center;
+        background-repeat: no-repeat;
+        background-size: 20px;
+        padding-right: 48px;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    .form-hint {
+        margin-top: 8px;
+        font-size: 0.8125rem;
+        color: #9E9E9E;
+        line-height: 1.5;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    /* Currency Input */
+    .currency-wrapper {
+        position: relative;
+    }
+
+    .currency-wrapper .currency-symbol {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 600;
+        color: #757575;
+        font-size: 1.125rem;
+    }
+
+    .currency-wrapper .form-input {
+        padding-left: 44px;
+    }
+
+    /* Image Upload */
+    .upload-area {
+        border: 3px dashed #E0E0E0;
+        border-radius: 16px;
+        padding: 48px 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #FAFAFA;
+    }
+
+    .upload-area:hover {
+        border-color: #26af59;
+        background: rgba(38, 175, 89, 0.03);
+    }
+
+    .upload-area.dragover {
+        border-color: #26af59;
+        background: rgba(38, 175, 89, 0.08);
+        transform: scale(1.01);
+    }
+
+    .upload-area.has-file {
+        padding: 0;
+        border-style: solid;
+        border-color: #26af59;
+    }
+
+    .upload-area.has-file img {
+        width: 100%;
+        height: 280px;
+        object-fit: cover;
+        border-radius: 13px;
+    }
+
+    .upload-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 2rem;
+    }
+
+    .upload-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #212121;
+        margin-bottom: 8px;
+    }
+
+    .upload-subtitle {
+        color: #9E9E9E;
+        font-size: 0.9375rem;
+    }
+
+    .upload-subtitle span {
+        color: #26af59;
+        font-weight: 500;
+    }
+
+    /* Summernote Custom Styles */
+    .note-editor {
+        border: 2px solid #E8E8E8 !important;
+        border-radius: 14px !important;
+        overflow: hidden;
+    }
+
+    .note-editor:focus-within {
+        border-color: #26af59 !important;
+        box-shadow: 0 0 0 4px rgba(38, 175, 89, 0.1) !important;
+    }
+
+    .note-toolbar {
+        background: #F5F5F5 !important;
+        border-bottom: 1px solid #E8E8E8 !important;
+        padding: 10px 12px !important;
+    }
+
+    .note-btn {
+        border-radius: 8px !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
+    .note-btn:hover {
+        background: #E0E0E0 !important;
+    }
+
+    .note-btn.active {
+        background: #26af59 !important;
+        color: #fff !important;
+    }
+
+    .note-editing-area {
+        background: #fff !important;
+    }
+
+    .note-editable {
+        padding: 20px !important;
+        min-height: 250px !important;
+    }
+
+    .note-statusbar {
+        background: #F5F5F5 !important;
+        border-top: 1px solid #E8E8E8 !important;
+    }
+
+    /* Form Navigation */
+    .form-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 40px;
+        padding-top: 32px;
+        border-top: 2px solid #F5F5F5;
+    }
+
+    .btn-nav {
+        padding: 16px 36px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-back {
+        background: #F5F5F5;
+        color: #757575;
+    }
+
+    .btn-back:hover {
+        background: #E0E0E0;
+        color: #424242;
+    }
+
+    .btn-next {
+        background: linear-gradient(135deg, #26af59 0%, #1e8e48 100%);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(38, 175, 89, 0.35);
+    }
+
+    .btn-next:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(38, 175, 89, 0.45);
+        color: #fff;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #0d9488 0%, #26af59 100%);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(13, 148, 136, 0.35);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(13, 148, 136, 0.45);
+        color: #fff;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        position: sticky;
+        top: 100px;
+    }
+
+    .tips-card {
+        background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+        border-radius: 20px;
+        padding: 28px;
+        color: #fff;
+        margin-bottom: 24px;
+    }
+
+    .tips-card h4 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .tips-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .tips-card li {
+        padding: 10px 0;
+        padding-left: 28px;
+        position: relative;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        opacity: 0.95;
+    }
+
+    .tips-card li::before {
+        content: '\f00c';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        left: 0;
+        top: 12px;
+        font-size: 0.75rem;
+    }
+
+    .info-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    .info-card h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #212121;
+        margin-bottom: 20px;
+    }
+
+    .info-item {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(13, 148, 136, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0d9488;
+        flex-shrink: 0;
+    }
+
+    .info-text {
+        font-size: 0.875rem;
+        color: #757575;
+        line-height: 1.6;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .form-wrapper {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+            position: static;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            order: -1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .create-hero {
+            padding: 100px 0 80px;
+        }
+
+        .hero-content h1 {
+            font-size: 2rem;
+        }
+
+        .progress-container {
+            padding: 20px;
+            margin-top: -40px;
+        }
+
+        .progress-steps::before,
+        .progress-line {
+            top: 20px;
+            left: 30px;
+            right: 30px;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+
+        .step-desc {
+            display: none;
+        }
+
+        .form-card {
+            padding: 24px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+            grid-template-columns: 1fr;
+        }
+
+        .form-nav {
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .btn-nav {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-page">
+    <!-- Hero Section -->
+    <section class="create-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Launch Your Project</h1>
+                <p>Turn your vision into reality. Create a campaign and connect with backers who believe in your idea.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="create-main">
+        <div class="container">
+            <!-- Progress Steps -->
+            <div class="progress-container">
+                <div class="progress-steps">
+                    <div class="progress-line" id="progress-line"></div>
+                    <div class="step-item active" data-step="1">
+                        <div class="step-circle"><span>1</span></div>
+                        <div class="step-info">
+                            <div class="step-title">Basics</div>
+                            <div class="step-desc">Project info</div>
+                        </div>
+                    </div>
+                    <div class="step-item" data-step="2">
+                        <div class="step-circle"><span>2</span></div>
+                        <div class="step-info">
+                            <div class="step-title">Story</div>
+                            <div class="step-desc">Description</div>
+                        </div>
+                    </div>
+                    <div class="step-item" data-step="3">
+                        <div class="step-circle"><span>3</span></div>
+                        <div class="step-info">
+                            <div class="step-title">Funding</div>
+                            <div class="step-desc">Goal & type</div>
+                        </div>
+                    </div>
+                    <div class="step-item" data-step="4">
+                        <div class="step-circle"><span>4</span></div>
+                        <div class="step-info">
+                            <div class="step-title">Media</div>
+                            <div class="step-desc">Images & video</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" id="project-form">
+                {% csrf_token %}
+
+                <div class="form-wrapper">
+                    <!-- Main Form -->
+                    <div class="form-main">
+                        <!-- Step 1: Basics -->
+                        <div class="form-step active" data-step="1">
+                            <div class="form-card">
+                                <div class="form-header">
+                                    <h2>Project Basics</h2>
+                                    <p>Start with the essentials. Give your project a compelling name and tell us what it's about.</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Project Title <span class="required">*</span></label>
+                                    <input type="text" name="title" class="form-input" placeholder="Enter a catchy, descriptive title" required value="{{ form.title.value|default:'' }}">
+                                    <p class="form-hint">A great title is clear, specific, and memorable. Avoid generic names.</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Short Description <span class="required">*</span></label>
+                                    <textarea name="short_description" class="form-input" rows="3" placeholder="Briefly describe your project in 1-2 sentences..." maxlength="255" required>{{ form.short_description.value|default:'' }}</textarea>
+                                    <p class="form-hint">This appears in listings and search results. Make it count! (Max 255 characters)</p>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Category <span class="required">*</span></label>
+                                        <select name="category" class="form-input" required>
+                                            <option value="">Select a category</option>
+                                            {% for category in form.fields.category.queryset %}
+                                            <option value="{{ category.id }}" {% if form.category.value == category.id|stringformat:"i" %}selected{% endif %}>{{ category.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Location <span class="optional">(Optional)</span></label>
+                                        <input type="text" name="location" class="form-input" placeholder="e.g., Lagos, Nigeria" value="{{ form.location.value|default:'' }}">
+                                    </div>
+                                </div>
+
+                                <div class="form-nav">
+                                    <div></div>
+                                    <button type="button" class="btn-nav btn-next" data-next="2">
+                                        Continue <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Story -->
+                        <div class="form-step" data-step="2">
+                            <div class="form-card">
+                                <div class="form-header">
+                                    <h2>Tell Your Story</h2>
+                                    <p>This is where you convince people to back your project. Explain your vision, what you're creating, and why it matters.</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Project Description <span class="required">*</span></label>
+                                    <textarea name="description" id="description-editor" class="form-input">{{ form.description.value|default:'' }}</textarea>
+                                    <p class="form-hint">Use headings, bullet points, and images to make your story engaging and easy to read.</p>
+                                </div>
+
+                                <div class="form-nav">
+                                    <button type="button" class="btn-nav btn-back" data-prev="1">
+                                        <i class="fas fa-arrow-left"></i> Back
+                                    </button>
+                                    <button type="button" class="btn-nav btn-next" data-next="3">
+                                        Continue <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Funding -->
+                        <div class="form-step" data-step="3">
+                            <div class="form-card">
+                                <div class="form-header">
+                                    <h2>Funding Details</h2>
+                                    <p>Set your funding goal and choose how backers will contribute to your project.</p>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Funding Goal <span class="required">*</span></label>
+                                        <div class="currency-wrapper">
+                                            <span class="currency-symbol">$</span>
+                                            <input type="number" name="funding_goal" class="form-input" placeholder="10,000" required min="100" value="{{ form.funding_goal.value|default:'' }}">
+                                        </div>
+                                        <p class="form-hint">Set a realistic goal. Lower goals have higher success rates.</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Funding Type <span class="required">*</span></label>
+                                        <select name="funding_type" class="form-input" required id="funding-type-select">
+                                            <option value="">Select type</option>
+                                            {% for ftype in form.fields.funding_type.queryset %}
+                                            <option value="{{ ftype.id }}" {% if form.funding_type.value == ftype.id|stringformat:"i" %}selected{% endif %}>{{ ftype.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Campaign Deadline <span class="required">*</span></label>
+                                    <input type="datetime-local" name="deadline" class="form-input" required value="{{ form.deadline.value|default:'' }}">
+                                    <p class="form-hint">Campaigns typically run 30-60 days. Choose a date that gives you enough time.</p>
+                                </div>
+
+                                <div id="funding-info" class="d-none" style="background: rgba(13, 148, 136, 0.08); border-radius: 14px; padding: 20px; margin-top: 20px;">
+                                    <div style="display: flex; gap: 14px; align-items: flex-start;">
+                                        <div style="width: 40px; height: 40px; background: rgba(13, 148, 136, 0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-info-circle" style="color: #0d9488;"></i>
+                                        </div>
+                                        <div>
+                                            <strong style="color: #212121; font-size: 0.9375rem;">About Equity Funding</strong>
+                                            <p style="color: #757575; margin: 6px 0 0; font-size: 0.875rem; line-height: 1.6;">After creating your project, you'll be able to configure detailed investment terms including equity percentage, minimum investment, and valuation.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-nav">
+                                    <button type="button" class="btn-nav btn-back" data-prev="2">
+                                        <i class="fas fa-arrow-left"></i> Back
+                                    </button>
+                                    <button type="button" class="btn-nav btn-next" data-next="4">
+                                        Continue <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Media -->
+                        <div class="form-step" data-step="4">
+                            <div class="form-card">
+                                <div class="form-header">
+                                    <h2>Project Media</h2>
+                                    <p>Add visuals that showcase your project. Great images significantly increase your chances of getting funded.</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Project Image <span class="required">*</span></label>
+                                    <div class="upload-area" id="upload-area">
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </div>
+                                        <p class="upload-title">Drop your image here</p>
+                                        <p class="upload-subtitle">or <span>click to browse</span></p>
+                                        <p class="form-hint" style="margin-top: 16px;">PNG, JPG up to 10MB • Recommended: 1200 × 675px (16:9)</p>
+                                    </div>
+                                    <input type="file" name="image" id="image-input" accept="image/*" style="display: none;" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Video URL <span class="optional">(Optional)</span></label>
+                                    <input type="url" name="video_url" class="form-input" placeholder="https://youtube.com/watch?v=..." value="{{ form.video_url.value|default:'' }}">
+                                    <p class="form-hint">Add a YouTube or Vimeo link. Projects with videos raise 50% more on average.</p>
+                                </div>
+
+                                <div class="form-nav">
+                                    <button type="button" class="btn-nav btn-back" data-prev="3">
+                                        <i class="fas fa-arrow-left"></i> Back
+                                    </button>
+                                    <button type="submit" class="btn-nav btn-submit">
+                                        <i class="fas fa-rocket"></i> Launch Project
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="sidebar">
+                        <div class="tips-card" id="tips-1">
+                            <h4><i class="fas fa-lightbulb"></i> Tips for Success</h4>
+                            <ul>
+                                <li>Choose a clear, memorable title that explains your project</li>
+                                <li>Write a short description that hooks people instantly</li>
+                                <li>Select the most accurate category for discoverability</li>
+                                <li>Adding location helps local backers find you</li>
+                            </ul>
+                        </div>
+
+                        <div class="tips-card d-none" id="tips-2">
+                            <h4><i class="fas fa-lightbulb"></i> Story Tips</h4>
+                            <ul>
+                                <li>Start with why your project matters to you</li>
+                                <li>Explain the problem you're solving clearly</li>
+                                <li>Break down how funds will be used</li>
+                                <li>Share your background and qualifications</li>
+                            </ul>
+                        </div>
+
+                        <div class="tips-card d-none" id="tips-3">
+                            <h4><i class="fas fa-lightbulb"></i> Funding Tips</h4>
+                            <ul>
+                                <li>Start with a realistic, achievable goal</li>
+                                <li>Lower goals have significantly higher success rates</li>
+                                <li>Remember: platform fee is 5% of funds raised</li>
+                                <li>30-60 day campaigns perform best</li>
+                            </ul>
+                        </div>
+
+                        <div class="tips-card d-none" id="tips-4">
+                            <h4><i class="fas fa-lightbulb"></i> Media Tips</h4>
+                            <ul>
+                                <li>Use a high-quality, eye-catching main image</li>
+                                <li>Show your product, prototype, or team</li>
+                                <li>Videos increase funding by 50% on average</li>
+                                <li>First impressions matter - make it count!</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-card">
+                            <h4>What happens next?</h4>
+                            <div class="info-item">
+                                <div class="info-icon"><i class="fas fa-search"></i></div>
+                                <p class="info-text">Our team reviews your project within 2-3 business days</p>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon"><i class="fas fa-edit"></i></div>
+                                <p class="info-text">You can edit details anytime before going live</p>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon"><i class="fas fa-gift"></i></div>
+                                <p class="info-text">Add rewards or investment terms after creation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Summernote JS -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Summernote WYSIWYG Editor
+    $('#description-editor').summernote({
+        placeholder: 'Tell the world about your project. What are you creating? Why does it matter? How will you use the funds?',
+        tabsize: 2,
+        height: 350,
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'italic', 'underline', 'clear']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['insert', ['link', 'picture']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ],
+        styleTags: ['p', 'h2', 'h3', 'h4'],
+        callbacks: {
+            onImageUpload: function(files) {
+                // Handle image upload - for now just insert as base64
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const img = $('<img>').attr('src', reader.result).addClass('img-fluid');
+                    $('#description-editor').summernote('insertNode', img[0]);
+                };
+                reader.readAsDataURL(files[0]);
+            }
+        }
+    });
+
+    // Step Navigation
+    const formSteps = document.querySelectorAll('.form-step');
+    const stepItems = document.querySelectorAll('.step-item');
+    const progressLine = document.getElementById('progress-line');
+    const tipsCards = document.querySelectorAll('[id^="tips-"]');
+    let currentStep = 1;
+
+    function updateProgress() {
+        const progress = ((currentStep - 1) / 3) * 100;
+        progressLine.style.width = progress + '%';
+    }
+
+    function showStep(step) {
+        // Update form steps
+        formSteps.forEach(s => s.classList.remove('active'));
+        document.querySelector(`.form-step[data-step="${step}"]`).classList.add('active');
+
+        // Update step indicators
+        stepItems.forEach((item, index) => {
+            item.classList.remove('active', 'completed');
+            if (index + 1 === step) {
+                item.classList.add('active');
+            } else if (index + 1 < step) {
+                item.classList.add('completed');
+            }
+        });
+
+        // Update tips
+        tipsCards.forEach(card => card.classList.add('d-none'));
+        document.getElementById(`tips-${step}`).classList.remove('d-none');
+
+        currentStep = step;
+        updateProgress();
+
+        // Scroll to form
+        window.scrollTo({ top: 250, behavior: 'smooth' });
+    }
+
+    // Next buttons
+    document.querySelectorAll('[data-next]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const nextStep = parseInt(this.dataset.next);
+            showStep(nextStep);
+        });
+    });
+
+    // Back buttons
+    document.querySelectorAll('[data-prev]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const prevStep = parseInt(this.dataset.prev);
+            showStep(prevStep);
+        });
+    });
+
+    // Step indicator clicks
+    stepItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const step = parseInt(this.dataset.step);
+            if (step <= currentStep) {
+                showStep(step);
+            }
+        });
+    });
+
+    // Funding type change
+    const fundingSelect = document.getElementById('funding-type-select');
+    const fundingInfo = document.getElementById('funding-info');
+
+    if (fundingSelect) {
+        fundingSelect.addEventListener('change', function() {
+            const text = this.options[this.selectedIndex].text.toLowerCase();
+            if (text.includes('equity')) {
+                fundingInfo.classList.remove('d-none');
+            } else {
+                fundingInfo.classList.add('d-none');
+            }
+        });
+    }
+
+    // Image Upload
+    const uploadArea = document.getElementById('upload-area');
+    const imageInput = document.getElementById('image-input');
+
+    uploadArea.addEventListener('click', () => imageInput.click());
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            imageInput.files = e.dataTransfer.files;
+            handleImagePreview(e.dataTransfer.files[0]);
+        }
+    });
+
+    imageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            handleImagePreview(this.files[0]);
+        }
+    });
+
+    function handleImagePreview(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            uploadArea.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            uploadArea.classList.add('has-file');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Form validation before submit
+    document.getElementById('project-form').addEventListener('submit', function(e) {
+        const description = $('#description-editor').summernote('code');
+        if (!description || description === '<p><br></p>') {
+            e.preventDefault();
+            alert('Please add a project description');
+            showStep(2);
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

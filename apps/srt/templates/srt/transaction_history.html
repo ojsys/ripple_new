@@ -1,0 +1,141 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}Transaction History - StartUpRipple{% endblock %}
+
+{% block partner_content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'srt:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Transactions</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Transaction History</h2>
+        <p class="text-muted mb-0">View all your token transactions</p>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <div class="text-end">
+            <small class="text-muted">Current Balance</small>
+            <h4 class="mb-0 text-success">{{ account.token_balance|floatformat:2|intcomma }} SRT</h4>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-2">
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <span class="text-muted me-2">Filter by type:</span>
+            <a href="{% url 'srt:transaction_history' %}" class="btn btn-sm {% if not current_type %}btn-success{% else %}btn-outline-secondary{% endif %}">
+                All
+            </a>
+            {% for type_code, type_name in transaction_types %}
+            <a href="{% url 'srt:transaction_history' %}?type={{ type_code }}" class="btn btn-sm {% if current_type == type_code %}btn-success{% else %}btn-outline-secondary{% endif %}">
+                {{ type_name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Transactions List -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        {% if transactions %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Balance After</th>
+                        <th>Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td>
+                            <strong>{{ tx.created_at|date:"M d, Y" }}</strong>
+                            <br>
+                            <small class="text-muted">{{ tx.created_at|time:"H:i" }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if tx.transaction_type == 'purchase' %}success{% elif tx.transaction_type == 'investment' %}primary{% elif tx.transaction_type == 'return' %}info{% elif tx.transaction_type == 'bonus' %}warning{% else %}secondary{% endif %}">
+                                {{ tx.get_transaction_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ tx.description|default:"-"|truncatechars:40 }}
+                            {% if tx.venture %}
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-rocket me-1"></i>{{ tx.venture.title|truncatechars:25 }}
+                            </small>
+                            {% endif %}
+                        </td>
+                        <td class="{% if tx.amount >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                            {% if tx.amount >= 0 %}+{% endif %}{{ tx.amount|floatformat:2|intcomma }} SRT
+                        </td>
+                        <td>
+                            {{ tx.balance_after|floatformat:2|intcomma }} SRT
+                        </td>
+                        <td>
+                            <code class="small">{{ tx.reference }}</code>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if transactions.has_other_pages %}
+        <div class="card-footer bg-white">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if transactions.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ transactions.previous_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for i in transactions.paginator.page_range %}
+                    <li class="page-item {% if transactions.number == i %}active{% endif %}">
+                        <a class="page-link" href="?page={{ i }}{% if current_type %}&type={{ current_type }}{% endif %}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if transactions.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ transactions.next_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state py-5">
+            <i class="fas fa-history"></i>
+            <h4>No Transactions Yet</h4>
+            <p class="text-muted">You haven't made any transactions yet. Buy some tokens to get started.</p>
+            <a href="{% url 'srt:buy_tokens' %}" class="btn btn-success">
+                <i class="fas fa-coins me-2"></i>Buy Tokens
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

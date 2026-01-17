@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags humanize %}
+
+{% block title %}Support {{ project.title }} - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    .pledge-hero {
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        padding: 60px 0 80px;
+        margin-top: 76px;
+        position: relative;
+    }
+
+    .pledge-hero h1 {
+        color: white;
+        font-weight: 700;
+    }
+
+    .pledge-hero p {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .pledge-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        border: none;
+        overflow: hidden;
+    }
+
+    .pledge-card .card-header {
+        background: var(--teal-50);
+        border-bottom: 1px solid var(--teal-100);
+        padding: 20px 24px;
+    }
+
+    .pledge-card .card-header h4 {
+        color: var(--teal-dark);
+        font-weight: 700;
+    }
+
+    .pledge-card .card-body {
+        padding: 30px;
+    }
+
+    .btn-pledge {
+        background: var(--teal-primary);
+        border: none;
+        color: white;
+        padding: 14px 32px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-pledge:hover {
+        background: var(--teal-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
+        color: white;
+    }
+
+    .btn-cancel {
+        border: 2px solid #e5e7eb;
+        color: #6b7280;
+        padding: 14px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        border-color: var(--teal-primary);
+        color: var(--teal-primary);
+        background: var(--teal-50);
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: none;
+        overflow: hidden;
+    }
+
+    .summary-card .card-img-top {
+        height: 160px;
+        object-fit: cover;
+    }
+
+    .summary-card .card-body {
+        padding: 20px;
+    }
+
+    .progress-bar-teal {
+        background: var(--teal-primary);
+    }
+
+    .reward-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: none;
+        overflow: hidden;
+    }
+
+    .reward-card .card-header {
+        background: var(--teal-50);
+        border-bottom: 1px solid var(--teal-100);
+        padding: 16px 20px;
+    }
+
+    .reward-card .card-header h6 {
+        color: var(--teal-dark);
+        font-weight: 700;
+    }
+
+    .reward-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background 0.2s ease;
+    }
+
+    .reward-item:last-child {
+        border-bottom: none;
+    }
+
+    .reward-item:hover {
+        background: var(--teal-50);
+    }
+
+    .reward-badge {
+        background: var(--teal-primary);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .amount-display {
+        color: var(--teal-primary);
+        font-weight: 700;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--teal-primary);
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="pledge-hero">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h1><i class="fas fa-hand-holding-heart me-2"></i>Support This Project</h1>
+                <p class="mb-0">Your contribution helps bring "{{ project.title }}" to life</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5" style="margin-top: 20px; margin-bottom: 60px;">
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="pledge-card card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-heart me-2" style="color: var(--teal-primary);"></i>Make Your Pledge</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="mb-2" style="color: #374151; font-weight: 600;">{{ project.title }}</h5>
+                    <p class="text-muted mb-4">Your donation helps bring this project to life. Enter your pledge amount below.</p>
+
+                    {% if selected_reward %}
+                    <div class="alert mb-4" style="background: var(--teal-50); border: 1px solid var(--teal-100); border-radius: 12px;">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-gift me-3 mt-1" style="color: var(--teal-primary); font-size: 1.25rem;"></i>
+                            <div>
+                                <h6 class="mb-1" style="color: var(--teal-dark); font-weight: 700;">Selected Reward: {{ selected_reward.title }}</h6>
+                                <p class="mb-0 small text-muted">{{ selected_reward.description }}</p>
+                                <div class="mt-2">
+                                    <span class="badge" style="background: var(--teal-primary);">Minimum: ${{ selected_reward.amount }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-flex gap-3 mt-4 pt-2">
+                            <button type="submit" class="btn btn-pledge btn-lg">
+                                <i class="fas fa-lock me-2"></i>Continue to Payment
+                            </button>
+                            <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-cancel">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Project Summary Card -->
+            <div class="summary-card card mb-4">
+                {% if project.image %}
+                <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
+                {% else %}
+                <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 160px; background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);">
+                    <i class="fas fa-image fa-3x text-white opacity-50"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h6 class="card-title fw-bold" style="color: #374151;">{{ project.title }}</h6>
+                    <div class="small text-muted mb-3">by {{ project.creator.get_full_name|default:project.creator.username }}</div>
+
+                    <!-- Funding Progress -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-2">
+                            <span class="amount-display">${{ project.amount_raised|intcomma }}</span>
+                            <span class="text-muted">of ${{ project.funding_goal|intcomma }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px; border-radius: 4px; background: #e5e7eb;">
+                            <div class="progress-bar progress-bar-teal" style="width: {{ project.get_percent_funded|floatformat:0 }}%; border-radius: 4px;"></div>
+                        </div>
+                        <div class="small text-muted mt-2">
+                            <strong style="color: var(--teal-primary);">{{ project.get_percent_funded|floatformat:0 }}%</strong> funded
+                        </div>
+                    </div>
+
+                    <div class="small text-muted pt-2" style="border-top: 1px solid #f3f4f6;">
+                        <i class="fas fa-clock me-1" style="color: var(--teal-primary);"></i>{{ project.deadline|timeuntil }} remaining
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Rewards -->
+            {% if project.rewards.all %}
+            <div class="reward-card card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-gift me-2" style="color: var(--teal-primary);"></i>Available Rewards</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% for reward in project.rewards.all %}
+                    <div class="reward-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1 fw-bold" style="color: #374151;">{{ reward.title }}</h6>
+                                <p class="mb-0 small text-muted">{{ reward.description|truncatewords:15 }}</p>
+                            </div>
+                            <span class="reward-badge">${{ reward.amount }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

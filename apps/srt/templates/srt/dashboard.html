@@ -1,0 +1,397 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}Partner Dashboard - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    .stat-card {
+        border-radius: 16px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-icon.teal {
+        background: var(--teal-50);
+    }
+
+    .stat-icon.teal i {
+        color: var(--teal-primary);
+    }
+
+    .gradient-header {
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+    }
+
+    .venture-card {
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .venture-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-bar.teal {
+        background: var(--teal-primary);
+    }
+
+    .btn-teal {
+        background: var(--teal-primary);
+        border: none;
+        color: white;
+    }
+
+    .btn-teal:hover {
+        background: var(--teal-dark);
+        color: white;
+    }
+
+    .btn-outline-teal {
+        border: 2px solid var(--teal-primary);
+        color: var(--teal-primary);
+        background: transparent;
+    }
+
+    .btn-outline-teal:hover {
+        background: var(--teal-primary);
+        color: white;
+    }
+
+    .maturity-badge {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .maturity-soon {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .returns-badge {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #d1d5db;
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block partner_content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Welcome back, {{ user.first_name|default:user.email }}!</h2>
+        <p class="text-muted mb-0">Here's your SRT investment overview</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'srt:withdraw_tokens' %}" class="btn btn-outline-teal">
+            <i class="fas fa-wallet me-2"></i>Withdraw
+        </a>
+        <a href="{% url 'srt:buy_tokens' %}" class="btn btn-teal">
+            <i class="fas fa-plus me-2"></i>Buy Tokens
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1">Token Balance</p>
+                        <h3 class="mb-0" style="color: var(--teal-dark);">{{ account.token_balance|floatformat:2|intcomma }}</h3>
+                        <small class="text-muted">Available: {{ account.available_tokens|floatformat:2 }} SRT</small>
+                    </div>
+                    <div class="stat-icon teal rounded-circle">
+                        <i class="fas fa-coins fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1">Total Invested</p>
+                        <h3 class="mb-0" style="color: var(--teal-dark);">{{ total_invested|floatformat:2|intcomma }}</h3>
+                        <small class="text-muted">{{ active_investment_count }} active ventures</small>
+                    </div>
+                    <div class="stat-icon teal rounded-circle">
+                        <i class="fas fa-chart-line fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1">Expected Returns</p>
+                        <h3 class="mb-0" style="color: var(--teal-dark);">{{ expected_returns|floatformat:2|intcomma }}</h3>
+                        <small class="text-muted">From active investments</small>
+                    </div>
+                    <div class="stat-icon teal rounded-circle">
+                        <i class="fas fa-hand-holding-usd fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1">Returns Earned</p>
+                        <h3 class="mb-0" style="color: #059669;">{{ total_returns_earned|floatformat:2|intcomma }}</h3>
+                        <small class="text-muted">From matured investments</small>
+                    </div>
+                    <div class="stat-icon rounded-circle" style="background: #d1fae5;">
+                        <i class="fas fa-check-circle fa-2x" style="color: #059669;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Featured Ventures -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header gradient-header py-3">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-star me-2"></i>Featured Ventures
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if featured_ventures %}
+                <div class="row g-3">
+                    {% for venture in featured_ventures %}
+                    <div class="col-md-4">
+                        <div class="card venture-card border-0 shadow-sm h-100">
+                            {% if venture.image %}
+                            <img src="{{ venture.image.url }}" class="card-img-top" style="height: 140px; object-fit: cover;" alt="{{ venture.title }}">
+                            {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 140px; background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);">
+                                <i class="fas fa-rocket fa-3x text-white opacity-50"></i>
+                            </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <span class="badge mb-2" style="background: var(--teal-100); color: var(--teal-dark);">{{ venture.get_risk_level_display }}</span>
+                                <h6 class="card-title">{{ venture.title|truncatechars:30 }}</h6>
+                                <p class="text-muted small mb-2">{{ venture.industry }}</p>
+                                <div class="progress mb-2" style="height: 6px; border-radius: 3px;">
+                                    <div class="progress-bar teal" style="width: {{ venture.percent_funded|floatformat:0 }}%; border-radius: 3px;"></div>
+                                </div>
+                                <div class="d-flex justify-content-between small text-muted">
+                                    <span>{{ venture.percent_funded|floatformat:0 }}% funded</span>
+                                    <span style="color: var(--teal-primary); font-weight: 600;">{{ venture.expected_return_rate }}% return</span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 pt-0">
+                                <a href="{% url 'srt:venture_detail' venture.slug %}" class="btn btn-teal btn-sm w-100">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'srt:venture_list' %}" class="btn btn-outline-teal">
+                        View All Ventures <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-rocket"></i>
+                    <p class="text-muted">No featured ventures available at the moment.</p>
+                    <a href="{% url 'srt:venture_list' %}" class="btn btn-teal">Browse All Ventures</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Upcoming Maturities -->
+        {% if upcoming_maturities %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0">
+                    <i class="fas fa-calendar-check me-2" style="color: var(--teal-primary);"></i>Upcoming Maturities
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Venture</th>
+                                <th>Invested</th>
+                                <th>Expected Return</th>
+                                <th>Maturity Date</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for investment in upcoming_maturities %}
+                            <tr>
+                                <td>
+                                    <strong>{{ investment.venture.title|truncatechars:25 }}</strong>
+                                </td>
+                                <td>{{ investment.tokens_invested|floatformat:2 }} SRT</td>
+                                <td>
+                                    <span class="returns-badge">{{ investment.expected_return|floatformat:2 }} SRT</span>
+                                </td>
+                                <td>
+                                    {% if investment.days_to_maturity <= 7 %}
+                                    <span class="maturity-badge maturity-soon">{{ investment.maturity_date|date:"M d, Y" }}</span>
+                                    {% else %}
+                                    <span class="maturity-badge">{{ investment.maturity_date|date:"M d, Y" }}</span>
+                                    {% endif %}
+                                    <br>
+                                    <small class="text-muted">{{ investment.days_to_maturity }} days left</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'srt:investment_detail' investment.reference %}" class="btn btn-sm btn-outline-teal">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Recent Transactions -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0">
+                    <i class="fas fa-history me-2" style="color: var(--teal-primary);"></i>Recent Transactions
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_transactions %}
+                <ul class="list-group list-group-flush">
+                    {% for tx in recent_transactions %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <small class="d-block text-muted">{{ tx.get_transaction_type_display }}</small>
+                            <span class="small">{{ tx.description|truncatechars:25 }}</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="{% if tx.amount >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                {% if tx.amount >= 0 %}+{% endif %}{{ tx.amount|floatformat:2 }}
+                            </span>
+                            <small class="d-block text-muted">{{ tx.created_at|date:"M d" }}</small>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="p-3">
+                    <a href="{% url 'srt:transaction_history' %}" class="btn btn-outline-secondary btn-sm w-100">
+                        View All Transactions
+                    </a>
+                </div>
+                {% else %}
+                <div class="p-4 text-center">
+                    <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                    <p class="text-muted small mb-0">No transactions yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Active Investments Summary -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-pie me-2" style="color: var(--teal-primary);"></i>Active Investments
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if active_investments %}
+                <ul class="list-group list-group-flush">
+                    {% for investment in active_investments %}
+                    <li class="list-group-item py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="d-block">{{ investment.venture.title|truncatechars:20 }}</span>
+                                <small class="text-muted">{{ investment.tokens_invested|floatformat:2 }} SRT</small>
+                            </div>
+                            <a href="{% url 'srt:investment_detail' investment.reference %}" class="btn btn-sm btn-outline-teal">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="p-3">
+                    <a href="{% url 'srt:my_investments' %}" class="btn btn-outline-teal btn-sm w-100">
+                        View All Investments
+                    </a>
+                </div>
+                {% else %}
+                <div class="p-4 text-center">
+                    <i class="fas fa-chart-pie fa-2x text-muted mb-2"></i>
+                    <p class="text-muted small mb-2">No active investments</p>
+                    <a href="{% url 'srt:venture_list' %}" class="btn btn-teal btn-sm">Start Investing</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

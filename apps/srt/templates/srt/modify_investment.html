@@ -1,0 +1,368 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}Modify Investment - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    .modify-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: none;
+        overflow: hidden;
+    }
+
+    .modify-card .card-header {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        padding: 24px;
+        border: none;
+    }
+
+    .investment-summary {
+        background: var(--teal-50);
+        border: 1px solid var(--teal-100);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .warning-box {
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .penalty-display {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .penalty-rate {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #dc2626;
+    }
+
+    .return-display {
+        background: #d1fae5;
+        border: 1px solid #a7f3d0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .return-amount {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #059669;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--teal-primary);
+        border-color: var(--teal-primary);
+    }
+
+    .btn-withdraw-investment {
+        background: #dc2626;
+        border: none;
+        color: white;
+        padding: 14px 32px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-withdraw-investment:hover {
+        background: #b91c1c;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+        color: white;
+    }
+
+    .btn-cancel {
+        border: 2px solid #e5e7eb;
+        color: #6b7280;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .btn-cancel:hover {
+        border-color: var(--teal-primary);
+        color: var(--teal-primary);
+    }
+
+    .action-option {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .action-option:hover {
+        border-color: var(--teal-primary);
+        background: var(--teal-50);
+    }
+
+    .action-option.selected {
+        border-color: var(--teal-primary);
+        background: var(--teal-50);
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block partner_content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'srt:dashboard' %}" style="color: var(--teal-primary);">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'srt:my_investments' %}" style="color: var(--teal-primary);">My Investments</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'srt:investment_detail' investment.reference %}" style="color: var(--teal-primary);">{{ investment.reference }}</a></li>
+        <li class="breadcrumb-item active">Modify</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- Main Form -->
+    <div class="col-lg-8">
+        <div class="modify-card card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Modify Investment</h4>
+            </div>
+            <div class="card-body p-4">
+                <!-- Investment Summary -->
+                <div class="investment-summary">
+                    <h6 class="mb-3" style="color: var(--teal-dark);">Current Investment</h6>
+                    <div class="info-row">
+                        <span class="text-muted">Venture</span>
+                        <strong>{{ investment.venture.title }}</strong>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-muted">Invested Amount</span>
+                        <strong>{{ investment.tokens_invested|floatformat:2 }} SRT</strong>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-muted">Investment Date</span>
+                        <span>{{ investment.investment_date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-muted">Maturity Date</span>
+                        <span>{{ investment.maturity_date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-muted">Days to Maturity</span>
+                        <span>{{ investment.days_to_maturity }} days</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="text-muted">Expected Return</span>
+                        <strong style="color: var(--teal-primary);">{{ investment.expected_return|floatformat:2 }} SRT</strong>
+                    </div>
+                </div>
+
+                <!-- Warning Box -->
+                <div class="warning-box">
+                    <div class="d-flex">
+                        <i class="fas fa-exclamation-triangle text-warning me-3 fa-2x"></i>
+                        <div>
+                            <h6 class="mb-2" style="color: #92400e;">Early Withdrawal Warning</h6>
+                            <p class="mb-0 text-muted">
+                                Withdrawing before the maturity date will incur a <strong>{{ penalty_rate|floatformat:0 }}% penalty</strong>
+                                on the withdrawn amount. Consider waiting until {{ investment.maturity_date|date:"M d, Y" }}
+                                to receive your full expected return.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Action Selection -->
+                    <h5 class="mb-3">Choose Action</h5>
+
+                    <div class="action-option" onclick="selectAction('full_withdraw')">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="action" id="action_full" value="full_withdraw" required>
+                            <label class="form-check-label w-100" for="action_full">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Full Withdrawal</strong>
+                                        <br>
+                                        <small class="text-muted">Withdraw entire investment and close position</small>
+                                    </div>
+                                    <span class="badge bg-danger">Closes Investment</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="action-option" onclick="selectAction('partial_withdraw')">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="action" id="action_partial" value="partial_withdraw">
+                            <label class="form-check-label w-100" for="action_partial">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Partial Withdrawal</strong>
+                                        <br>
+                                        <small class="text-muted">Withdraw part of your investment</small>
+                                    </div>
+                                    <span class="badge bg-warning text-dark">Keeps Investment</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Partial Amount (shown when partial is selected) -->
+                    <div id="partial-amount-section" style="display: none;" class="mb-4">
+                        <label class="form-label fw-bold">Amount to Withdraw (SRT)</label>
+                        {{ form.amount }}
+                        <small class="text-muted d-block mt-1">
+                            Maximum: {{ investment.tokens_invested|floatformat:2 }} SRT
+                        </small>
+                    </div>
+
+                    <!-- Reason -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Reason for Withdrawal</label>
+                        {{ form.reason }}
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Additional Notes (Optional)</label>
+                        {{ form.additional_notes }}
+                    </div>
+
+                    <!-- Confirmation -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.confirm }}
+                            <label class="form-check-label" for="id_confirm">
+                                I understand there will be a <strong>{{ penalty_rate|floatformat:0 }}% penalty</strong> on my withdrawal
+                            </label>
+                        </div>
+                        {% if form.confirm.errors %}
+                        <div class="text-danger small mt-1">{{ form.confirm.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-withdraw-investment">
+                            <i class="fas fa-sign-out-alt me-2"></i>Process Withdrawal
+                        </button>
+                        <a href="{% url 'srt:investment_detail' investment.reference %}" class="btn btn-cancel">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Penalty Info -->
+        <div class="penalty-display mb-4">
+            <small class="text-muted d-block mb-2">Early Withdrawal Penalty</small>
+            <div class="penalty-rate">{{ penalty_rate|floatformat:0 }}%</div>
+            <small class="text-muted">of withdrawn amount</small>
+        </div>
+
+        <!-- Potential Return -->
+        <div class="return-display mb-4">
+            <small class="text-muted d-block mb-2">You'll Receive (Full Withdrawal)</small>
+            <div class="return-amount">{{ potential_return|floatformat:2 }} SRT</div>
+            <small class="text-muted">after {{ penalty_rate|floatformat:0 }}% penalty</small>
+        </div>
+
+        <!-- Venture Info -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="fas fa-rocket me-2" style="color: var(--teal-primary);"></i>Venture Info</h6>
+            </div>
+            <div class="card-body">
+                {% if investment.venture.image %}
+                <img src="{{ investment.venture.image.url }}" class="img-fluid rounded mb-3" alt="{{ investment.venture.title }}">
+                {% endif %}
+                <h6>{{ investment.venture.title }}</h6>
+                <p class="text-muted small mb-3">{{ investment.venture.short_description|truncatewords:20 }}</p>
+
+                <div class="info-row">
+                    <span class="text-muted small">Industry</span>
+                    <span class="small">{{ investment.venture.industry }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-muted small">Risk Level</span>
+                    <span class="badge bg-{{ investment.venture.risk_level }}">{{ investment.venture.get_risk_level_display }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="text-muted small">Return Rate</span>
+                    <span class="small fw-bold" style="color: var(--teal-primary);">{{ investment.venture.expected_return_rate }}%</span>
+                </div>
+
+                <a href="{% url 'srt:venture_detail' investment.venture.slug %}" class="btn btn-outline-secondary btn-sm w-100 mt-3">
+                    View Venture
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectAction(action) {
+    if (action === 'full_withdraw') {
+        document.getElementById('action_full').checked = true;
+        document.getElementById('partial-amount-section').style.display = 'none';
+    } else {
+        document.getElementById('action_partial').checked = true;
+        document.getElementById('partial-amount-section').style.display = 'block';
+    }
+
+    // Update action-option styling
+    document.querySelectorAll('.action-option').forEach(function(el) {
+        el.classList.remove('selected');
+    });
+    event.currentTarget.classList.add('selected');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up radio button change handlers
+    document.getElementById('action_full').addEventListener('change', function() {
+        document.getElementById('partial-amount-section').style.display = 'none';
+    });
+
+    document.getElementById('action_partial').addEventListener('change', function() {
+        document.getElementById('partial-amount-section').style.display = 'block';
+    });
+});
+</script>
+{% endblock %}

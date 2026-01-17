@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if about %}{{ about.title }}{% else %}About Us{% endif %} - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<style>
+    .about-hero {
+        background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+        padding: 140px 0 80px;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .about-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -25%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .about-hero h1 {
+        font-weight: 400;
+        font-size: 3rem;
+        margin-bottom: 16px;
+    }
+
+    .about-hero p {
+        font-size: 1.25rem;
+        opacity: 0.9;
+        max-width: 600px;
+    }
+
+    .about-content {
+        padding: 64px 0;
+    }
+
+    .about-section {
+        margin-bottom: 48px;
+    }
+
+    .about-card {
+        background: var(--md-surface);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: var(--md-elevation-1);
+        height: 100%;
+        transition: all 0.3s var(--md-transition);
+    }
+
+    .about-card:hover {
+        box-shadow: var(--md-elevation-2);
+        transform: translateY(-4px);
+    }
+
+    .about-card-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.5rem;
+        margin-bottom: 24px;
+    }
+
+    .about-card h3 {
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: var(--md-on-surface);
+        margin-bottom: 16px;
+    }
+
+    .about-card p {
+        color: var(--md-outline);
+        line-height: 1.7;
+    }
+
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+    }
+
+    .value-item {
+        background: var(--md-background);
+        padding: 24px;
+        border-radius: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .value-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(38, 175, 89, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--md-primary);
+        flex-shrink: 0;
+    }
+
+    .value-content h4 {
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: var(--md-on-surface);
+        margin-bottom: 4px;
+    }
+
+    .value-content p {
+        color: var(--md-outline);
+        font-size: 0.9375rem;
+        margin: 0;
+    }
+
+    /* Team Section */
+    .team-section {
+        background: var(--md-background);
+        padding: 80px 0;
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 48px;
+    }
+
+    .section-header h2 {
+        font-size: 2.5rem;
+        font-weight: 400;
+        color: var(--md-on-surface);
+        margin-bottom: 8px;
+    }
+
+    .section-header p {
+        color: var(--md-outline);
+        font-size: 1.1rem;
+    }
+
+    .team-card {
+        background: var(--md-surface);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--md-elevation-1);
+        transition: all 0.3s var(--md-transition);
+        height: 100%;
+    }
+
+    .team-card:hover {
+        box-shadow: var(--md-elevation-3);
+        transform: translateY(-8px);
+    }
+
+    .team-card-image {
+        height: 280px;
+        background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .team-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .team-card-image i {
+        font-size: 4rem;
+        color: rgba(255,255,255,0.5);
+    }
+
+    .team-card-body {
+        padding: 24px;
+        text-align: center;
+    }
+
+    .team-card-name {
+        font-size: 1.25rem;
+        font-weight: 500;
+        color: var(--md-on-surface);
+        margin-bottom: 4px;
+    }
+
+    .team-card-position {
+        color: var(--md-primary);
+        font-size: 0.9375rem;
+        font-weight: 500;
+        margin-bottom: 12px;
+    }
+
+    .team-card-bio {
+        color: var(--md-outline);
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .team-card-social {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .team-card-social a {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--md-background);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--md-outline);
+        transition: all 0.2s var(--md-transition);
+    }
+
+    .team-card-social a:hover {
+        background: var(--md-primary);
+        color: #fff;
+    }
+
+    /* Video Section */
+    .video-section {
+        padding: 80px 0;
+        background: var(--md-surface);
+    }
+
+    .video-wrapper {
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--md-elevation-3);
+    }
+
+    .video-wrapper iframe,
+    .video-wrapper video {
+        width: 100%;
+        aspect-ratio: 16/9;
+        display: block;
+    }
+
+    /* CTA Section */
+    .about-cta {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        padding: 80px 0;
+        color: #fff;
+        text-align: center;
+    }
+
+    .about-cta h2 {
+        font-size: 2.5rem;
+        font-weight: 400;
+        margin-bottom: 16px;
+    }
+
+    .about-cta p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 500px;
+        margin: 0 auto 32px;
+    }
+
+    /* Empty State */
+    .about-empty {
+        padding: 120px 0;
+        text-align: center;
+    }
+
+    .about-empty i {
+        font-size: 5rem;
+        color: #E0E0E0;
+        margin-bottom: 24px;
+    }
+
+    .about-empty h2 {
+        font-weight: 400;
+        color: var(--md-on-surface);
+        margin-bottom: 8px;
+    }
+
+    .about-empty p {
+        color: var(--md-outline);
+    }
+
+    @media (max-width: 767px) {
+        .about-hero {
+            padding: 120px 0 60px;
+        }
+
+        .about-hero h1 {
+            font-size: 2.25rem;
+        }
+
+        .about-card {
+            padding: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if about %}
+<!-- Hero Section -->
+<section class="about-hero">
+    <div class="container position-relative" style="z-index: 2;">
+        <h1>{{ about.title }}</h1>
+        <p>Learn about our mission to empower African entrepreneurs and transform the startup ecosystem across the continent.</p>
+    </div>
+</section>
+
+<!-- About Content -->
+<section class="about-content">
+    <div class="container">
+        {% if about.content %}
+        <div class="about-section">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="lead-content" style="font-size: 1.1rem; line-height: 1.8; color: var(--md-outline);">
+                        {{ about.content|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Mission & Vision -->
+        <div class="row g-4 mb-5">
+            {% if about.mission %}
+            <div class="col-md-6">
+                <div class="about-card">
+                    <div class="about-card-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3>Our Mission</h3>
+                    <p>{{ about.mission|safe }}</p>
+                </div>
+            </div>
+            {% endif %}
+            {% if about.vision %}
+            <div class="col-md-6">
+                <div class="about-card">
+                    <div class="about-card-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h3>Our Vision</h3>
+                    <p>{{ about.vision|safe }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Core Values -->
+        {% if about.core_values %}
+        <div class="about-section">
+            <div class="section-header">
+                <h2>Our Core Values</h2>
+                <p>The principles that guide everything we do</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="about-card">
+                        {{ about.core_values|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Video Section -->
+{% if about.about_video_embed_code or about.about_video_url or about.about_video %}
+<section class="video-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Watch Our Story</h2>
+            <p>See how we're making a difference</p>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="video-wrapper">
+                    {% if about.about_video_embed_code %}
+                        {{ about.about_video_embed_code|safe }}
+                    {% elif about.about_video %}
+                        <video controls {% if about.about_video_thumbnail %}poster="{{ about.about_video_thumbnail.url }}"{% endif %}>
+                            <source src="{{ about.about_video.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% endif %}
+                </div>
+                {% if about.about_video_description %}
+                <p class="text-center mt-3" style="color: var(--md-outline);">{{ about.about_video_description }}</p>
+                {% endif %}
+                {% if about.about_video_url and not about.about_video_embed_code %}
+                <div class="text-center mt-4">
+                    <a href="{{ about.about_video_url }}" target="_blank" class="btn btn-md-filled btn-lg">
+                        <i class="fas fa-play me-2"></i>Watch Video
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Team Section -->
+{% if team_members %}
+<section class="team-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Meet Our Team</h2>
+            <p>The people behind StartUpRipple</p>
+        </div>
+        <div class="row g-4">
+            {% for member in team_members %}
+            {% if member.is_active and member.is_visible %}
+            <div class="col-md-6 col-lg-4">
+                <div class="team-card">
+                    <div class="team-card-image">
+                        {% if member.image %}
+                        <img src="{{ member.image.url }}" alt="{{ member.name }}">
+                        {% else %}
+                        <i class="fas fa-user"></i>
+                        {% endif %}
+                    </div>
+                    <div class="team-card-body">
+                        <h4 class="team-card-name">{{ member.name }}</h4>
+                        <p class="team-card-position">{{ member.position }}</p>
+                        {% if member.bio %}
+                        <p class="team-card-bio">{{ member.bio|striptags|truncatewords:20 }}</p>
+                        {% endif %}
+                        <div class="team-card-social">
+                            {% if member.email %}
+                            <a href="mailto:{{ member.email }}" title="Email">
+                                <i class="fas fa-envelope"></i>
+                            </a>
+                            {% endif %}
+                            {% if member.linkedin_url %}
+                            <a href="{{ member.linkedin_url }}" target="_blank" rel="noopener" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="about-cta">
+    <div class="container">
+        <h2>Join Our Mission</h2>
+        <p>Be part of the movement transforming African entrepreneurship</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{% url 'accounts:signup' %}" class="btn btn-md-filled btn-lg" style="background: var(--md-secondary); color: #000;">
+                Get Started
+            </a>
+            <a href="{% url 'cms:contact_page' %}" class="btn btn-md-outlined btn-lg" style="border-color: #fff; color: #fff;">
+                Contact Us
+            </a>
+        </div>
+    </div>
+</section>
+
+{% else %}
+<!-- Empty State -->
+<section class="about-hero">
+    <div class="container">
+        <h1>About Us</h1>
+    </div>
+</section>
+<section class="about-empty">
+    <i class="fas fa-info-circle"></i>
+    <h2>Content Coming Soon</h2>
+    <p>The About Us page content is not yet available. Please check back later.</p>
+    <a href="{% url 'projects:home' %}" class="btn btn-md-tonal mt-4">Back to Home</a>
+</section>
+{% endif %}
+{% endblock %}

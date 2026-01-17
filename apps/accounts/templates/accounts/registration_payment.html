@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<style>
+    :root {
+        --brand-green: #26af59;
+        --brand-green-hover: #1e8e48;
+    }
+    
+    .auth-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        background-color: #f8f9fa;
+        padding: 120px 0 2rem;
+    }
+    
+    .auth-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    
+    .auth-header {
+        background-color: #fff;
+        padding: 2rem 2rem 1rem;
+        text-align: center;
+    }
+    
+    .auth-logo {
+        color: var(--brand-green);
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-brand {
+        background-color: var(--brand-green);
+        border-color: var(--brand-green);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-brand:hover {
+        background-color: var(--brand-green-hover);
+        border-color: var(--brand-green-hover);
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .btn-outline-brand {
+        color: var(--brand-green);
+        border-color: var(--brand-green);
+        padding: 0.8rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: transparent;
+    }
+    
+    .btn-outline-brand:hover {
+        background-color: var(--brand-green);
+        color: white;
+    }
+
+    .info-box {
+        background-color: rgba(38, 175, 89, 0.1);
+        border-left: 4px solid var(--brand-green);
+        border-radius: 4px;
+        padding: 1rem;
+    }
+    
+    .info-box h5 {
+        color: var(--brand-green-hover);
+        font-weight: 600;
+    }
+    
+    .price-card {
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        transition: transform 0.2s;
+        height: 100%;
+        background: #fff;
+    }
+    
+    .price-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .price-amount {
+        color: var(--brand-green);
+        font-weight: 700;
+        font-size: 2.5rem;
+    }
+    
+    .badge-brand {
+        background-color: var(--brand-green);
+        color: white;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-9 col-lg-8">
+                <div class="auth-card card">
+                    <div class="auth-header">
+                        <div class="auth-logo">
+                            <i class="fas fa-ripple"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">Complete Your Registration</h3>
+                        <p class="text-muted">Pay your registration fee to activate your account</p>
+                    </div>
+                    
+                    <div class="card-body p-4 pt-0">
+                        <div class="info-box mb-4">
+                            <div class="d-flex">
+                                <i class="fas fa-info-circle mt-1 me-3 text-success"></i>
+                                <div>
+                                    <h5 class="mb-2">Registration Fee Required</h5>
+                                    <p class="mb-2 small">
+                                        To prevent spam registrations and ensure the quality of our platform, 
+                                        we require a one-time registration fee. This fee helps us maintain 
+                                        a professional community of serious entrepreneurs and investors.
+                                    </p>
+                                    <p class="mb-0 small text-danger">
+                                        <strong>Important:</strong> This registration session expires at {{ pending_registration.expires_at|date:"M d, Y H:i" }}. 
+                                        Complete payment before then to secure your account.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="price-card p-4">
+                                    <h6 class="text-uppercase text-muted fw-bold small mb-3">Account Details</h6>
+                                    <div class="mb-2">
+                                        <label class="small text-muted d-block">Name</label>
+                                        <span class="fw-medium">{{ pending_registration.first_name }} {{ pending_registration.last_name }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="small text-muted d-block">Email</label>
+                                        <span class="fw-medium">{{ pending_registration.email }}</span>
+                                    </div>
+                                    <div>
+                                        <label class="small text-muted d-block">Account Type</label>
+                                        <span class="badge badge-brand">{{ pending_registration.get_user_type_display }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="price-card p-4 text-center d-flex flex-column justify-content-center">
+                                    <h6 class="text-uppercase text-muted fw-bold small mb-2">Registration Fee</h6>
+                                    <div class="price-amount mb-1">
+                                        ${{ fee_usd }}
+                                    </div>
+                                    <p class="text-muted mb-1">
+                                        (₦{{ fee_ngn|floatformat:0 }})
+                                    </p>
+                                    <small class="badge bg-light text-dark border">One-time payment</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <form method="post" action="{% url 'accounts:initialize_registration_payment' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-brand btn-lg w-100 mb-3">
+                                    <i class="fas fa-credit-card me-2"></i>
+                                    Pay Registration Fee
+                                </button>
+                            </form>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-lock me-1"></i>
+                                    Secure payment powered by Paystack
+                                </small>
+                            </div>
+                            
+                            <div>
+                                <a href="{% url 'accounts:signup' %}" class="btn btn-outline-brand btn-sm">
+                                    <i class="fas fa-arrow-left me-1"></i>
+                                    Back to Registration
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

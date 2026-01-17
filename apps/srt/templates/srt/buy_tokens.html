@@ -1,0 +1,378 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}Buy SRT Tokens - StartUpRipple{% endblock %}
+
+{% block partner_content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'srt:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Buy Tokens</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header gradient-header-primary py-3">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-coins me-2"></i>Purchase SRT Tokens
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Token Info -->
+                <div class="alert alert-info border-0 mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle fa-2x me-3"></i>
+                        <div>
+                            <strong>Token Rate:</strong> 1 SRT = &#8358;2,000<br>
+                            <strong>Monthly Limit:</strong> {{ max_tokens }} tokens per month ({{ current_month }})<br>
+                            <strong>Purchased This Month:</strong> {{ tokens_purchased_this_month }} tokens | <strong>Remaining:</strong> {{ tokens_remaining }} tokens
+                        </div>
+                    </div>
+                </div>
+
+                {% if tokens_remaining <= 0 %}
+                <div class="alert alert-warning border-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    You have reached your monthly token limit of 200 SRT for {{ current_month }}. Your limit will reset at the beginning of next month.
+                </div>
+                {% else %}
+
+                <!-- Token Packages -->
+                <h6 class="mb-3">Select a Package</h6>
+                <div class="row g-3 mb-4">
+                    {% if tokens_remaining >= 50 %}
+                    <div class="col-6 col-md-3">
+                        <div class="card border-2 border-light h-100 package-card" data-tokens="50" data-amount="100000">
+                            <div class="card-body text-center py-4">
+                                <h3 class="text-success mb-1">50</h3>
+                                <small class="text-muted d-block mb-2">SRT Tokens</small>
+                                <hr class="my-2">
+                                <h5 class="mb-0">&#8358;100,000</h5>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 text-center pb-3">
+                                <button class="btn btn-outline-success btn-sm w-100 select-package">Select</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if tokens_remaining >= 100 %}
+                    <div class="col-6 col-md-3">
+                        <div class="card border-2 border-light h-100 package-card" data-tokens="100" data-amount="200000">
+                            <div class="card-body text-center py-4">
+                                <h3 class="text-success mb-1">100</h3>
+                                <small class="text-muted d-block mb-2">SRT Tokens</small>
+                                <hr class="my-2">
+                                <h5 class="mb-0">&#8358;200,000</h5>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 text-center pb-3">
+                                <button class="btn btn-outline-success btn-sm w-100 select-package">Select</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if tokens_remaining >= 150 %}
+                    <div class="col-6 col-md-3">
+                        <div class="card border-2 border-light h-100 package-card" data-tokens="150" data-amount="300000">
+                            <div class="card-body text-center py-4">
+                                <h3 class="text-success mb-1">150</h3>
+                                <small class="text-muted d-block mb-2">SRT Tokens</small>
+                                <hr class="my-2">
+                                <h5 class="mb-0">&#8358;300,000</h5>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 text-center pb-3">
+                                <button class="btn btn-outline-success btn-sm w-100 select-package">Select</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if tokens_remaining >= 200 %}
+                    <div class="col-6 col-md-3">
+                        <div class="card border-2 border-success h-100 package-card" data-tokens="200" data-amount="400000">
+                            <div class="card-header bg-success text-white text-center py-1">
+                                <small class="fw-bold">MAX PACKAGE</small>
+                            </div>
+                            <div class="card-body text-center py-3">
+                                <h3 class="text-success mb-1">200</h3>
+                                <small class="text-muted d-block mb-2">SRT Tokens</small>
+                                <hr class="my-2">
+                                <h5 class="mb-0">&#8358;400,000</h5>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 text-center pb-3">
+                                <button class="btn btn-success btn-sm w-100 select-package">Select</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Custom Amount -->
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <h6 class="mb-3">Or Enter Custom Number of Tokens</h6>
+                        <div class="row align-items-end g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Number of Tokens</label>
+                                <input type="number" id="tokenAmount" class="form-control form-control-lg text-center" placeholder="Enter tokens" min="1" max="{{ tokens_remaining }}" step="1">
+                                <small class="text-muted">Min: 1 | Max: {{ tokens_remaining }}</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Amount to Pay</label>
+                                <div class="token-display fs-4" id="amountPreview">&#8358;0</div>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-success w-100 btn-lg" id="buyCustom">
+                                    <i class="fas fa-shopping-cart me-2"></i>Buy Tokens
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 100px;">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0">
+                    <i class="fas fa-shopping-cart me-2 text-success"></i>Order Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="orderSummary" class="d-none">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tokens:</span>
+                        <span id="summaryTokens" class="fw-bold">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Rate:</span>
+                        <span class="text-muted">&#8358;2,000 per token</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="fw-bold">Total:</span>
+                        <span id="summaryTotal" class="fw-bold text-success fs-5">-</span>
+                    </div>
+                    <button class="btn btn-success w-100" id="proceedPayment">
+                        <i class="fas fa-lock me-2"></i>Proceed to Payment
+                    </button>
+                    <small class="text-muted d-block text-center mt-2">
+                        <i class="fas fa-shield-alt me-1"></i>Secured by Paystack
+                    </small>
+                </div>
+                <div id="noOrderMessage" class="text-center py-4">
+                    <i class="fas fa-shopping-cart fa-2x text-muted mb-2"></i>
+                    <p class="text-muted small mb-0">Select a package or enter tokens</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Balance -->
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body text-center">
+                <small class="text-muted">Current Balance</small>
+                <h3 class="text-success mb-1">{{ account.token_balance|floatformat:2|intcomma }} SRT</h3>
+                <small class="text-muted">Available: {{ account.available_tokens|floatformat:2 }} SRT</small>
+            </div>
+        </div>
+
+        <!-- Monthly Limit Info -->
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+                <h6 class="mb-3"><i class="fas fa-calendar-alt me-2 text-info"></i>{{ current_month }} Purchase Limit</h6>
+                <div class="progress mb-2" style="height: 10px;">
+                    <div class="progress-bar bg-success" style="width: {% widthratio tokens_purchased_this_month max_tokens 100 %}%;"></div>
+                </div>
+                <div class="d-flex justify-content-between small">
+                    <span>{{ tokens_purchased_this_month }} purchased</span>
+                    <span>{{ tokens_remaining }} remaining</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Info -->
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+                <h6 class="mb-3"><i class="fas fa-info-circle me-2 text-info"></i>Token Information</h6>
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Use tokens to invest in ventures</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Earn returns on investments</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Withdraw anytime</li>
+                    <li><i class="fas fa-check text-success me-2"></i>1 SRT = &#8358;2,000</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for payment -->
+<form id="paymentForm" method="post" action="{% url 'srt:initialize_purchase' %}" class="d-none">
+    {% csrf_token %}
+    <input type="hidden" name="tokens" id="formTokens">
+</form>
+
+<style>
+.package-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.package-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: var(--teal-primary) !important;
+}
+.package-card.selected {
+    border-color: var(--teal-primary) !important;
+    background: var(--teal-50);
+}
+.package-card.selected .select-package {
+    background: var(--teal-primary);
+    color: white;
+    border-color: var(--teal-primary);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const TOKEN_RATE = 2000;
+    const MAX_REMAINING = {{ tokens_remaining }};
+    let selectedTokens = null;
+
+    // Package card selection
+    document.querySelectorAll('.package-card').forEach(card => {
+        card.addEventListener('click', function() {
+            // Reset all cards
+            document.querySelectorAll('.package-card').forEach(c => {
+                c.classList.remove('selected');
+            });
+
+            // Select this card
+            this.classList.add('selected');
+
+            selectedTokens = parseInt(this.dataset.tokens);
+            document.getElementById('tokenAmount').value = selectedTokens;
+
+            const amount = selectedTokens * TOKEN_RATE;
+            document.getElementById('amountPreview').innerHTML = '&#8358;' + amount.toLocaleString();
+
+            updateOrderSummary();
+        });
+    });
+
+    // Custom token input
+    document.getElementById('tokenAmount')?.addEventListener('input', function() {
+        let tokens = parseInt(this.value) || 0;
+
+        // Enforce max limit
+        if (tokens > MAX_REMAINING) {
+            tokens = MAX_REMAINING;
+            this.value = tokens;
+        }
+
+        const amount = tokens * TOKEN_RATE;
+        document.getElementById('amountPreview').innerHTML = '&#8358;' + amount.toLocaleString();
+
+        if (tokens >= 1) {
+            selectedTokens = tokens;
+
+            // Update package card selection
+            document.querySelectorAll('.package-card').forEach(c => {
+                if (parseInt(c.dataset.tokens) === tokens) {
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('selected');
+                }
+            });
+
+            updateOrderSummary();
+        } else {
+            selectedTokens = null;
+            document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+            updateOrderSummary();
+        }
+    });
+
+    // Buy custom button
+    document.getElementById('buyCustom')?.addEventListener('click', function() {
+        const tokens = parseInt(document.getElementById('tokenAmount').value) || 0;
+        if (tokens >= 1 && tokens <= MAX_REMAINING) {
+            selectedTokens = tokens;
+            updateOrderSummary();
+            // Trigger payment
+            document.getElementById('proceedPayment').click();
+        } else if (tokens > MAX_REMAINING) {
+            alert('You can only purchase up to ' + MAX_REMAINING + ' more tokens this month.');
+        } else {
+            alert('Please enter at least 1 token.');
+        }
+    });
+
+    function updateOrderSummary() {
+        const orderSummary = document.getElementById('orderSummary');
+        const noOrderMessage = document.getElementById('noOrderMessage');
+
+        if (selectedTokens && selectedTokens >= 1) {
+            orderSummary.classList.remove('d-none');
+            noOrderMessage.classList.add('d-none');
+
+            const amount = selectedTokens * TOKEN_RATE;
+            document.getElementById('summaryTokens').textContent = selectedTokens + ' SRT';
+            document.getElementById('summaryTotal').innerHTML = '&#8358;' + amount.toLocaleString();
+        } else {
+            orderSummary.classList.add('d-none');
+            noOrderMessage.classList.remove('d-none');
+        }
+    }
+
+    // Proceed to payment
+    document.getElementById('proceedPayment')?.addEventListener('click', function() {
+        if (!selectedTokens || selectedTokens < 1) {
+            alert('Please select the number of tokens to purchase.');
+            return;
+        }
+
+        if (selectedTokens > MAX_REMAINING) {
+            alert('You can only purchase up to ' + MAX_REMAINING + ' more tokens this month.');
+            return;
+        }
+
+        document.getElementById('formTokens').value = selectedTokens;
+
+        // Submit form via AJAX
+        const formData = new FormData(document.getElementById('paymentForm'));
+
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+        fetch('{% url "srt:initialize_purchase" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.authorization_url) {
+                window.location.href = data.authorization_url;
+            } else if (data.error) {
+                alert(data.error);
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+        });
+    });
+</script>
+{% endblock %}

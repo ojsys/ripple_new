@@ -1,0 +1,611 @@
+{% extends 'base.html' %}
+{% load static humanize crispy_forms_tags %}
+
+{% block title %}{{ project.title }} - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<style>
+    .project-hero {
+        background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+        padding: 140px 0 60px;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .project-hero::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -25%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .project-hero .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 16px;
+    }
+
+    .project-hero .breadcrumb a {
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .project-hero .breadcrumb a:hover {
+        color: #fff;
+    }
+
+    .project-hero h1 {
+        font-weight: 400;
+        font-size: 2.5rem;
+        margin-bottom: 16px;
+    }
+
+    .project-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .project-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9375rem;
+        opacity: 0.9;
+    }
+
+    .category-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 100px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .project-content {
+        padding: 48px 0;
+        background: var(--md-background);
+    }
+
+    /* Main Image Card */
+    .main-image-card {
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--md-elevation-2);
+        margin-top: -80px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .main-image-card img {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+    }
+
+    .main-image-placeholder {
+        width: 100%;
+        height: 400px;
+        background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .main-image-placeholder i {
+        font-size: 5rem;
+        color: rgba(255,255,255,0.3);
+    }
+
+    /* Funding Card */
+    .funding-card {
+        background: var(--md-surface);
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: var(--md-elevation-2);
+        margin-top: -80px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .funding-amount {
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: #0d9488;
+    }
+
+    .funding-goal {
+        font-size: 1rem;
+        color: var(--md-outline);
+    }
+
+    .progress-bar-md {
+        height: 8px;
+        background: #E0E0E0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 24px 0;
+    }
+
+    .progress-bar-md .fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--md-primary) 0%, var(--md-secondary) 100%);
+        border-radius: 4px;
+        transition: width 0.5s var(--md-transition);
+    }
+
+    .funding-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+
+    .funding-stat {
+        text-align: center;
+    }
+
+    .funding-stat-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--md-on-surface);
+    }
+
+    .funding-stat-label {
+        font-size: 0.75rem;
+        color: var(--md-outline);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-fund {
+        width: 100%;
+        padding: 16px 24px;
+        background: var(--md-primary);
+        color: #fff;
+        border: none;
+        border-radius: 100px;
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s var(--md-transition);
+        box-shadow: var(--md-elevation-1);
+    }
+
+    .btn-fund:hover {
+        background: var(--md-primary-dark);
+        box-shadow: var(--md-elevation-2);
+        transform: translateY(-2px);
+        color: #fff;
+    }
+
+    /* Content Cards */
+    .content-card {
+        background: var(--md-surface);
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: var(--md-elevation-1);
+        margin-bottom: 24px;
+    }
+
+    .content-card h2 {
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: var(--md-on-surface);
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #E0E0E0;
+    }
+
+    .content-card .description {
+        color: var(--md-outline);
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+
+    /* Creator Card */
+    .creator-card {
+        background: var(--md-surface);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--md-elevation-1);
+        margin-bottom: 24px;
+    }
+
+    .creator-card h5 {
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--md-outline);
+        margin-bottom: 16px;
+    }
+
+    .creator-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .creator-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--md-primary);
+    }
+
+    .creator-avatar-placeholder {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .creator-name {
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: var(--md-on-surface);
+    }
+
+    .creator-meta {
+        font-size: 0.875rem;
+        color: var(--md-outline);
+    }
+
+    /* Rewards/Terms Card */
+    .reward-card {
+        background: var(--md-background);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        border: 1px solid #E0E0E0;
+        transition: all 0.2s var(--md-transition);
+    }
+
+    .reward-card:hover {
+        border-color: var(--md-primary);
+        box-shadow: var(--md-elevation-1);
+    }
+
+    .reward-amount {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #0d9488;
+        margin-bottom: 8px;
+    }
+
+    .reward-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--md-on-surface);
+        margin-bottom: 8px;
+    }
+
+    .reward-description {
+        font-size: 0.875rem;
+        color: var(--md-outline);
+        line-height: 1.6;
+    }
+
+    /* Updates */
+    .update-item {
+        padding: 20px 0;
+        border-bottom: 1px solid #E0E0E0;
+    }
+
+    .update-item:last-child {
+        border-bottom: none;
+    }
+
+    .update-date {
+        font-size: 0.75rem;
+        color: var(--md-outline);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .update-title {
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: var(--md-on-surface);
+        margin-bottom: 8px;
+    }
+
+    .update-content {
+        color: var(--md-outline);
+        font-size: 0.9375rem;
+        line-height: 1.6;
+    }
+
+    /* Action Buttons */
+    .action-card {
+        background: var(--md-surface);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--md-elevation-1);
+        margin-bottom: 24px;
+    }
+
+    .btn-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px 20px;
+        border-radius: 100px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s var(--md-transition);
+    }
+
+    .btn-action-outline {
+        background: transparent;
+        color: var(--md-error);
+        border: 1px solid var(--md-error);
+    }
+
+    .btn-action-outline:hover {
+        background: rgba(176, 0, 32, 0.1);
+        color: var(--md-error);
+    }
+
+    /* Investment Form */
+    .investment-form-card {
+        background: var(--md-surface);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--md-elevation-1);
+        margin-bottom: 24px;
+    }
+
+    .investment-form-card h5 {
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: var(--md-on-surface);
+        margin-bottom: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 991px) {
+        .funding-card {
+            margin-top: 24px;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .project-hero {
+            padding: 120px 0 40px;
+        }
+
+        .project-hero h1 {
+            font-size: 2rem;
+        }
+
+        .main-image-card {
+            margin-top: -40px;
+        }
+
+        .main-image-card img,
+        .main-image-placeholder {
+            height: 250px;
+        }
+
+        .funding-card {
+            margin-top: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Project Hero -->
+<section class="project-hero">
+    <div class="container position-relative" style="z-index: 2;">
+        <nav class="breadcrumb">
+            <a href="{% url 'projects:project_list' %}">
+                <i class="fas fa-arrow-left me-2"></i>Back to Projects
+            </a>
+        </nav>
+        <h1>{{ project.title }}</h1>
+        <div class="project-meta">
+            {% if project.category %}
+            <span class="category-badge">{{ project.category.name }}</span>
+            {% endif %}
+            {% if project.funding_type %}
+            <span class="project-meta-item">
+                <i class="fas fa-tag"></i>{{ project.funding_type.name }}
+            </span>
+            {% endif %}
+            {% if project.location %}
+            <span class="project-meta-item">
+                <i class="fas fa-map-marker-alt"></i>{{ project.location }}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Project Content -->
+<section class="project-content">
+    <div class="container">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Main Image -->
+                <div class="main-image-card">
+                    {% if project.image %}
+                    <img src="{{ project.image.url }}" alt="{{ project.title }}">
+                    {% else %}
+                    <div class="main-image-placeholder">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div class="content-card mt-4">
+                    <h2>About This Project</h2>
+                    <div class="description">
+                        {{ project.description|safe }}
+                    </div>
+                </div>
+
+                <!-- Updates -->
+                {% if project.updates.all %}
+                <div class="content-card">
+                    <h2>Updates</h2>
+                    {% for update in project.updates.all %}
+                    <div class="update-item">
+                        <div class="update-date">{{ update.created_at|date:"F j, Y" }}</div>
+                        <h4 class="update-title">{{ update.title }}</h4>
+                        <div class="update-content">{{ update.content|linebreaks }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Funding Card -->
+                <div class="funding-card">
+                    <div class="funding-amount">${{ project.amount_raised|intcomma }}</div>
+                    <div class="funding-goal">raised of ${{ project.funding_goal|intcomma }} goal</div>
+
+                    <div class="progress-bar-md">
+                        <div class="fill" style="width: {{ percent_funded|floatformat:0 }}%"></div>
+                    </div>
+
+                    <div class="funding-stats">
+                        <div class="funding-stat">
+                            <div class="funding-stat-value">{{ percent_funded|floatformat:0 }}%</div>
+                            <div class="funding-stat-label">Funded</div>
+                        </div>
+                        <div class="funding-stat">
+                            <div class="funding-stat-value">{{ project.deadline|timeuntil }}</div>
+                            <div class="funding-stat-label">Left</div>
+                        </div>
+                        <div class="funding-stat">
+                            <div class="funding-stat-value">{{ project.backers_count|default:0 }}</div>
+                            <div class="funding-stat-label">Backers</div>
+                        </div>
+                    </div>
+
+                    {% if project.funding_type.name == 'Donation' %}
+                    <a href="{% url 'projects:make_pledge' project.id %}" class="btn-fund d-block text-center text-decoration-none">
+                        <i class="fas fa-heart me-2"></i>Support This Project
+                    </a>
+                    {% elif project.funding_type.name == 'Equity' %}
+                    <a href="{% url 'projects:investment_proposal' project.id %}" class="btn-fund d-block text-center text-decoration-none">
+                        <i class="fas fa-chart-line me-2"></i>Invest in This Project
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Creator Card -->
+                <div class="creator-card mt-4">
+                    <h5>Created By</h5>
+                    <div class="creator-info">
+                        {% if project.creator.profile.image %}
+                        <img src="{{ project.creator.profile.image.url }}" alt="{{ project.creator.username }}" class="creator-avatar">
+                        {% else %}
+                        <div class="creator-avatar-placeholder">
+                            {{ project.creator.first_name|slice:":1"|upper }}{{ project.creator.last_name|slice:":1"|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <div class="creator-name">{{ project.creator.get_full_name|default:project.creator.username }}</div>
+                            <div class="creator-meta">
+                                {% if project.creator.profile.company_name %}
+                                {{ project.creator.profile.company_name }} &middot;
+                                {% endif %}
+                                Member since {{ project.creator.date_joined|date:"M Y" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rewards/Investment Terms -->
+                {% if project.funding_type.name == 'Donation' and project.rewards.all %}
+                <div class="content-card">
+                    <h2>Select a Reward</h2>
+                    <p class="text-muted small mb-3">Click on a reward to support this project</p>
+                    {% for reward in project.rewards.all %}
+                    <a href="{% url 'projects:make_pledge' project.id %}?amount={{ reward.amount }}&reward={{ reward.id }}" class="reward-card d-block text-decoration-none" style="cursor: pointer;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="reward-title">{{ reward.title }}</div>
+                                <div class="reward-description">{{ reward.description }}</div>
+                            </div>
+                            <div class="reward-amount text-nowrap ms-3">${{ reward.amount|intcomma }}</div>
+                        </div>
+                        <div class="mt-2 small" style="color: var(--md-primary);">
+                            <i class="fas fa-arrow-right me-1"></i>Select this reward
+                        </div>
+                    </a>
+                    {% endfor %}
+                    <a href="{% url 'projects:make_pledge' project.id %}" class="btn btn-outline-secondary w-100 mt-3" style="border-radius: 100px;">
+                        <i class="fas fa-hand-holding-heart me-2"></i>Donate without a reward
+                    </a>
+                </div>
+                {% elif project.funding_type.name == 'Equity' and project.investment_terms.all %}
+                <div class="content-card">
+                    <h2>Investment Terms</h2>
+                    {% for term in project.investment_terms.all %}
+                    <div class="reward-card">
+                        <div class="reward-amount">{{ term.equity_offered }}% Equity</div>
+                        <div class="reward-description">
+                            <div class="mb-2"><strong>Min. Investment:</strong> ${{ term.minimum_investment|intcomma }}</div>
+                            <div class="mb-2"><strong>Valuation:</strong> ${{ term.valuation|intcomma }}</div>
+                            <div><strong>Deadline:</strong> {{ term.deadline|date:"M j, Y" }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Owner Actions -->
+                {% if user == project.creator %}
+                <div class="action-card">
+                    <a href="{% url 'projects:edit_project' project.id %}" class="btn-action btn-fund mb-3">
+                        <i class="fas fa-edit"></i>Edit Project
+                    </a>
+                    <a href="{% url 'projects:delete_project' project.id %}" class="btn-action btn-action-outline">
+                        <i class="fas fa-trash-alt"></i>Delete Project
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mobile Fixed Support Button -->
+<div class="d-lg-none fixed-bottom bg-white border-top py-3 px-4 shadow">
+    {% if project.funding_type.name == 'Donation' %}
+    <a href="{% url 'projects:make_pledge' project.id %}" class="btn-fund d-block text-center">
+        <i class="fas fa-heart me-2"></i>Support This Project
+    </a>
+    {% else %}
+    <a href="{% url 'projects:investment_proposal' project.id %}" class="btn-fund d-block text-center">
+        <i class="fas fa-chart-line me-2"></i>Invest Now
+    </a>
+    {% endif %}
+</div>
+{% endblock %}

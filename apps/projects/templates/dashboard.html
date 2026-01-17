@@ -1,0 +1,967 @@
+{% extends 'base.html' %}
+{% load project_tags static humanize %}
+
+{% block title %}Dashboard - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    /* Dashboard Layout */
+    .dashboard-wrapper {
+        display: flex;
+        min-height: 100vh;
+        background-color: #f8fafc;
+        padding-top: 76px;
+    }
+
+    /* Sidebar Styles */
+    .dashboard-sidebar {
+        width: 280px;
+        background: white;
+        border-right: 1px solid #e5e7eb;
+        padding: 24px 0;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        z-index: 90;
+        transition: transform 0.3s ease;
+        position: sticky;
+        top: 76px;
+        height: calc(100vh - 76px);
+        overflow-y: auto;
+    }
+
+    .user-profile-section {
+        padding: 0 24px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 16px;
+        text-align: center;
+    }
+
+    .user-avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 15px rgba(13, 148, 136, 0.2);
+        border: 4px solid var(--teal-100);
+    }
+
+    .user-avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0 auto 12px;
+        box-shadow: 0 4px 15px rgba(13, 148, 136, 0.3);
+    }
+
+    .user-type-badge {
+        display: inline-block;
+        background: var(--teal-50);
+        color: var(--teal-dark);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid var(--teal-100);
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 0 12px;
+    }
+
+    .nav-item-link {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        color: #6b7280;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .nav-item-link:hover {
+        background-color: var(--teal-50);
+        color: var(--teal-primary);
+        transform: translateX(4px);
+    }
+
+    .nav-item-link.active {
+        background-color: var(--teal-50);
+        color: var(--teal-primary);
+        border-left: 3px solid var(--teal-primary);
+    }
+
+    .nav-item-link i {
+        width: 24px;
+        margin-right: 12px;
+        font-size: 1.1rem;
+    }
+
+    .nav-item-link.logout {
+        color: #ef4444;
+        margin-top: auto;
+    }
+
+    .nav-item-link.logout:hover {
+        background-color: #fef2f2;
+        color: #dc2626;
+    }
+
+    /* Main Content Area */
+    .dashboard-main {
+        flex: 1;
+        padding: 32px;
+        overflow-y: auto;
+    }
+
+    /* Welcome Hero */
+    .dashboard-hero {
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        margin-bottom: 32px;
+        box-shadow: 0 10px 40px rgba(13, 148, 136, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .dashboard-hero::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-content h1 {
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .btn-hero {
+        background: white;
+        color: var(--teal-dark);
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-hero:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        color: var(--teal-primary);
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-icon.primary { background: var(--teal-50); color: var(--teal-primary); }
+    .stat-icon.secondary { background: #fef3c7; color: #d97706; }
+    .stat-icon.success { background: #d1fae5; color: #059669; }
+    .stat-icon.info { background: #dbeafe; color: #2563eb; }
+
+    .stat-info h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .stat-info p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Section Headers */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title i {
+        color: var(--teal-primary);
+    }
+
+    /* Dashboard Card */
+    .dashboard-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        margin-bottom: 32px;
+        border: 1px solid #e5e7eb;
+    }
+
+    /* Custom Table */
+    .custom-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .custom-table th {
+        background: #f9fafb;
+        padding: 16px 24px;
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+    }
+
+    .custom-table td {
+        padding: 20px 24px;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+
+    .custom-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .custom-table tr:hover td {
+        background: #f9fafb;
+    }
+
+    .project-cell {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .project-thumb {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        object-fit: cover;
+    }
+
+    .project-thumb-placeholder {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-active { background: #d1fae5; color: #059669; }
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-ended { background: #f3f4f6; color: #6b7280; }
+    .status-rejected { background: #fee2e2; color: #dc2626; }
+
+    /* Action Buttons */
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        transition: all 0.2s ease;
+        background: transparent;
+        border: none;
+        text-decoration: none;
+    }
+
+    .action-btn:hover {
+        background: var(--teal-50);
+        color: var(--teal-primary);
+    }
+
+    /* Progress Bar */
+    .progress-minimal {
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 100px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--teal-primary) 0%, var(--teal-light) 100%);
+        border-radius: 100px;
+        transition: width 0.5s ease;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: var(--teal-100);
+        margin-bottom: 16px;
+    }
+
+    .empty-state h5 {
+        color: #374151;
+        font-weight: 600;
+    }
+
+    .btn-empty {
+        background: var(--teal-primary);
+        color: white;
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+
+    .btn-empty:hover {
+        background: var(--teal-dark);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Recommended Projects */
+    .recommended-item {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        text-decoration: none;
+        color: inherit;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background 0.2s ease;
+    }
+
+    .recommended-item:last-child {
+        border-bottom: none;
+    }
+
+    .recommended-item:hover {
+        background: var(--teal-50);
+    }
+
+    .recommended-thumb {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        object-fit: cover;
+        margin-right: 16px;
+    }
+
+    .recommended-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .recommended-info h6 {
+        margin: 0 0 4px;
+        font-weight: 600;
+        color: #374151;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .recommended-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+    }
+
+    .recommended-stats .amount {
+        color: var(--teal-primary);
+        font-weight: 600;
+    }
+
+    .recommended-stats .percent {
+        color: #6b7280;
+    }
+
+    /* Responsive */
+    @media (max-width: 991px) {
+        .dashboard-wrapper {
+            flex-direction: column;
+            padding-top: 60px;
+        }
+
+        .dashboard-sidebar {
+            width: 100%;
+            position: relative;
+            top: 0;
+            height: auto;
+            padding: 16px;
+        }
+
+        .user-profile-section {
+            border-bottom: none;
+            padding-bottom: 16px;
+            display: flex;
+            align-items: center;
+            text-align: left;
+            gap: 16px;
+        }
+
+        .user-avatar-large, .user-avatar-placeholder {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 0;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-nav {
+            flex-direction: row;
+            overflow-x: auto;
+            padding: 16px 0 0;
+            gap: 8px;
+        }
+
+        .nav-item-link {
+            white-space: nowrap;
+            padding: 10px 16px;
+            border-left: none !important;
+        }
+
+        .dashboard-main {
+            padding: 20px;
+        }
+
+        .dashboard-hero {
+            padding: 30px 20px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="user-profile-section">
+            {% if user.user_type == 'founder' and user.founder_profile.image %}
+                <img src="{{ user.founder_profile.image.url }}" alt="Profile" class="user-avatar-large">
+            {% elif user.user_type == 'investor' and user.investor_profile.image %}
+                <img src="{{ user.investor_profile.image.url }}" alt="Profile" class="user-avatar-large">
+            {% else %}
+                <div class="user-avatar-placeholder">
+                    {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+                </div>
+            {% endif %}
+            <div>
+                <h5 class="mb-1 fw-bold" style="color: #374151;">{{ user.get_full_name|default:user.username }}</h5>
+                <span class="user-type-badge">{{ user.get_user_type_display }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{% url 'accounts:dashboard' %}" class="nav-item-link active">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            {% if user.user_type == 'founder' %}
+            <a href="{% url 'projects:my_projects' %}" class="nav-item-link">
+                <i class="fas fa-folder"></i> My Projects
+            </a>
+            <a href="{% url 'projects:create_project' %}" class="nav-item-link">
+                <i class="fas fa-plus-circle"></i> New Project
+            </a>
+            {% endif %}
+            <a href="{% url 'projects:project_list' %}" class="nav-item-link">
+                <i class="fas fa-compass"></i> Discover
+            </a>
+            {% if user.user_type == 'partner' %}
+            <a href="{% url 'srt:dashboard' %}" class="nav-item-link">
+                <i class="fas fa-coins"></i> SRT Dashboard
+            </a>
+            {% endif %}
+            <a href="{% url 'accounts:edit_profile' %}" class="nav-item-link">
+                <i class="fas fa-user-cog"></i> Profile Settings
+            </a>
+            {% if user.user_type == 'investor' %}
+            <a href="{% url 'projects:my_investments' %}" class="nav-item-link">
+                <i class="fas fa-chart-pie"></i> My Investments
+            </a>
+            {% endif %}
+            {% if user.user_type == 'donor' %}
+            <a href="{% url 'projects:my_donations' %}" class="nav-item-link">
+                <i class="fas fa-heart"></i> My Donations
+            </a>
+            {% endif %}
+            <a href="{% url 'accounts:logout' %}" class="nav-item-link logout">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- Welcome Hero -->
+        <div class="dashboard-hero">
+            <div class="hero-content">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-6 mb-2">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+                        <p class="mb-0 opacity-75">Here's what's happening with your account today.</p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        {% if user.user_type == 'founder' %}
+                        <a href="{% url 'projects:create_project' %}" class="btn-hero">
+                            <i class="fas fa-plus me-2"></i>Create Project
+                        </a>
+                        {% elif user.user_type == 'investor' or user.user_type == 'donor' %}
+                        <a href="{% url 'projects:project_list' %}" class="btn-hero">
+                            <i class="fas fa-search me-2"></i>Browse Projects
+                        </a>
+                        {% elif user.user_type == 'partner' %}
+                        <a href="{% url 'srt:ventures' %}" class="btn-hero">
+                            <i class="fas fa-rocket me-2"></i>Browse Ventures
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if user.user_type == 'founder' %}
+        <!-- Founder Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_projects|default:0 }}</h3>
+                    <p>Total Projects</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ active_projects|default:0 }}</h3>
+                    <p>Active Campaigns</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon secondary">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>${{ total_raised|intcomma|default:0 }}</h3>
+                    <p>Total Raised</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_backers|default:0 }}</h3>
+                    <p>Total Backers</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Founder Projects -->
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-folder-open"></i>
+                Your Projects
+            </div>
+            <a href="{% url 'projects:my_projects' %}" class="btn btn-sm btn-outline-secondary rounded-pill">View All</a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                            <th>Raised</th>
+                            <th>Goal</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in created_projects %}
+                        <tr>
+                            <td>
+                                <div class="project-cell">
+                                    {% if project.image %}
+                                        <img src="{{ project.image.url }}" alt="{{ project.title }}" class="project-thumb">
+                                    {% else %}
+                                        <div class="project-thumb-placeholder">
+                                            <i class="fas fa-rocket"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold" style="color: #374151;">{{ project.title|truncatechars:30 }}</div>
+                                        <div class="small text-muted">Due {{ project.deadline|date:"M d, Y" }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if project.status == 'approved' %}
+                                    {% if project.deadline and project.deadline >= now %}
+                                        <span class="status-badge status-active">Active</span>
+                                    {% else %}
+                                        <span class="status-badge status-ended">Ended</span>
+                                    {% endif %}
+                                {% elif project.status == 'pending' %}
+                                    <span class="status-badge status-pending">Pending</span>
+                                {% elif project.status == 'rejected' %}
+                                    <span class="status-badge status-rejected">Rejected</span>
+                                {% else %}
+                                    <span class="status-badge status-pending">{{ project.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="width: 18%;">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="fw-bold" style="color: var(--teal-primary);">{{ project.get_percent_funded|floatformat:0 }}%</span>
+                                </div>
+                                <div class="progress-minimal">
+                                    <div class="progress-bar-fill" style="width: {{ project.get_percent_funded|floatformat:0 }}%;"></div>
+                                </div>
+                            </td>
+                            <td class="fw-bold" style="color: var(--teal-primary);">${{ project.amount_raised|intcomma }}</td>
+                            <td class="text-muted">${{ project.funding_goal|intcomma }}</td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="{% url 'projects:project_detail' project.id %}" class="action-btn" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'projects:edit_project' project.id %}" class="action-btn" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'projects:add_update' project.id %}" class="action-btn" title="Add Update">
+                                        <i class="fas fa-bullhorn"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fas fa-folder-plus empty-state-icon"></i>
+                                    <h5>No projects yet</h5>
+                                    <p class="text-muted mb-3">Start your journey by creating your first campaign.</p>
+                                    <a href="{% url 'projects:create_project' %}" class="btn-empty">
+                                        <i class="fas fa-plus me-2"></i>Create Project
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.user_type == 'investor' or user.user_type == 'donor' %}
+        <!-- Investor/Donor Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-hand-holding-usd"></i>
+                </div>
+                <div class="stat-info">
+                    {% if user.user_type == 'investor' %}
+                        <h3>{{ investments.count|default:0 }}</h3>
+                        <p>Investments Made</p>
+                    {% else %}
+                        <h3>{{ pledges.count|default:0 }}</h3>
+                        <p>Projects Backed</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>${{ total_contributed|intcomma|default:0 }}</h3>
+                    <p>Total Contributed</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon secondary">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ active_investments|default:0 }}</h3>
+                    <p>Active Investments</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ recommended_projects.count|default:0 }}</h3>
+                    <p>Recommended</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Recent Activity -->
+            <div class="col-lg-8">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-history"></i>
+                        Recent Activity
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if user.user_type == 'investor' %}
+                                    {% for investment in investments %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold" style="color: #374151;">{{ investment.project.title }}</div>
+                                        </td>
+                                        <td class="text-muted">{{ investment.created_at|date:"M d, Y" }}</td>
+                                        <td class="fw-bold" style="color: var(--teal-primary);">${{ investment.amount|intcomma }}</td>
+                                        <td><span class="status-badge status-active">Completed</span></td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4">
+                                            <div class="empty-state">
+                                                <i class="fas fa-chart-pie empty-state-icon"></i>
+                                                <h5>No investments yet</h5>
+                                                <p class="text-muted mb-3">Start investing in promising projects.</p>
+                                                <a href="{% url 'projects:project_list' %}" class="btn-empty">Browse Projects</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for pledge in pledges %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold" style="color: #374151;">{{ pledge.project.title }}</div>
+                                        </td>
+                                        <td class="text-muted">{{ pledge.created_at|date:"M d, Y" }}</td>
+                                        <td class="fw-bold" style="color: var(--teal-primary);">${{ pledge.amount|intcomma }}</td>
+                                        <td><span class="status-badge status-active">Success</span></td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4">
+                                            <div class="empty-state">
+                                                <i class="fas fa-heart empty-state-icon"></i>
+                                                <h5>No donations yet</h5>
+                                                <p class="text-muted mb-3">Support a project that inspires you.</p>
+                                                <a href="{% url 'projects:project_list' %}" class="btn-empty">Browse Projects</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommended -->
+            <div class="col-lg-4">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-star" style="color: #d97706;"></i>
+                        Recommended
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    {% for project in recommended_projects %}
+                    <a href="{% url 'projects:project_detail' project.id %}" class="recommended-item">
+                        {% if project.image %}
+                        <img src="{{ project.image.url }}" alt="" class="recommended-thumb">
+                        {% else %}
+                        <div class="recommended-thumb" style="background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-light) 100%); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-rocket text-white"></i>
+                        </div>
+                        {% endif %}
+                        <div class="recommended-info">
+                            <h6>{{ project.title }}</h6>
+                            <div class="recommended-stats">
+                                <span class="amount">${{ project.amount_raised|intcomma }}</span>
+                                <span class="percent">{{ project.get_percent_funded|floatformat:0 }}%</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-search mb-2" style="font-size: 2rem; opacity: 0.3;"></i>
+                        <p class="mb-0 small">No recommendations available</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.user_type == 'partner' %}
+        <!-- Partner Stats - Link to SRT Dashboard -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>SRT Partner</h3>
+                    <p>Token Holder</p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center py-5">
+            <p class="text-muted mb-3">Access your SRT Partner Dashboard for token management and venture investments.</p>
+            <a href="{% url 'srt:dashboard' %}" class="btn-empty">
+                <i class="fas fa-external-link-alt me-2"></i>Go to SRT Dashboard
+            </a>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bars
+    const progressBars = document.querySelectorAll('.progress-bar-fill');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 100);
+    });
+});
+</script>
+{% endblock %}

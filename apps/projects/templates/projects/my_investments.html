@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load project_tags %}
+
+{% block title %}My Investment{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-chart-pie me-2"></i>My Investments</h2>
+        <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Investment Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center mb-3 shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <i class="fas fa-money-bill-wave fa-2x text-success me-2"></i>
+                    </div>
+                    <h5 class="card-title display-6">${{ investments|sum_attr:"amount"|default:"0" }}</h5>
+                    <p class="card-text text-muted">Total Invested</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center mb-3 shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <i class="fas fa-project-diagram fa-2x text-primary me-2"></i>
+                    </div>
+                    <h5 class="card-title display-6">{{ investments|length }}</h5>
+                    <p class="card-text text-muted">Projects</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center mb-3 shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <i class="fas fa-percentage fa-2x text-info me-2"></i>
+                    </div>
+                    <h5 class="card-title display-6">{{ investments|sum_attr:"equity_percentage"|floatformat:2 }}%</h5>
+                    <p class="card-text text-muted">Total Equity</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center mb-3 shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <i class="fas fa-check-circle fa-2x text-success me-2"></i>
+                    </div>
+                    <h5 class="card-title display-6">{{ investments|filter_by:"status,active"|length }}</h5>
+                    <p class="card-text text-muted">Active Investments</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if investments %}
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-success text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-list me-2"></i>Investment Portfolio</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for investment in investments %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0 rounded-3 hover-shadow">
+                        {% if investment.project.image %}
+                        <img src="{{ investment.project.image.url }}" class="card-img-top rounded-top" alt="{{ investment.project.title }}" style="height: 140px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light text-center py-4 rounded-top">
+                            <i class="fas fa-project-diagram fa-3x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title mb-0">{{ investment.project.title|truncatechars:20 }}</h5>
+                                <span class="badge rounded-pill
+                                    {% if investment.status == 'pending' %}bg-warning
+                                    {% elif investment.status == 'active' %}bg-success
+                                    {% elif investment.status == 'rejected' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {% if investment.status == 'pending' %}<i class="fas fa-clock me-1"></i>
+                                    {% elif investment.status == 'active' %}<i class="fas fa-check-circle me-1"></i>
+                                    {% elif investment.status == 'rejected' %}<i class="fas fa-times-circle me-1"></i>
+                                    {% else %}<i class="fas fa-question-circle me-1"></i>{% endif %}
+                                    {{ investment.get_status_display }}
+                                </span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-success rounded-pill mb-1 d-inline-block">
+                                    <i class="fas fa-dollar-sign me-1"></i>${{ investment.amount }}
+                                </span>
+                                <span class="badge bg-info rounded-pill mb-1 d-inline-block">
+                                    <i class="fas fa-percentage me-1"></i>{{ investment.equity_percentage|floatformat:2 }}% equity
+                                </span>
+                            </div>
+                            
+                            <div class="progress mb-2" style="height: 6px; border-radius: 3px;">
+                                <div class="progress-bar bg-success" 
+                                     style="width: {{ investment.project.amount_raised|percentage:investment.project.funding_goal }}%">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i>{{ investment.created_at|date:"M d, Y" }}
+                                </small>
+                                <small class="text-muted">
+                                    {{ investment.project.amount_raised|percentage:investment.project.funding_goal|floatformat:1 }}% funded
+                                </small>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'project_detail' investment.project.id %}" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-eye me-1"></i> Project
+                                </a>
+                                <a href="{% url 'investment_detail' investment.id %}" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-info-circle me-1"></i> Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-chart-pie fa-4x text-muted mb-3"></i>
+            <h4>You haven't made any investments yet</h4>
+            <p class="text-muted">Explore projects and start building your investment portfolio</p>
+            <a href="{% url 'explore_projects' %}" class="btn btn-primary mt-2">
+                <i class="fas fa-search me-1"></i> Explore Projects
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease;
+}
+.card {
+    transition: all 0.3s ease;
+}
+.display-6 {
+    font-size: 2rem;
+    font-weight: 300;
+}
+</style>
+{% endblock %}

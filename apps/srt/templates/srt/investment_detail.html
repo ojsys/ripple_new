@@ -1,0 +1,198 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}Investment Details - StartUpRipple{% endblock %}
+
+{% block partner_content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'srt:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'srt:my_investments' %}">My Investments</a></li>
+        <li class="breadcrumb-item active">{{ investment.reference }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Investment Overview -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-file-invoice me-2 text-success"></i>Investment Details</h5>
+                <span class="badge bg-{% if investment.status == 'active' %}success{% elif investment.status == 'pending' %}warning{% elif investment.status == 'matured' %}info{% else %}secondary{% endif %} fs-6">
+                    {{ investment.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <small class="text-muted">Reference Number</small>
+                        <h5 class="mb-0">{{ investment.reference }}</h5>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <small class="text-muted">Investment Date</small>
+                        <h5 class="mb-0">{{ investment.investment_date|date:"F d, Y" }}</h5>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Venture Info -->
+                <div class="d-flex align-items-start mb-4">
+                    {% if investment.venture.image %}
+                    <img src="{{ investment.venture.image.url }}" class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;" alt="{{ investment.venture.title }}">
+                    {% else %}
+                    <div class="bg-success bg-opacity-10 rounded me-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="fas fa-rocket fa-2x text-success"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h4 class="mb-1">{{ investment.venture.title }}</h4>
+                        <span class="badge bg-light text-dark me-2">{{ investment.venture.industry }}</span>
+                        <span class="badge bg-{% if investment.venture.risk_level == 'low' %}success{% elif investment.venture.risk_level == 'moderate' %}warning{% else %}danger{% endif %}">
+                            {{ investment.venture.get_risk_level_display }}
+                        </span>
+                        <p class="text-muted mt-2 mb-0">{{ investment.venture.short_description|default:investment.venture.description|truncatechars:150 }}</p>
+                    </div>
+                </div>
+
+                <!-- Investment Stats -->
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 text-center h-100">
+                            <i class="fas fa-coins fa-2x text-success mb-2"></i>
+                            <h4 class="mb-1">{{ investment.tokens_invested|floatformat:2|intcomma }}</h4>
+                            <small class="text-muted">SRT Invested</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 text-center h-100">
+                            <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                            <h4 class="mb-1">{{ investment.expected_return|floatformat:2|intcomma }}</h4>
+                            <small class="text-muted">Expected Return</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 text-center h-100">
+                            <i class="fas fa-percentage fa-2x text-warning mb-2"></i>
+                            <h4 class="mb-1">{{ investment.venture.expected_return_rate }}%</h4>
+                            <small class="text-muted">Return Rate</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Transactions -->
+        {% if transactions %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="fas fa-history me-2 text-info"></i>Related Transactions</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Reference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in transactions %}
+                        <tr>
+                            <td>{{ tx.created_at|date:"M d, Y H:i" }}</td>
+                            <td>{{ tx.get_transaction_type_display }}</td>
+                            <td class="{% if tx.amount >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {% if tx.amount >= 0 %}+{% endif %}{{ tx.amount|floatformat:2 }} SRT
+                            </td>
+                            <td><code>{{ tx.reference }}</code></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Maturity Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+                <h6 class="text-muted mb-2">Maturity Date</h6>
+                {% if investment.maturity_date %}
+                <h4 class="mb-2">{{ investment.maturity_date|date:"F d, Y" }}</h4>
+                {% if investment.days_to_maturity > 0 %}
+                <span class="badge bg-info fs-6">{{ investment.days_to_maturity }} days remaining</span>
+                {% else %}
+                <span class="badge bg-success fs-6">Matured</span>
+                {% endif %}
+                {% else %}
+                <h4>-</h4>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Projected Returns -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="fas fa-calculator me-2 text-success"></i>Projected Returns</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Principal</span>
+                    <strong>{{ investment.tokens_invested|floatformat:2 }} SRT</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Duration</span>
+                    <strong>{{ investment.venture.investment_duration_months }} months</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Rate</span>
+                    <strong>{{ investment.venture.expected_return_rate }}%</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Expected Return</span>
+                    <span class="text-success fw-bold fs-5">{{ investment.expected_return|floatformat:2 }} SRT</span>
+                </div>
+                {% if investment.actual_return %}
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Actual Return</span>
+                    <span class="text-primary fw-bold fs-5">{{ investment.actual_return|floatformat:2 }} SRT</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Notes -->
+        {% if investment.notes %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="fas fa-sticky-note me-2 text-warning"></i>Notes</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ investment.notes }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <a href="{% url 'srt:venture_detail' investment.venture.slug %}" class="btn btn-outline-success w-100 mb-2">
+                    <i class="fas fa-rocket me-2"></i>View Venture
+                </a>
+                <a href="{% url 'srt:my_investments' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Investments
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

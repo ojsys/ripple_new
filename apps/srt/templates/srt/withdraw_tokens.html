@@ -1,0 +1,352 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}Withdraw Tokens - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    .withdraw-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: none;
+        overflow: hidden;
+    }
+
+    .withdraw-card .card-header {
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        color: white;
+        padding: 24px;
+        border: none;
+    }
+
+    .withdraw-card .card-header h4 {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .withdraw-card .card-body {
+        padding: 30px;
+    }
+
+    .balance-display {
+        background: var(--teal-50);
+        border: 2px solid var(--teal-100);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .balance-amount {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--teal-primary);
+    }
+
+    .conversion-info {
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--teal-primary);
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    }
+
+    .btn-withdraw {
+        background: var(--teal-primary);
+        border: none;
+        color: white;
+        padding: 14px 32px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-withdraw:hover {
+        background: var(--teal-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
+        color: white;
+    }
+
+    .pending-card {
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        border-radius: 12px;
+    }
+
+    .pending-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid #fcd34d;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-approved { background: #d1fae5; color: #065f46; }
+    .status-processing { background: #dbeafe; color: #1e40af; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .status-cancelled { background: #f3f4f6; color: #4b5563; }
+
+    .history-item {
+        border-bottom: 1px solid #f3f4f6;
+        padding: 16px 0;
+    }
+
+    .history-item:last-child {
+        border-bottom: none;
+    }
+
+    #ngn-preview {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--teal-primary);
+    }
+</style>
+{% endblock %}
+
+{% block partner_content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1"><i class="fas fa-wallet me-2" style="color: var(--teal-primary);"></i>Withdraw Tokens</h2>
+        <p class="text-muted mb-0">Convert your SRT tokens to NGN and withdraw to your bank</p>
+    </div>
+    <a href="{% url 'srt:my_withdrawals' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-history me-2"></i>Withdrawal History
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Withdrawal Form -->
+    <div class="col-lg-8">
+        {% if pending_withdrawals %}
+        <!-- Pending Withdrawal Alert -->
+        <div class="pending-card card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-clock me-2 text-warning"></i>Pending Withdrawal</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">You have a pending withdrawal request. Please wait for it to be processed before submitting a new one.</p>
+                {% for withdrawal in pending_withdrawals %}
+                <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded mb-2">
+                    <div>
+                        <strong>{{ withdrawal.tokens|floatformat:2 }} SRT</strong>
+                        <span class="text-muted ms-2">({{ withdrawal.amount_ngn|intcomma }} NGN)</span>
+                        <br>
+                        <small class="text-muted">{{ withdrawal.created_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="status-badge status-{{ withdrawal.status }}">{{ withdrawal.get_status_display }}</span>
+                        <a href="{% url 'srt:withdrawal_detail' withdrawal.reference %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="withdraw-card card">
+            <div class="card-header">
+                <h4><i class="fas fa-money-bill-wave me-2"></i>Request Withdrawal</h4>
+            </div>
+            <div class="card-body">
+                <!-- Balance Display -->
+                <div class="balance-display">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <small class="text-muted d-block mb-1">Available Balance</small>
+                            <div class="balance-amount">{{ account.available_tokens|floatformat:2|intcomma }} SRT</div>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <small class="text-muted d-block mb-1">Locked in Investments</small>
+                            <div class="text-muted">{{ account.locked_tokens|floatformat:2 }} SRT</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversion Info -->
+                <div class="conversion-info">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle text-warning me-3 fa-lg"></i>
+                        <div>
+                            <strong>Conversion Rate:</strong> 1 SRT = 2,000 NGN<br>
+                            <small class="text-muted">A 4% fee will be deducted from the NGN amount.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Amount Input -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Amount to Withdraw (SRT)</label>
+                        {{ form.tokens }}
+                        {% if form.tokens.errors %}
+                        <div class="text-danger small mt-1">{{ form.tokens.errors.0 }}</div>
+                        {% endif %}
+                        <div class="mt-2 p-3 bg-light rounded">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">Gross Amount:</small>
+                                <span id="ngn-preview">0 NGN</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">Fee (4%):</small>
+                                <span id="fee-preview" class="text-danger">- 0 NGN</span>
+                            </div>
+                            <hr class="my-1">
+                            <div class="d-flex justify-content-between">
+                                <strong class="text-muted">You'll receive:</strong>
+                                <strong id="final-preview">0 NGN</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3"><i class="fas fa-university me-2" style="color: var(--teal-primary);"></i>Bank Details</h5>
+
+                    <!-- Bank Name -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Bank Name</label>
+                        {{ form.bank_name }}
+                        {% if form.bank_name.errors %}
+                        <div class="text-danger small mt-1">{{ form.bank_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Account Number -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Account Number</label>
+                        {{ form.account_number }}
+                        {% if form.account_number.errors %}
+                        <div class="text-danger small mt-1">{{ form.account_number.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Account Name -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Account Holder Name</label>
+                        {{ form.account_name }}
+                        {% if form.account_name.errors %}
+                        <div class="text-danger small mt-1">{{ form.account_name.errors.0 }}</div>
+                        {% endif %}
+                        <small class="text-muted d-block mt-1">Please ensure this matches your bank account name exactly</small>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-withdraw btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Withdrawal Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Info -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2" style="color: var(--teal-primary);"></i>Withdrawal Info</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Minimum:</strong> 100 SRT
+                    </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Rate:</strong> 1 SRT = 2,000 NGN
+                        </li>                    <li class="mb-3">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Processing:</strong> 24-48 hours
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Fee:</strong> 4% of withdrawal amount
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Recent Withdrawals -->
+        {% if recent_withdrawals %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="fas fa-history me-2" style="color: var(--teal-primary);"></i>Recent Withdrawals</h6>
+            </div>
+            <div class="card-body">
+                {% for withdrawal in recent_withdrawals %}
+                <div class="history-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ withdrawal.tokens|floatformat:2 }} SRT</strong>
+                            <br>
+                            <small class="text-muted">{{ withdrawal.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="status-badge status-{{ withdrawal.status }}">{{ withdrawal.get_status_display }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+                <a href="{% url 'srt:my_withdrawals' %}" class="btn btn-outline-secondary btn-sm w-100 mt-3">
+                    View All
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tokensInput = document.querySelector('[name="tokens"]');
+    const ngnPreview = document.getElementById('ngn-preview');
+    const feePreview = document.getElementById('fee-preview');
+    const finalPreview = document.getElementById('final-preview');
+
+    if (tokensInput && ngnPreview && feePreview && finalPreview) {
+        tokensInput.addEventListener('input', function() {
+            const tokens = parseFloat(this.value) || 0;
+            const grossNgn = tokens * 2000;
+            const fee = grossNgn * 0.04;
+            const finalNgn = grossNgn - fee;
+
+            const formatter = new Intl.NumberFormat('en-NG', {
+                style: 'currency',
+                currency: 'NGN',
+                minimumFractionDigits: 2
+            });
+
+            ngnPreview.textContent = formatter.format(grossNgn);
+            feePreview.textContent = `- ${formatter.format(fee)}`;
+            finalPreview.textContent = formatter.format(finalNgn);
+        });
+    }
+});
+</script>
+{% endblock %}

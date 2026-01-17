@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StartUpRipple{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts - Roboto for Material Design -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Slab:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/partner-dashboard.css' %}">
+
+    <style>
+        :root {
+            --md-primary: #008080;
+            --md-primary-dark: #006666;
+            --md-secondary: #FFC107;
+            --md-surface: #FFFFFF;
+            --md-background: #FAFAFA;
+            --md-error: #B00020;
+            --md-on-primary: #FFFFFF;
+            --md-on-surface: #1C1B1F;
+            --md-outline: #79747E;
+            --md-elevation-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --md-elevation-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            --md-elevation-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+            --md-transition: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+            color: var(--md-on-surface);
+            background: var(--md-background);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        main {
+            flex: 1 0 auto;
+        }
+
+        .form-page main {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Material Navbar */
+        .navbar-md {
+            padding: 0;
+            transition: all 0.3s var(--md-transition);
+            background: transparent;
+        }
+
+        .navbar-md.scrolled {
+            background: var(--md-surface) !important;
+            box-shadow: var(--md-elevation-2);
+        }
+
+        .navbar-md .navbar-inner {
+            padding: 12px 0;
+        }
+
+        .navbar-md .navbar-brand {
+            font-family: 'Roboto Slab', serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #fff !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-md.scrolled .navbar-brand {
+            color: var(--md-primary) !important;
+        }
+
+        .navbar-md .navbar-brand .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .navbar-md .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            padding: 8px 16px !important;
+            border-radius: 100px;
+            transition: all 0.2s var(--md-transition);
+        }
+
+        .navbar-md.scrolled .nav-link {
+            color: var(--md-on-surface) !important;
+        }
+
+        .navbar-md .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-md.scrolled .nav-link:hover {
+            background: rgba(38, 175, 89, 0.08);
+            color: var(--md-primary) !important;
+        }
+
+        .navbar-md .dropdown-menu {
+            border: none;
+            box-shadow: var(--md-elevation-3);
+            border-radius: 16px;
+            padding: 8px;
+            margin-top: 8px;
+            min-width: 220px;
+        }
+
+        .navbar-md .dropdown-item {
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-weight: 500;
+            color: var(--md-on-surface);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s var(--md-transition);
+        }
+
+        .navbar-md .dropdown-item:hover {
+            background: rgba(38, 175, 89, 0.08);
+            color: var(--md-primary);
+        }
+
+        .navbar-md .dropdown-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .navbar-md .dropdown-divider {
+            margin: 8px 0;
+            border-color: #E0E0E0;
+        }
+
+        /* Material Buttons */
+        .btn-md-filled {
+            background: var(--md-primary);
+            color: var(--md-on-primary);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            letter-spacing: 0.25px;
+            box-shadow: var(--md-elevation-1);
+            transition: all 0.2s var(--md-transition);
+        }
+
+        .btn-md-filled:hover {
+            background: var(--md-primary-dark);
+            box-shadow: var(--md-elevation-2);
+            transform: translateY(-1px);
+            color: var(--md-on-primary);
+        }
+
+        .btn-md-outlined {
+            background: transparent;
+            color: var(--md-primary);
+            border: 1px solid var(--md-primary);
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s var(--md-transition);
+        }
+
+        .btn-md-outlined:hover {
+            background: rgba(38, 175, 89, 0.08);
+            color: var(--md-primary);
+        }
+
+        .btn-md-text {
+            background: transparent;
+            color: var(--md-primary);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 100px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s var(--md-transition);
+        }
+
+        .btn-md-text:hover {
+            background: rgba(38, 175, 89, 0.08);
+        }
+
+        .btn-md-tonal {
+            background: rgba(38, 175, 89, 0.1);
+            color: var(--md-primary);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s var(--md-transition);
+        }
+
+        .btn-md-tonal:hover {
+            background: rgba(38, 175, 89, 0.2);
+            color: var(--md-primary-dark);
+        }
+
+        /* User Avatar */
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        /* Messages/Snackbar */
+        .messages-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            max-width: 500px;
+            width: calc(100% - 48px);
+        }
+
+        .snackbar {
+            background: #323232;
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 8px;
+            box-shadow: var(--md-elevation-3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 8px;
+            animation: slideUp 0.3s var(--md-transition);
+        }
+
+        .snackbar.success {
+            background: #1B5E20;
+        }
+
+        .snackbar.error {
+            background: #B00020;
+        }
+
+        .snackbar.warning {
+            background: #E65100;
+        }
+
+        .snackbar-close {
+            background: transparent;
+            border: none;
+            color: var(--md-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .snackbar-close:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Material Footer */
+        .footer-md {
+            background: #1a1a2e;
+            color: rgba(255, 255, 255, 0.7);
+            padding-top: 64px;
+        }
+
+        .footer-md .footer-brand {
+            font-family: 'Roboto Slab', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .footer-md .footer-brand .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .footer-md h6 {
+            color: #fff;
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.9375rem;
+            transition: all 0.2s var(--md-transition);
+            display: inline-block;
+        }
+
+        .footer-links a:hover {
+            color: var(--md-secondary);
+            transform: translateX(4px);
+        }
+
+        .social-links-md {
+            display: flex;
+            gap: 12px;
+        }
+
+        .social-links-md a {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.125rem;
+            transition: all 0.2s var(--md-transition);
+        }
+
+        .social-links-md a:hover {
+            background: var(--md-primary);
+            transform: translateY(-4px);
+        }
+
+        .footer-bottom-md {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px 0;
+            margin-top: 48px;
+        }
+
+        .footer-bottom-md p {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        .footer-bottom-links {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .footer-bottom-links a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s var(--md-transition);
+        }
+
+        .footer-bottom-links a:hover {
+            color: #fff;
+        }
+
+        /* Page Header (for non-home pages) */
+        .page-header-md {
+            background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+            padding: 120px 0 60px;
+            color: #fff;
+            margin-bottom: 48px;
+        }
+
+        .page-header-md h1 {
+            font-weight: 400;
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .page-header-md .breadcrumb {
+            background: transparent;
+            margin: 0;
+            padding: 0;
+        }
+
+        .page-header-md .breadcrumb-item,
+        .page-header-md .breadcrumb-item a {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9375rem;
+        }
+
+        .page-header-md .breadcrumb-item.active {
+            color: #fff;
+        }
+
+        .page-header-md .breadcrumb-item + .breadcrumb-item::before {
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Material Cards */
+        .card-md {
+            background: var(--md-surface);
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--md-elevation-1);
+            transition: all 0.3s var(--md-transition);
+            overflow: hidden;
+        }
+
+        .card-md:hover {
+            box-shadow: var(--md-elevation-3);
+            transform: translateY(-4px);
+        }
+
+        /* Material Form Inputs */
+        .form-control-md {
+            border: 1px solid var(--md-outline);
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 1rem;
+            transition: all 0.2s var(--md-transition);
+        }
+
+        .form-control-md:focus {
+            border-color: var(--md-primary);
+            box-shadow: 0 0 0 2px rgba(38, 175, 89, 0.2);
+            outline: none;
+        }
+
+        .form-label-md {
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--md-on-surface);
+            margin-bottom: 8px;
+        }
+
+        /* Utility Classes */
+        .text-md-primary {
+            color: var(--md-primary) !important;
+        }
+
+        .bg-md-primary {
+            background: var(--md-primary) !important;
+        }
+
+        .text-md-secondary {
+            color: var(--md-secondary) !important;
+        }
+
+        .bg-md-surface {
+            background: var(--md-surface) !important;
+        }
+
+        /* Responsive Navbar */
+        @media (max-width: 991px) {
+            .navbar-md .navbar-collapse {
+                background: var(--md-surface);
+                border-radius: 16px;
+                padding: 16px;
+                margin-top: 16px;
+                box-shadow: var(--md-elevation-3);
+            }
+
+            .navbar-md .nav-link {
+                color: var(--md-on-surface) !important;
+            }
+
+            .navbar-md .nav-link:hover {
+                background: rgba(38, 175, 89, 0.08);
+            }
+        }
+
+        @media (max-width: 767px) {
+            .footer-bottom-links {
+                justify-content: center;
+                margin-top: 16px;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <!-- Material Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-md fixed-top">
+        <div class="container navbar-inner">
+            <a class="navbar-brand" href="{% url 'projects:home' %}">
+                <span class="brand-icon"><i class="fas fa-rocket"></i></span>
+                StartUpRipple
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto ms-lg-4">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'projects:home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'projects:project_list' %}">Projects</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Programs
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'incubator:incubator_page' %}"><i class="fas fa-rocket text-primary"></i>Accelerator</a></li>
+                            <li><a class="dropdown-item" href="{% url 'incubator:apply' %}"><i class="fas fa-paper-plane text-success"></i>Apply Now</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cms:about_page' %}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cms:contact_page' %}">Contact</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav align-items-lg-center">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+                            <span class="user-avatar">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
+                            <span class="d-none d-lg-inline">{{ user.first_name|default:user.email }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li class="px-3 py-2 border-bottom">
+                                <div class="fw-semibold">{{ user.get_full_name }}</div>
+                                <div class="small text-muted">{{ user.get_user_type_display }}</div>
+                            </li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}"><i class="fas fa-tachometer-alt text-primary"></i>Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:edit_profile' %}"><i class="fas fa-user-edit text-info"></i>Edit Profile</a></li>
+                            {% if user.user_type == 'founder' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'projects:my_projects' %}"><i class="fas fa-folder text-warning"></i>My Projects</a></li>
+                            <li><a class="dropdown-item" href="{% url 'projects:create_project' %}"><i class="fas fa-plus-circle text-success"></i>Create Project</a></li>
+                            {% endif %}
+                            {% if user.user_type == 'partner' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'srt:dashboard' %}"><i class="fas fa-coins text-warning"></i>SRT Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'srt:buy_tokens' %}"><i class="fas fa-shopping-cart text-success"></i>Buy Tokens</a></li>
+                            <li><a class="dropdown-item" href="{% url 'srt:venture_list' %}"><i class="fas fa-briefcase text-info"></i>Ventures</a></li>
+                            {% endif %}
+                            {% if user.user_type == 'investor' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'projects:my_investments' %}"><i class="fas fa-chart-line text-success"></i>My Investments</a></li>
+                            {% endif %}
+                            {% if user.user_type == 'donor' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'projects:my_donations' %}"><i class="fas fa-heart text-danger"></i>My Donations</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-md-filled" href="{% url 'accounts:signup' %}">
+                            Get Started
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages/Snackbar -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="snackbar {% if message.tags == 'error' or message.tags == 'danger' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% endif %}">
+            <span>
+                {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle me-2"></i>
+                {% elif message.tags == 'error' or message.tags == 'danger' %}
+                <i class="fas fa-exclamation-circle me-2"></i>
+                {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {% else %}
+                <i class="fas fa-info-circle me-2"></i>
+                {% endif %}
+                {{ message }}
+            </span>
+            <button class="snackbar-close" onclick="this.parentElement.remove()">CLOSE</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Material Footer -->
+    <footer class="footer-md">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand">
+                        <span class="brand-icon"><i class="fas fa-rocket"></i></span>
+                        StartUpRipple
+                    </div>
+                    <p class="mb-4">Empowering African entrepreneurs and connecting them with global investors to build innovative solutions that transform communities.</p>
+                    <div class="social-links-md">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6>Platform</h6>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'projects:project_list' %}">Browse Projects</a></li>
+                        <li><a href="{% url 'projects:create_project' %}">Start a Project</a></li>
+                        <li><a href="{% url 'srt:venture_list' %}">SRT Ventures</a></li>
+                        <li><a href="{% url 'incubator:incubator_page' %}">Accelerator</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6>Company</h6>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'cms:about_page' %}">About Us</a></li>
+                        <li><a href="{% url 'cms:contact_page' %}">Contact</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6>Resources</h6>
+                    <ul class="footer-links">
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6>Legal</h6>
+                    <ul class="footer-links">
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">Investor Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom-md">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start">
+                        <p>&copy; {% now "Y" %} StartUpRipple. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="footer-bottom-links">
+                            <a href="#">Privacy</a>
+                            <a href="#">Terms</a>
+                            <a href="#">Sitemap</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Navbar Scroll Effect -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = document.querySelector('.navbar-md');
+            const isHomePage = window.location.pathname === '/' || window.location.pathname === '';
+
+            function updateNavbar() {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    if (isHomePage) {
+                        navbar.classList.remove('scrolled');
+                    }
+                }
+            }
+
+            // Non-home pages always have solid navbar
+            if (!isHomePage) {
+                navbar.classList.add('scrolled');
+            }
+
+            window.addEventListener('scroll', updateNavbar);
+            updateNavbar();
+
+            // Auto-hide snackbars after 5 seconds
+            const snackbars = document.querySelectorAll('.snackbar');
+            snackbars.forEach(function(snackbar) {
+                setTimeout(function() {
+                    snackbar.style.animation = 'slideUp 0.3s var(--md-transition) reverse forwards';
+                    setTimeout(function() {
+                        snackbar.remove();
+                    }, 300);
+                }, 5000);
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

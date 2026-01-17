@@ -1,0 +1,197 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}{{ venture.title }} - StartUpRipple{% endblock %}
+
+{% block partner_content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'srt:dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'srt:venture_list' %}">Ventures</a></li>
+        <li class="breadcrumb-item active">{{ venture.title|truncatechars:30 }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <!-- Venture Details -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            {% if venture.image %}
+            <img src="{{ venture.image.url }}" class="card-img-top" style="height: 300px; object-fit: cover;" alt="{{ venture.title }}">
+            {% else %}
+            <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" style="height: 300px; background: linear-gradient(135deg, #26af59, #20c997);">
+                <i class="fas fa-rocket fa-5x text-white"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge bg-{% if venture.risk_level == 'low' %}success{% elif venture.risk_level == 'moderate' %}warning{% else %}danger{% endif %} me-2">
+                            {{ venture.get_risk_level_display }}
+                        </span>
+                        <span class="badge bg-info me-2">{{ venture.get_stage_display }}</span>
+                        <span class="badge bg-light text-dark">{{ venture.industry }}</span>
+                    </div>
+                    <span class="badge bg-{{ venture.status }}">{{ venture.get_status_display }}</span>
+                </div>
+
+                <h2 class="mb-3">{{ venture.title }}</h2>
+                <p class="lead text-muted">{{ venture.short_description }}</p>
+
+                <hr>
+
+                <div class="venture-description">
+                    {{ venture.description|safe|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Terms -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="fas fa-file-contract me-2 text-success"></i>Investment Terms</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 text-center h-100">
+                            <i class="fas fa-percentage fa-2x text-success mb-2"></i>
+                            <h4 class="mb-1">{{ venture.expected_return_rate }}%</h4>
+                            <small class="text-muted">Expected Annual Return</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 text-center h-100">
+                            <i class="fas fa-calendar-alt fa-2x text-primary mb-2"></i>
+                            <h4 class="mb-1">{{ venture.investment_duration_months }} Months</h4>
+                            <small class="text-muted">Investment Duration</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 text-center h-100">
+                            <i class="fas fa-coins fa-2x text-warning mb-2"></i>
+                            <h4 class="mb-1">{{ venture.minimum_investment|floatformat:0|intcomma }} SRT</h4>
+                            <small class="text-muted">Minimum Investment</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Investors -->
+        {% if recent_investments %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="fas fa-users me-2 text-info"></i>Recent Investors</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    {% for inv in recent_investments %}
+                    <div class="d-flex align-items-center border rounded-pill px-3 py-2">
+                        <div class="avatar-placeholder me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="small">Partner #{{ inv.partner.id }}</span>
+                        <span class="badge bg-success ms-2">{{ inv.tokens_invested|floatformat:0 }} SRT</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Investment Sidebar -->
+    <div class="col-lg-4">
+        <!-- Funding Progress -->
+        <div class="card border-0 shadow-sm mb-4 sticky-top" style="top: 100px;">
+            <div class="card-body">
+                <h5 class="mb-3">Funding Progress</h5>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h3 class="mb-0 text-success">{{ venture.amount_raised|floatformat:0|intcomma }}</h3>
+                        <span class="text-muted">of {{ venture.funding_goal|floatformat:0|intcomma }} SRT</span>
+                    </div>
+                    <div class="progress mb-2" style="height: 12px;">
+                        <div class="progress-bar bg-success" style="width: {{ venture.percent_funded|floatformat:0 }}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>{{ venture.percent_funded|floatformat:1 }}% funded</span>
+                        <span>{{ venture.investor_count }} investors</span>
+                    </div>
+                </div>
+
+                {% if venture.days_remaining is not None %}
+                <div class="alert alert-info py-2 mb-4">
+                    <i class="fas fa-clock me-2"></i>
+                    <strong>{{ venture.days_remaining }}</strong> days remaining
+                </div>
+                {% endif %}
+
+                <!-- Investment Form -->
+                {% if venture.status == 'open' %}
+                    {% if existing_investment %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        You've already invested <strong>{{ existing_investment.tokens_invested|floatformat:2 }} SRT</strong> in this venture.
+                    </div>
+                    <a href="{% url 'srt:investment_detail' existing_investment.reference %}" class="btn btn-outline-success w-100">
+                        View My Investment
+                    </a>
+                    {% else %}
+                    <form method="post" action="{% url 'srt:invest' venture.slug %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Investment Amount (SRT)</label>
+                            <input type="number"
+                                   name="amount"
+                                   class="form-control form-control-lg text-center"
+                                   min="{{ venture.minimum_investment }}"
+                                   {% if venture.maximum_investment %}max="{{ venture.maximum_investment }}"{% endif %}
+                                   value="{{ venture.minimum_investment }}"
+                                   required>
+                            <div class="d-flex justify-content-between small text-muted mt-1">
+                                <span>Min: {{ venture.minimum_investment|floatformat:0 }} SRT</span>
+                                {% if venture.maximum_investment %}
+                                <span>Max: {{ venture.maximum_investment|floatformat:0 }} SRT</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Your Balance:</span>
+                                <strong class="text-success">{{ account.available_tokens|floatformat:2 }} SRT</strong>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-hand-holding-usd me-2"></i>Invest Now
+                        </button>
+                    </form>
+                    {% endif %}
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This venture is currently {{ venture.get_status_display|lower }}.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <a href="{% url 'srt:venture_list' %}" class="btn btn-outline-secondary w-100 mb-2">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Ventures
+                </a>
+                <a href="{% url 'srt:buy_tokens' %}" class="btn btn-outline-success w-100">
+                    <i class="fas fa-plus me-2"></i>Buy More Tokens
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
