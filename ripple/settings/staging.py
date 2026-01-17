@@ -16,9 +16,9 @@ ALLOWED_HOSTS = ['staging.startupripple.com', 'localhost']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
+        'NAME': config('STAGING_DB_NAME'),
+        'USER': config('STAGING_DB_USER'),
+        'PASSWORD': config('STAGING_DB_PASSWORD'),
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
