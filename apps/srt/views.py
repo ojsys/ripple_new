@@ -19,14 +19,16 @@ from .forms import WithdrawalForm, InvestmentModifyForm
 
 
 def partner_required(view_func):
-    """Decorator to ensure user is a verified partner"""
+    """Decorator to ensure user is an SRT partner (either by user_type or is_srt_partner flag)"""
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             messages.error(request, "Please log in to access the partner dashboard.")
             return redirect('accounts:login')
-        if request.user.user_type != 'partner':
-            messages.error(request, "This area is only accessible to SRT Partners.")
-            return redirect('projects:home')
+        # Check if user is an SRT partner (either by user_type or is_srt_partner flag)
+        is_partner = request.user.user_type == 'partner' or getattr(request.user, 'is_srt_partner', False)
+        if not is_partner:
+            messages.info(request, "Become an SRT Partner to access investment opportunities.")
+            return redirect('srt:become_partner')
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -35,6 +37,52 @@ def get_or_create_capital_account(user):
     """Get or create a partner's capital account"""
     account, created = PartnerCapitalAccount.objects.get_or_create(partner=user)
     return account
+
+
+@login_required
+def become_partner(request):
+    """View for users to become an SRT Partner"""
+    # Check if already a partner
+    is_partner = request.user.user_type == 'partner' or getattr(request.user, 'is_srt_partner', False)
+    if is_partner:
+        return redirect('srt:dashboard')
+
+    if request.method == 'POST':
+        # Process the partner registration
+        agree_terms = request.POST.get('agree_terms')
+
+        if not agree_terms:
+            messages.error(request, "You must agree to the terms and conditions.")
+            return redirect('srt:become_partner')
+
+        # Set user as SRT partner
+        request.user.is_srt_partner = True
+        request.user.srt_partner_since = timezone.now()
+        request.user.save()
+
+        # Create PartnerProfile if it doesn't exist
+        from apps.accounts.models import PartnerProfile
+        partner_profile, created = PartnerProfile.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'partner_id': f"SRT-{uuid.uuid4().hex[:8].upper()}",
+                'accreditation_status': 'pending',
+            }
+        )
+
+        # Create PartnerCapitalAccount
+        get_or_create_capital_account(request.user)
+
+        messages.success(
+            request,
+            "Welcome to SRT! You are now an SRT Partner. You can purchase tokens and invest in ventures."
+        )
+        return redirect('srt:dashboard')
+
+    context = {
+        'user': request.user,
+    }
+    return render(request, 'srt/become_partner.html', context)
 
 
 @login_required

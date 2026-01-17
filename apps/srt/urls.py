@@ -4,6 +4,9 @@ from . import views
 app_name = 'srt'
 
 urlpatterns = [
+    # Become a Partner (no auth required for viewing, login required for POST)
+    path('become-partner/', views.become_partner, name='become_partner'),
+
     # Dashboard
     path('', views.partner_dashboard, name='dashboard'),
     path('dashboard/', views.partner_dashboard, name='partner_dashboard'),

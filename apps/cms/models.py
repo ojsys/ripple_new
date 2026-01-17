@@ -339,3 +339,52 @@ class NewsletterSubscriber(models.Model):
 
     class Meta:
         ordering = ['-subscribed_at']
+
+
+class LegalPage(models.Model):
+    """Model for legal pages like Terms & Conditions, Privacy Policy, etc."""
+
+    PAGE_TYPES = [
+        ('terms', 'Terms & Conditions'),
+        ('investment_risk', 'Investment Risk Disclosure'),
+        ('privacy', 'Privacy Policy'),
+        ('cookie', 'Cookie Policy'),
+        ('refund', 'Refund Policy'),
+        ('aml', 'Anti-Money Laundering Policy'),
+    ]
+
+    page_type = models.CharField(max_length=20, choices=PAGE_TYPES, unique=True)
+    title = models.CharField(max_length=200)
+    subtitle = models.CharField(max_length=500, blank=True,
+                                help_text="Optional subtitle or brief description")
+    content = RichTextField(help_text="Main content of the page. Use the editor to format text.")
+    effective_date = models.DateField(null=True, blank=True,
+                                      help_text="When this version of the document becomes effective")
+    version = models.CharField(max_length=20, default="1.0",
+                              help_text="Version number of this document")
+    is_published = models.BooleanField(default=True,
+                                       help_text="Only published pages are visible to users")
+    show_table_of_contents = models.BooleanField(default=True,
+                                                  help_text="Auto-generate table of contents from headings")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Legal Page"
+        verbose_name_plural = "Legal Pages"
+        ordering = ['page_type']
+
+    def __str__(self):
+        return self.get_page_type_display()
+
+    @classmethod
+    def get_page(cls, page_type):
+        """Get a published legal page by type."""
+        try:
+            return cls.objects.get(page_type=page_type, is_published=True)
+        except cls.DoesNotExist:
+            return None
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('cms:legal_page', kwargs={'page_type': self.page_type})

@@ -584,7 +584,7 @@
                             <li><a class="dropdown-item" href="{% url 'projects:my_projects' %}"><i class="fas fa-folder text-warning"></i>My Projects</a></li>
                             <li><a class="dropdown-item" href="{% url 'projects:create_project' %}"><i class="fas fa-plus-circle text-success"></i>Create Project</a></li>
                             {% endif %}
-                            {% if user.user_type == 'partner' %}
+                            {% if user.user_type == 'partner' or user.is_srt_partner %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'srt:dashboard' %}"><i class="fas fa-coins text-warning"></i>SRT Dashboard</a></li>
                             <li><a class="dropdown-item" href="{% url 'srt:buy_tokens' %}"><i class="fas fa-shopping-cart text-success"></i>Buy Tokens</a></li>
@@ -692,10 +692,10 @@
                 <div class="col-lg-2 col-md-6">
                     <h6>Legal</h6>
                     <ul class="footer-links">
-                        <li><a href="#">Terms of Service</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Cookie Policy</a></li>
-                        <li><a href="#">Investor Terms</a></li>
+                        <li><a href="{% url 'cms:terms' %}">Terms & Conditions</a></li>
+                        <li><a href="{% url 'cms:privacy' %}">Privacy Policy</a></li>
+                        <li><a href="{% url 'cms:investment_risk' %}">Investment Risk</a></li>
+                        <li><a href="{% url 'srt:become_partner' %}">Become a Partner</a></li>
                     </ul>
                 </div>
             </div>
@@ -707,9 +707,9 @@
                     </div>
                     <div class="col-md-6">
                         <div class="footer-bottom-links">
-                            <a href="#">Privacy</a>
-                            <a href="#">Terms</a>
-                            <a href="#">Sitemap</a>
+                            <a href="{% url 'cms:privacy' %}">Privacy</a>
+                            <a href="{% url 'cms:terms' %}">Terms</a>
+                            <a href="{% url 'cms:investment_risk' %}">Risk Disclosure</a>
                         </div>
                     </div>
                 </div>

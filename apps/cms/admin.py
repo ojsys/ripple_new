@@ -3,7 +3,8 @@ from .models import (
     TeamMember, AboutPage, SiteSettings, HeroSlider,
     HeaderLink, FooterSection, ThemeSettings, Announcement,
     SocialMediaLink, SEOSettings, Testimonial, Contact,
-    HomePage, HowItWorksStep, PartnerLogo, NewsletterSubscriber
+    HomePage, HowItWorksStep, PartnerLogo, NewsletterSubscriber,
+    LegalPage
 )
 
 
@@ -193,3 +194,36 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+
+@admin.register(LegalPage)
+class LegalPageAdmin(admin.ModelAdmin):
+    list_display = ['page_type', 'title', 'version', 'effective_date', 'is_published', 'updated_at']
+    list_filter = ['page_type', 'is_published']
+    list_editable = ['is_published']
+    search_fields = ['title', 'content']
+    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'updated_at'
+
+    fieldsets = (
+        ('Page Information', {
+            'fields': ('page_type', 'title', 'subtitle'),
+        }),
+        ('Content', {
+            'fields': ('content',),
+            'description': 'Use the rich text editor to format the content. You can add headings, lists, links, and more.',
+        }),
+        ('Version & Status', {
+            'fields': ('version', 'effective_date', 'is_published', 'show_table_of_contents'),
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+    def get_readonly_fields(self, request, obj=None):
+        """Make page_type readonly after creation to prevent duplicates."""
+        if obj:
+            return self.readonly_fields + ('page_type',)
+        return self.readonly_fields

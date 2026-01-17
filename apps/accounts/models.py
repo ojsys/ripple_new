@@ -25,7 +25,11 @@ class CustomUser(AbstractUser):
     country = models.CharField(max_length=100, blank=True, null=True)
     email_verified = models.BooleanField(default=False)
     registration_fee_paid = models.BooleanField(default=False)
-    
+
+    # SRT Partner capability - allows any user type to also be an SRT partner
+    is_srt_partner = models.BooleanField(default=False, help_text="User has SRT Partner capabilities")
+    srt_partner_since = models.DateTimeField(null=True, blank=True, help_text="Date when user became an SRT partner")
+
     # Add these if missing
     email = models.EmailField(unique=True)
     

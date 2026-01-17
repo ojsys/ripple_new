@@ -1,10 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.views.decorators.http import require_POST
 from .models import (
     AboutPage, TeamMember, SiteSettings, HeroSlider,
-    Testimonial, Contact, Announcement
+    Testimonial, Contact, Announcement, LegalPage
 )
 from .forms import ContactForm
 
@@ -81,3 +81,39 @@ def team_page(request):
         'team_members': team_members,
     }
     return render(request, 'cms/team.html', context)
+
+
+def legal_page(request, page_type):
+    """Display a legal page (Terms, Privacy Policy, etc.)."""
+    # Validate page_type
+    valid_types = dict(LegalPage.PAGE_TYPES).keys()
+    if page_type not in valid_types:
+        raise Http404("Page not found")
+
+    page = LegalPage.get_page(page_type)
+    if not page:
+        raise Http404("Page not found")
+
+    # Get all published legal pages for navigation
+    all_legal_pages = LegalPage.objects.filter(is_published=True)
+
+    context = {
+        'page': page,
+        'all_legal_pages': all_legal_pages,
+    }
+    return render(request, 'cms/legal_page.html', context)
+
+
+def terms_and_conditions(request):
+    """Shortcut view for Terms & Conditions."""
+    return legal_page(request, 'terms')
+
+
+def investment_risk_disclosure(request):
+    """Shortcut view for Investment Risk Disclosure."""
+    return legal_page(request, 'investment_risk')
+
+
+def privacy_policy(request):
+    """Shortcut view for Privacy Policy."""
+    return legal_page(request, 'privacy')

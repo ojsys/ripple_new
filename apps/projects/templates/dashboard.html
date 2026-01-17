@@ -578,7 +578,7 @@
             <a href="{% url 'projects:project_list' %}" class="nav-item-link">
                 <i class="fas fa-compass"></i> Discover
             </a>
-            {% if user.user_type == 'partner' %}
+            {% if user.user_type == 'partner' or user.is_srt_partner %}
             <a href="{% url 'srt:dashboard' %}" class="nav-item-link">
                 <i class="fas fa-coins"></i> SRT Dashboard
             </a>
@@ -617,13 +617,13 @@
                         <a href="{% url 'projects:create_project' %}" class="btn-hero">
                             <i class="fas fa-plus me-2"></i>Create Project
                         </a>
+                        {% elif user.user_type == 'partner' or user.is_srt_partner %}
+                        <a href="{% url 'srt:dashboard' %}" class="btn-hero">
+                            <i class="fas fa-coins me-2"></i>SRT Dashboard
+                        </a>
                         {% elif user.user_type == 'investor' or user.user_type == 'donor' %}
                         <a href="{% url 'projects:project_list' %}" class="btn-hero">
                             <i class="fas fa-search me-2"></i>Browse Projects
-                        </a>
-                        {% elif user.user_type == 'partner' %}
-                        <a href="{% url 'srt:ventures' %}" class="btn-hero">
-                            <i class="fas fa-rocket me-2"></i>Browse Ventures
                         </a>
                         {% endif %}
                     </div>
@@ -632,6 +632,30 @@
         </div>
 
         {% if user.user_type == 'founder' %}
+        <!-- SRT Partner Promotion for Founders (if not already a partner) -->
+        {% if not user.is_srt_partner %}
+        <div class="dashboard-card mb-4" style="background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border: 2px solid var(--teal-primary);">
+            <div class="p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-handshake me-3" style="font-size: 2rem; color: var(--teal-primary);"></i>
+                            <div>
+                                <h4 class="mb-1" style="color: var(--teal-dark);">Become an SRT Partner</h4>
+                                <p class="mb-0 text-muted">Diversify your portfolio by investing in other ventures. Earn returns while supporting fellow entrepreneurs.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="{% url 'srt:become_partner' %}" class="btn-empty">
+                            <i class="fas fa-arrow-right me-2"></i>Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Founder Stats -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -772,6 +796,30 @@
         {% endif %}
 
         {% if user.user_type == 'investor' or user.user_type == 'donor' %}
+        <!-- SRT Partner Promotion (if not already a partner) -->
+        {% if not user.is_srt_partner and user.user_type != 'partner' %}
+        <div class="dashboard-card mb-4" style="background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border: 2px solid var(--teal-primary);">
+            <div class="p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-handshake me-3" style="font-size: 2rem; color: var(--teal-primary);"></i>
+                            <div>
+                                <h4 class="mb-1" style="color: var(--teal-dark);">Become an SRT Partner</h4>
+                                <p class="mb-0 text-muted">Invest in vetted startup ventures with our token-based system. Earn returns while supporting Africa's entrepreneurs.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="{% url 'srt:become_partner' %}" class="btn-empty">
+                            <i class="fas fa-arrow-right me-2"></i>Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Investor/Donor Stats -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -926,8 +974,8 @@
         </div>
         {% endif %}
 
-        {% if user.user_type == 'partner' %}
-        <!-- Partner Stats - Link to SRT Dashboard -->
+        {% if user.user_type == 'partner' and not user.is_srt_partner %}
+        <!-- Partner Stats - Link to SRT Dashboard (for users whose primary type is partner) -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon primary">
@@ -944,6 +992,31 @@
             <a href="{% url 'srt:dashboard' %}" class="btn-empty">
                 <i class="fas fa-external-link-alt me-2"></i>Go to SRT Dashboard
             </a>
+        </div>
+        {% endif %}
+
+        {% if user.is_srt_partner and user.user_type != 'partner' %}
+        <!-- SRT Partner Quick Access (for users who added SRT partner capability) -->
+        <div class="section-header mt-4">
+            <div class="section-title">
+                <i class="fas fa-coins"></i>
+                SRT Partner Access
+            </div>
+        </div>
+        <div class="dashboard-card">
+            <div class="p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-2" style="color: var(--teal-dark);"><i class="fas fa-check-circle me-2 text-success"></i>You're an SRT Partner!</h5>
+                        <p class="text-muted mb-0">Manage your tokens, invest in ventures, and track your returns from the SRT Dashboard.</p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="{% url 'srt:dashboard' %}" class="btn-empty">
+                            <i class="fas fa-coins me-2"></i>SRT Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
         {% endif %}
     </main>
