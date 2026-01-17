@@ -1,137 +1,559 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load static %}
 
-{% block content %}
+{% block title %}Create Account - StartUpRipple{% endblock %}
+
+{% block extra_css %}
 <style>
     :root {
-        --brand-green: #26af59;
-        --brand-green-hover: #1e8e48;
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
     }
-    
-    .auth-container {
-        min-height: 80vh;
+
+    .signup-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 100px 0 40px;
+    }
+
+    .signup-card {
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        overflow: hidden;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    /* Progress Steps */
+    .progress-steps {
+        display: flex;
+        justify-content: center;
+        padding: 32px 24px;
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        position: relative;
+    }
+
+    .step {
         display: flex;
         align-items: center;
-        background-color: #f8f9fa;
-        padding: 120px 0 2rem;
+        position: relative;
+        z-index: 2;
     }
-    
-    .auth-card {
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        overflow: hidden;
+
+    .step:not(:last-child)::after {
+        content: '';
+        width: 80px;
+        height: 2px;
+        background: rgba(255,255,255,0.3);
+        margin: 0 16px;
     }
-    
-    .auth-header {
-        background-color: #fff;
-        padding: 2rem 2rem 1rem;
-        text-align: center;
+
+    .step.completed:not(:last-child)::after {
+        background: #fff;
     }
-    
-    .auth-logo {
-        color: var(--brand-green);
-        font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-    
-    .btn-brand {
-        background-color: var(--brand-green);
-        border-color: var(--brand-green);
-        color: white;
-        padding: 0.8rem;
-        font-weight: 500;
+
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
         transition: all 0.3s ease;
     }
-    
-    .btn-brand:hover {
-        background-color: var(--brand-green-hover);
-        border-color: var(--brand-green-hover);
-        color: white;
-        transform: translateY(-1px);
+
+    .step.active .step-circle {
+        background: #fff;
+        color: var(--teal-primary);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
-    
-    .info-box {
-        background-color: rgba(38, 175, 89, 0.1);
-        border-left: 4px solid var(--brand-green);
-        border-radius: 4px;
-        padding: 1rem;
+
+    .step.completed .step-circle {
+        background: #fff;
+        color: var(--teal-primary);
     }
-    
-    .info-box h6 {
-        color: var(--brand-green-hover);
+
+    .step-label {
+        position: absolute;
+        top: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.7);
+        font-weight: 500;
+    }
+
+    .step.active .step-label,
+    .step.completed .step-label {
+        color: #fff;
+    }
+
+    /* Card Body */
+    .signup-body {
+        padding: 48px;
+    }
+
+    .step-title {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .step-title h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .step-title p {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+
+    /* Account Type Cards */
+    .account-types {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .account-type-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 24px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        background: #fff;
+    }
+
+    .account-type-card:hover {
+        border-color: var(--teal-primary);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(13, 148, 136, 0.15);
+    }
+
+    .account-type-card.selected {
+        border-color: var(--teal-primary);
+        background: var(--teal-50);
+    }
+
+    .account-type-card input {
+        display: none;
+    }
+
+    .account-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--teal-50), var(--teal-100));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--teal-primary);
+        font-size: 1.5rem;
+        margin-bottom: 16px;
+    }
+
+    .account-type-card h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .account-type-card p {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 12px;
+        line-height: 1.5;
+    }
+
+    .account-fee {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: #f3f4f6;
+        border-radius: 20px;
+        font-size: 0.8rem;
         font-weight: 600;
     }
-    
-    .auth-link {
-        color: var(--brand-green);
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.2s;
+
+    .account-fee.free {
+        background: #d1fae5;
+        color: #059669;
     }
-    
-    .auth-link:hover {
-        color: var(--brand-green-hover);
+
+    .account-fee.paid {
+        color: #6b7280;
+    }
+
+    .check-mark {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--teal-primary);
+        color: #fff;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    .account-type-card.selected .check-mark {
+        display: flex;
+    }
+
+    /* Form Styles */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--teal-primary);
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    /* Buttons */
+    .btn-primary {
+        width: 100%;
+        padding: 16px 24px;
+        background: linear-gradient(135deg, var(--teal-primary), var(--teal-dark));
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(13, 148, 136, 0.3);
+    }
+
+    .btn-secondary {
+        width: 100%;
+        padding: 14px 24px;
+        background: #fff;
+        color: #6b7280;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--teal-primary);
+        color: var(--teal-primary);
+    }
+
+    .btn-group {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 12px;
+        margin-top: 32px;
+    }
+
+    /* User Type Badge */
+    .selected-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: var(--teal-50);
+        border: 1px solid var(--teal-100);
+        border-radius: 20px;
+        color: var(--teal-dark);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 24px;
+    }
+
+    /* Login Link */
+    .login-link {
+        text-align: center;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .login-link a {
+        color: var(--teal-primary);
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .login-link a:hover {
         text-decoration: underline;
     }
-    
-    /* Customizing crispy forms focus */
-    .form-control:focus, .form-select:focus {
-        border-color: var(--brand-green);
-        box-shadow: 0 0 0 0.25rem rgba(38, 175, 89, 0.25);
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .signup-container {
+            padding: 80px 16px 32px;
+        }
+
+        .signup-body {
+            padding: 32px 24px;
+        }
+
+        .account-types {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .btn-group {
+            grid-template-columns: 1fr;
+        }
+
+        .step:not(:last-child)::after {
+            width: 40px;
+        }
     }
 </style>
+{% endblock %}
 
-<div class="auth-container">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="auth-card card">
-                    <div class="auth-header">
-                        <div class="auth-logo">
-                            <i class="fas fa-ripple"></i>
+{% block content %}
+<div class="signup-container">
+    <div class="signup-card">
+        <!-- Progress Steps -->
+        <div class="progress-steps">
+            <div class="step {% if step >= 1 %}{% if step > 1 %}completed{% else %}active{% endif %}{% endif %}">
+                <div class="step-circle">{% if step > 1 %}<i class="fas fa-check"></i>{% else %}1{% endif %}</div>
+                <span class="step-label">Account Type</span>
+            </div>
+            <div class="step {% if step >= 2 %}active{% endif %}">
+                <div class="step-circle">{% if step > 2 %}<i class="fas fa-check"></i>{% else %}2{% endif %}</div>
+                <span class="step-label">Your Details</span>
+            </div>
+            <div class="step {% if step >= 3 %}active{% endif %}">
+                <div class="step-circle">3</div>
+                <span class="step-label">Complete</span>
+            </div>
+        </div>
+
+        <div class="signup-body">
+            {% if step == 1 %}
+            <!-- Step 1: Account Type Selection -->
+            <div class="step-title">
+                <h2>Choose Your Account Type</h2>
+                <p>Select how you want to use StartUpRipple</p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="step" value="1">
+
+                <div class="account-types">
+                    <!-- Founder -->
+                    <label class="account-type-card" onclick="selectAccountType(this, 'founder')">
+                        <input type="radio" name="user_type" value="founder" required>
+                        <div class="check-mark"><i class="fas fa-check"></i></div>
+                        <div class="account-icon">
+                            <i class="fas fa-lightbulb"></i>
                         </div>
-                        <h3 class="fw-bold mb-1">Join StartUpRipple</h3>
-                        <p class="text-muted">Create your account to get started</p>
+                        <h4>Founder</h4>
+                        <p>Launch your startup and raise funds from investors and donors worldwide.</p>
+                        <span class="account-fee paid"><i class="fas fa-tag"></i> $5 USD</span>
+                    </label>
+
+                    <!-- Investor -->
+                    <label class="account-type-card" onclick="selectAccountType(this, 'investor')">
+                        <input type="radio" name="user_type" value="investor" required>
+                        <div class="check-mark"><i class="fas fa-check"></i></div>
+                        <div class="account-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4>Investor</h4>
+                        <p>Invest in promising startups and earn returns as they grow and succeed.</p>
+                        <span class="account-fee paid"><i class="fas fa-tag"></i> $25 USD</span>
+                    </label>
+
+                    <!-- Donor -->
+                    <label class="account-type-card" onclick="selectAccountType(this, 'donor')">
+                        <input type="radio" name="user_type" value="donor" required>
+                        <div class="check-mark"><i class="fas fa-check"></i></div>
+                        <div class="account-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h4>Donor</h4>
+                        <p>Support entrepreneurs with donations and help bring their ideas to life.</p>
+                        <span class="account-fee paid"><i class="fas fa-tag"></i> $25 USD</span>
+                    </label>
+
+                    <!-- SRT Partner -->
+                    <label class="account-type-card" onclick="selectAccountType(this, 'partner')">
+                        <input type="radio" name="user_type" value="partner" required>
+                        <div class="check-mark"><i class="fas fa-check"></i></div>
+                        <div class="account-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <h4>SRT Partner</h4>
+                        <p>Buy tokens and invest in vetted ventures through our exclusive partner program.</p>
+                        <span class="account-fee free"><i class="fas fa-gift"></i> Free to Join</span>
+                    </label>
+                </div>
+
+                <div style="margin-top: 32px;">
+                    <button type="submit" class="btn-primary">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="{% url 'accounts:login' %}">Sign In</a>
+            </div>
+
+            {% elif step == 2 %}
+            <!-- Step 2: Personal Details -->
+            <div class="step-title">
+                <h2>Create Your Account</h2>
+                <p>Enter your details to get started</p>
+            </div>
+
+            <div class="text-center">
+                <span class="selected-type-badge">
+                    {% if user_type == 'founder' %}
+                    <i class="fas fa-lightbulb"></i> Founder Account
+                    {% elif user_type == 'investor' %}
+                    <i class="fas fa-chart-line"></i> Investor Account
+                    {% elif user_type == 'donor' %}
+                    <i class="fas fa-heart"></i> Donor Account
+                    {% elif user_type == 'partner' %}
+                    <i class="fas fa-coins"></i> SRT Partner Account
+                    {% endif %}
+                </span>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="step" value="2">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="first_name" class="form-control" placeholder="John"
+                               value="{{ form_data.first_name|default:'' }}" required>
                     </div>
-                    
-                    <div class="card-body p-4 pt-0">
-                        <div class="info-box mb-4">
-                            <div class="d-flex">
-                                <i class="fas fa-info-circle mt-1 me-2 text-success"></i>
-                                <div>
-                                    <h6 class="mb-2">Registration Fee Information</h6>
-                                    <p class="mb-2 small">To maintain platform quality, we require a one-time registration fee:</p>
-                                    <ul class="mb-0 small ps-3">
-                                        <li><strong>Founders:</strong> $5 USD</li>
-                                        <li><strong>Donors & Investors:</strong> $25 USD</li>
-                                    </ul>
-                                    <div class="mt-2 text-muted fst-italic" style="font-size: 0.8rem;">
-                                        You'll be redirected to payment after registration.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <form method="post">
-                            {% csrf_token %}
-                            {{ form|crispy }}
-                            
-                            <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-brand">
-                                    Continue to Payment <i class="fas fa-arrow-right ms-2"></i>
-                                </button>
-                            </div>
-                            
-                            <div class="text-center mt-4">
-                                <span class="text-muted small">Already have an account?</span>
-                                <a href="{% url 'accounts:login' %}" class="auth-link ms-1 small">Sign In</a>
-                            </div>
-                        </form>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="last_name" class="form-control" placeholder="Doe"
+                               value="{{ form_data.last_name|default:'' }}" required>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" name="email" class="form-control" placeholder="john@example.com"
+                           value="{{ form_data.email|default:'' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" name="phone_number" class="form-control" placeholder="+234 800 000 0000"
+                           value="{{ form_data.phone_number|default:'' }}" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="Min. 8 characters" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm Password</label>
+                        <input type="password" name="password2" class="form-control" placeholder="Confirm password" required>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <a href="{% url 'accounts:signup' %}?reset=1" class="btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        {% if user_type == 'partner' %}
+                        Create Account <i class="fas fa-check"></i>
+                        {% else %}
+                        Continue to Payment <i class="fas fa-arrow-right"></i>
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="{% url 'accounts:login' %}">Sign In</a>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectAccountType(card, type) {
+    // Remove selected class from all cards
+    document.querySelectorAll('.account-type-card').forEach(c => {
+        c.classList.remove('selected');
+    });
+    // Add selected class to clicked card
+    card.classList.add('selected');
+    // Check the radio button
+    card.querySelector('input[type="radio"]').checked = true;
+}
+
+// Back button is now handled by the server via ?reset=1 parameter
+</script>
 {% endblock %}

@@ -32,46 +32,113 @@ from apps.srt.models import PartnerCapitalAccount
 
 
 def signup(request):
-    """Handle user registration."""
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            # Check if email already exists in CustomUser
-            if CustomUser.objects.filter(email=form.cleaned_data['email']).exists():
-                form.add_error('email', 'A user with this email already exists.')
-                return render(request, 'accounts/signup.html', {'form': form})
+    """Handle progressive multi-step user registration."""
+    # Handle reset request (Back button)
+    if request.GET.get('reset') == '1':
+        clear_registration_session(request)
+        return redirect('accounts:signup')
 
-            user_type = form.cleaned_data['user_type']
+    # Get current step from session or default to 1
+    current_step = request.session.get('registration_step', 1)
+
+    if request.method == 'POST':
+        step = request.POST.get('step', '1')
+
+        # Step 1: User type selection
+        if step == '1':
+            user_type = request.POST.get('user_type')
+            if user_type in ['founder', 'donor', 'investor', 'partner']:
+                request.session['registration_user_type'] = user_type
+                request.session['registration_step'] = 2
+                return redirect('accounts:signup')
+            else:
+                messages.error(request, "Please select an account type.")
+                return redirect('accounts:signup')
+
+        # Step 2: Personal details
+        elif step == '2':
+            user_type = request.session.get('registration_user_type')
+            if not user_type:
+                request.session['registration_step'] = 1
+                return redirect('accounts:signup')
+
+            # Validate form data
+            first_name = request.POST.get('first_name', '').strip()
+            last_name = request.POST.get('last_name', '').strip()
+            email = request.POST.get('email', '').strip().lower()
+            phone_number = request.POST.get('phone_number', '').strip()
+            password = request.POST.get('password', '')
+            password2 = request.POST.get('password2', '')
+
+            errors = []
+            if not first_name:
+                errors.append("First name is required.")
+            if not last_name:
+                errors.append("Last name is required.")
+            if not email:
+                errors.append("Email is required.")
+            elif CustomUser.objects.filter(email=email).exists():
+                errors.append("A user with this email already exists.")
+            if not phone_number:
+                errors.append("Phone number is required.")
+            if not password:
+                errors.append("Password is required.")
+            elif len(password) < 8:
+                errors.append("Password must be at least 8 characters.")
+            elif password != password2:
+                errors.append("Passwords don't match.")
+
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+                request.session['registration_step'] = 2
+                # Store form data in session for repopulation
+                request.session['registration_form_data'] = {
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'email': email,
+                    'phone_number': phone_number,
+                }
+                return redirect('accounts:signup')
+
+            # Store validated data
+            cleaned_data = {
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': email,
+                'phone_number': phone_number,
+                'password': password,
+                'user_type': user_type,
+            }
 
             # SRT Partners don't need to pay - create account directly
             if user_type == 'partner':
-                return create_user_directly(request, form.cleaned_data)
+                # Clear registration session data
+                clear_registration_session(request)
+                return create_user_directly(request, cleaned_data)
 
+            # For other user types, create pending registration and go to payment
             # Check if email already has a pending registration
-            existing_pending = PendingRegistration.objects.filter(
-                email=form.cleaned_data['email']
-            ).first()
-
+            existing_pending = PendingRegistration.objects.filter(email=email).first()
             if existing_pending:
-                if not existing_pending.is_expired():
-                    # Redirect to payment page for existing pending registration
-                    request.session['pending_registration_id'] = existing_pending.id
-                    return redirect('accounts:registration_payment')
-                else:
-                    # Delete expired registration and continue
+                if existing_pending.is_expired():
                     existing_pending.delete()
+                else:
+                    request.session['pending_registration_id'] = existing_pending.id
+                    clear_registration_session(request)
+                    return redirect('accounts:registration_payment')
 
             # Generate unique reference
-            reference = f"reg_{uuid.uuid4().hex[:8]}"
+            reference = f"reg_{uuid.uuid4().hex[:12]}"
 
             # Create pending registration
             pending_registration = PendingRegistration.objects.create(
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name'],
-                email=form.cleaned_data['email'],
-                phone_number=form.cleaned_data['phone_number'],
-                user_type=form.cleaned_data['user_type'],
-                password_hash=make_password(form.cleaned_data['password']),
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone_number=phone_number,
+                user_type=user_type,
+                password_hash=make_password(password),
                 paystack_reference=reference,
                 amount_usd=0,
                 amount_ngn=0,
@@ -86,11 +153,28 @@ def signup(request):
             # Store pending registration ID in session
             request.session['pending_registration_id'] = pending_registration.id
 
+            # Clear registration session data
+            clear_registration_session(request)
+
             # Redirect to payment page
             return redirect('accounts:registration_payment')
-    else:
-        form = SignUpForm()
-    return render(request, 'accounts/signup.html', {'form': form})
+
+    # GET request - show appropriate step
+    context = {
+        'step': current_step,
+        'user_type': request.session.get('registration_user_type'),
+        'form_data': request.session.get('registration_form_data', {}),
+    }
+
+    return render(request, 'accounts/signup.html', context)
+
+
+def clear_registration_session(request):
+    """Clear registration-related session data."""
+    keys_to_clear = ['registration_step', 'registration_user_type', 'registration_form_data']
+    for key in keys_to_clear:
+        if key in request.session:
+            del request.session[key]
 
 
 def create_user_directly(request, cleaned_data):
