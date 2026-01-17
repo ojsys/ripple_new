@@ -41,6 +41,12 @@ def signup(request):
                 form.add_error('email', 'A user with this email already exists.')
                 return render(request, 'accounts/signup.html', {'form': form})
 
+            user_type = form.cleaned_data['user_type']
+
+            # SRT Partners don't need to pay - create account directly
+            if user_type == 'partner':
+                return create_user_directly(request, form.cleaned_data)
+
             # Check if email already has a pending registration
             existing_pending = PendingRegistration.objects.filter(
                 email=form.cleaned_data['email']
@@ -85,6 +91,47 @@ def signup(request):
     else:
         form = SignUpForm()
     return render(request, 'accounts/signup.html', {'form': form})
+
+
+def create_user_directly(request, cleaned_data):
+    """Create user account directly without payment (for SRT Partners)."""
+    try:
+        # Create the user
+        user = CustomUser.objects.create(
+            username=cleaned_data['email'],
+            email=cleaned_data['email'],
+            first_name=cleaned_data['first_name'],
+            last_name=cleaned_data['last_name'],
+            phone_number=cleaned_data['phone_number'],
+            user_type=cleaned_data['user_type'],
+            is_active=True,
+            registration_fee_paid=True,  # No fee required for partners
+        )
+        user.set_password(cleaned_data['password'])
+        user.save()
+
+        # Create partner profile
+        partner_profile = PartnerProfile.objects.create(
+            user=user,
+            partner_id=f"SRT-{uuid.uuid4().hex[:8].upper()}",
+            accreditation_status='pending',
+        )
+
+        # Create capital account
+        PartnerCapitalAccount.objects.create(
+            partner=partner_profile,
+            balance=0
+        )
+
+        # Log the user in
+        login(request, user)
+
+        messages.success(request, f"Welcome to StartUpRipple, {user.first_name}! Your SRT Partner account has been created.")
+        return redirect('srt:dashboard')
+
+    except Exception as e:
+        messages.error(request, f"Error creating account: {str(e)}")
+        return redirect('accounts:signup')
 
 
 def verify_email(request, uidb64, token):
@@ -392,6 +439,11 @@ def initialize_registration_payment(request):
                 messages.error(request, "Registration payment already initiated.")
                 return redirect('accounts:registration_payment')
 
+            # Generate a new unique reference to avoid duplicates
+            new_reference = f"reg_{uuid.uuid4().hex[:12]}"
+            pending_registration.paystack_reference = new_reference
+            pending_registration.save()
+
             # Initialize payment with Paystack
             url = "https://api.paystack.co/transaction/initialize"
             headers = {
@@ -418,8 +470,19 @@ def initialize_registration_payment(request):
                 if response_data['status']:
                     authorization_url = response_data['data']['authorization_url']
                     return redirect(authorization_url)
-
-            messages.error(request, "Payment initialization failed. Please try again.")
+                else:
+                    # Log the actual error from Paystack
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Paystack error: {response_data.get('message', 'Unknown error')}")
+                    messages.error(request, f"Payment failed: {response_data.get('message', 'Unknown error')}")
+                    return redirect('accounts:registration_payment')
+            else:
+                # Log HTTP error
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Paystack HTTP error {response.status_code}: {response.text}")
+                messages.error(request, f"Payment service error. Status: {response.status_code}")
             return redirect('accounts:registration_payment')
 
         except PendingRegistration.DoesNotExist:
