@@ -687,7 +687,7 @@
         </div>
 
         <!-- SRT Analytics Row -->
-        <div class="row g-4">
+        <div class="row g-4 mb-4">
             <!-- SRT Tokenomics -->
             <div class="col-lg-4">
                 <div class="section-card h-100">
@@ -767,6 +767,94 @@
                             <span>Pending Withdrawal Requests</span>
                             <strong>{{ srt_pending_withdrawals|intcomma }}</strong>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Engagement Row -->
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    </div>
+                    <div class="section-body">
+                        <a href="{% url 'admin:index' %}" class="quick-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Admin Panel</span>
+                        </a>
+                        <a href="{% url 'admin:accounts_customuser_changelist' %}" class="quick-link">
+                            <i class="fas fa-users"></i>
+                            <span>Manage Users</span>
+                        </a>
+                        <a href="{% url 'admin:projects_project_changelist' %}" class="quick-link">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Manage Projects</span>
+                        </a>
+                        <a href="{% url 'admin:incubator_incubatorapplication_changelist' %}" class="quick-link">
+                            <i class="fas fa-rocket"></i>
+                            <span>Review Applications</span>
+                        </a>
+                        <a href="{% url 'admin:cms_contact_changelist' %}" class="quick-link">
+                            <i class="fas fa-envelope"></i>
+                            <span>Contact Messages {% if unread_contacts %}<span class="badge bg-danger">{{ unread_contacts }}</span>{% endif %}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-bell"></i> Engagement</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">{{ newsletter_subscribers }}</div>
+                                    <div class="label">Newsletter Subs</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">{{ total_contacts }}</div>
+                                    <div class="label">Contact Messages</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mini-stat" style="background: {% if unread_contacts > 0 %}#fef2f2{% else %}#f0fdf4{% endif %};">
+                                    <div class="value" style="color: {% if unread_contacts > 0 %}#dc2626{% else %}#16a34a{% endif %};">{{ unread_contacts }}</div>
+                                    <div class="label">Unread Messages</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-file-alt"></i> Recent Applications</h3>
+                        <a href="{% url 'admin:incubator_incubatorapplication_changelist' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+                    <div class="section-body">
+                        <ul class="activity-list">
+                            {% for app in recent_applications %}
+                            <li>
+                                <div class="activity-icon" style="background: #fef3c7; color: #d97706;">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">{{ app.project }}</div>
+                                    <div class="activity-meta">{{ app.applicant_name }}</div>
+                                </div>
+                                <div class="activity-time">{{ app.application_date|timesince }} ago</div>
+                            </li>
+                            {% empty %}
+                            <li class="text-muted text-center">No recent applications</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
             </div>
