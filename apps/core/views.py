@@ -97,7 +97,7 @@ def superadmin_dashboard(request):
     total_partners = PartnerProfile.objects.count()
     verified_partners = PartnerProfile.objects.filter(accreditation_status='verified').count()
 
-    total_partner_capital = PartnerCapitalAccount.objects.aggregate(total=Sum('balance'))['total'] or 0
+    total_partner_capital = PartnerCapitalAccount.objects.aggregate(total=Sum('token_balance'))['total'] or 0
 
     # Token purchases
     total_token_transactions = TokenPurchase.objects.count()
