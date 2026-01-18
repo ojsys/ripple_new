@@ -721,34 +721,22 @@
             <div class="col-lg-4">
                 <div class="section-card">
                     <div class="section-header">
-                        <h3><i class="fas fa-chart-bar"></i> SRT Overview</h3>
+                        <h3><i class="fas fa-coins"></i> SRT Tokenomics</h3>
                     </div>
                     <div class="section-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="mini-stat">
-                                    <div class="value">{{ total_ventures }}</div>
-                                    <div class="label">Total Ventures</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="mini-stat">
-                                    <div class="value text-success">{{ active_ventures }}</div>
-                                    <div class="label">Active Ventures</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="mini-stat">
-                                    <div class="value">{{ total_token_transactions }}</div>
-                                    <div class="label">Token Transactions</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="mini-stat">
-                                    <div class="value">${{ total_partner_capital|floatformat:0|intcomma }}</div>
-                                    <div class="label">Total Capital</div>
-                                </div>
-                            </div>
+                        <div class="mini-stat mb-3">
+                            <div class="value">{{ srt_total_tokens_in_circulation|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
+                            <div class="label">Total Tokens in Circulation</div>
+                        </div>
+                        <hr>
+                        <h6 class="text-muted mb-3">Total Funds Raised from Tokens</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>USD Revenue</span>
+                            <strong class="text-success">${{ srt_total_revenue_usd|floatformat:2|intcomma }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>NGN Revenue</span>
+                            <strong class="text-success">₦{{ srt_total_revenue_ngn|floatformat:0|intcomma }}</strong>
                         </div>
                     </div>
                 </div>

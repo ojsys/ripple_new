@@ -101,9 +101,10 @@ def analytics_dashboard(request):
     total_partner_capital = PartnerCapitalAccount.objects.aggregate(total=Sum('token_balance'))['total'] or 0
 
     # Token purchases
-    total_token_transactions = TokenPurchase.objects.count()
-    total_tokens_purchased = TokenPurchase.objects.filter(status='completed').aggregate(total=Sum('tokens'))['total'] or 0
-    total_token_revenue = TokenPurchase.objects.filter(status='completed').aggregate(total=Sum('amount_usd'))['total'] or 0
+    successful_token_purchases = TokenPurchase.objects.filter(status='completed')
+    total_tokens_purchased = successful_token_purchases.aggregate(total=Sum('tokens'))['total'] or 0
+    total_token_revenue_usd = successful_token_purchases.aggregate(total=Sum('amount_usd'))['total'] or 0
+    total_token_revenue_ngn = successful_token_purchases.aggregate(total=Sum('amount_ngn'))['total'] or 0
 
     # Ventures
     total_ventures = Venture.objects.count()
@@ -188,10 +189,10 @@ def analytics_dashboard(request):
         # SRT stats
         'total_partners': total_partners,
         'verified_partners': verified_partners,
-        'total_partner_capital': total_partner_capital,
-        'total_token_transactions': total_token_transactions,
-        'total_tokens_purchased': total_tokens_purchased,
-        'total_token_revenue': total_token_revenue,
+        'srt_total_tokens_in_circulation': total_partner_capital,
+        'srt_total_tokens_purchased': total_tokens_purchased,
+        'srt_total_revenue_usd': total_token_revenue_usd,
+        'srt_total_revenue_ngn': total_token_revenue_ngn,
         'total_ventures': total_ventures,
         'active_ventures': active_ventures,
 
