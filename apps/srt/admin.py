@@ -194,9 +194,10 @@ class SRTTransactionAdmin(admin.ModelAdmin):
     partner_name.short_description = "Partner"
 
     def amount_display(self, obj):
-        if obj.amount >= 0:
-            return format_html('<span style="color:green;">+{:.2f}</span>', obj.amount)
-        return format_html('<span style="color:red;">{:.2f}</span>', obj.amount)
+        amount = float(obj.amount)
+        if amount >= 0:
+            return format_html('<span style="color:green;">+{:.2f}</span>', amount)
+        return format_html('<span style="color:red;">{:.2f}</span>', amount)
     amount_display.short_description = "Amount"
 
 
