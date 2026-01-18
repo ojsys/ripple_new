@@ -1,0 +1,867 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Superadmin Dashboard - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    .dashboard-container {
+        background: #f3f4f6;
+        min-height: 100vh;
+        padding: 100px 0 40px;
+    }
+
+    .dashboard-header {
+        margin-bottom: 32px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .dashboard-header p {
+        color: #6b7280;
+    }
+
+    /* Stat Cards */
+    .stat-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .stat-card .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 16px;
+    }
+
+    .stat-card .stat-icon.teal { background: var(--teal-50); color: var(--teal-primary); }
+    .stat-card .stat-icon.blue { background: #eff6ff; color: #3b82f6; }
+    .stat-card .stat-icon.purple { background: #f5f3ff; color: #8b5cf6; }
+    .stat-card .stat-icon.orange { background: #fff7ed; color: #f97316; }
+    .stat-card .stat-icon.green { background: #f0fdf4; color: #22c55e; }
+    .stat-card .stat-icon.pink { background: #fdf2f8; color: #ec4899; }
+    .stat-card .stat-icon.yellow { background: #fefce8; color: #eab308; }
+    .stat-card .stat-icon.red { background: #fef2f2; color: #ef4444; }
+
+    .stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-bottom: 12px;
+    }
+
+    .stat-card .stat-change {
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .stat-card .stat-change.positive { color: #22c55e; }
+    .stat-card .stat-change.negative { color: #ef4444; }
+
+    /* Section Cards */
+    .section-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+    }
+
+    .section-card .section-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .section-card .section-header h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-card .section-header h3 i {
+        color: var(--teal-primary);
+    }
+
+    .section-card .section-body {
+        padding: 24px;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+
+    /* Mini Stats */
+    .mini-stat {
+        text-align: center;
+        padding: 16px;
+        border-radius: 12px;
+        background: #f9fafb;
+    }
+
+    .mini-stat .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .mini-stat .label {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 4px;
+    }
+
+    /* Activity List */
+    .activity-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .activity-list li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .activity-list li:last-child {
+        border-bottom: none;
+    }
+
+    .activity-list .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .activity-list .activity-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .activity-list .activity-title {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .activity-list .activity-meta {
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+
+    .activity-list .activity-time {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        white-space: nowrap;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-badge.pending { background: #fef3c7; color: #d97706; }
+    .status-badge.approved { background: #d1fae5; color: #059669; }
+    .status-badge.rejected { background: #fee2e2; color: #dc2626; }
+
+    /* Progress Bars */
+    .progress-stat {
+        margin-bottom: 16px;
+    }
+
+    .progress-stat:last-child {
+        margin-bottom: 0;
+    }
+
+    .progress-stat .progress-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .progress-stat .progress-label {
+        font-size: 0.85rem;
+        color: #4b5563;
+    }
+
+    .progress-stat .progress-value {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .progress-stat .progress {
+        height: 8px;
+        border-radius: 4px;
+        background: #e5e7eb;
+    }
+
+    .progress-stat .progress-bar {
+        border-radius: 4px;
+    }
+
+    /* Quick Links */
+    .quick-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        background: #f9fafb;
+        color: #4b5563;
+        text-decoration: none;
+        transition: all 0.2s;
+        margin-bottom: 8px;
+    }
+
+    .quick-link:last-child {
+        margin-bottom: 0;
+    }
+
+    .quick-link:hover {
+        background: var(--teal-50);
+        color: var(--teal-primary);
+    }
+
+    .quick-link i {
+        font-size: 1.1rem;
+    }
+
+    /* Table Styles */
+    .data-table {
+        width: 100%;
+        font-size: 0.9rem;
+    }
+
+    .data-table th {
+        text-align: left;
+        padding: 12px 8px;
+        font-weight: 600;
+        color: #6b7280;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .data-table td {
+        padding: 12px 8px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #4b5563;
+    }
+
+    .data-table tr:hover td {
+        background: #f9fafb;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 80px 16px 32px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .chart-container {
+            height: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container-fluid px-4">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1><i class="fas fa-chart-line me-2" style="color: var(--teal-primary);"></i>Superadmin Dashboard</h1>
+            <p>Platform analytics and performance overview</p>
+        </div>
+
+        <!-- Top Stats Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon teal"><i class="fas fa-users"></i></div>
+                    <div class="stat-value">{{ total_users|intcomma }}</div>
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> {{ new_users_7d }} this week
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-project-diagram"></i></div>
+                    <div class="stat-value">{{ total_projects|intcomma }}</div>
+                    <div class="stat-label">Total Projects</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-circle"></i> {{ active_projects }} active
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-hand-holding-usd"></i></div>
+                    <div class="stat-value">${{ total_investment_amount|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Total Investments</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> ${{ investments_30d_amount|floatformat:0|intcomma }} this month
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-coins"></i></div>
+                    <div class="stat-value">${{ total_token_revenue|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Token Revenue</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-coins"></i> {{ total_tokens_purchased|floatformat:0|intcomma }} tokens sold
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Stats Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-lightbulb"></i></div>
+                    <div class="stat-value">{{ founders_count|intcomma }}</div>
+                    <div class="stat-label">Founders</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon pink"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-value">{{ investors_count|intcomma }}</div>
+                    <div class="stat-label">Investors</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon yellow"><i class="fas fa-heart"></i></div>
+                    <div class="stat-value">{{ donors_count|intcomma }}</div>
+                    <div class="stat-label">Donors</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon teal"><i class="fas fa-handshake"></i></div>
+                    <div class="stat-value">{{ total_partners|intcomma }}</div>
+                    <div class="stat-label">SRT Partners</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-check-circle"></i> {{ verified_partners }} verified
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-chart-area"></i> User Registrations (Last 30 Days)</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="chart-container">
+                            <canvas id="registrationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-pie-chart"></i> Users by Type</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="chart-container">
+                            <canvas id="userTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Row -->
+        <div class="row g-4 mb-4">
+            <!-- Funding Overview -->
+            <div class="col-lg-4">
+                <div class="section-card h-100">
+                    <div class="section-header">
+                        <h3><i class="fas fa-dollar-sign"></i> Funding Overview</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="progress-stat">
+                            <div class="progress-header">
+                                <span class="progress-label">Total Raised vs Goal</span>
+                                <span class="progress-value">${{ total_amount_raised|floatformat:0|intcomma }} / ${{ total_funding_goal|floatformat:0|intcomma }}</span>
+                            </div>
+                            <div class="progress">
+                                {% widthratio total_amount_raised total_funding_goal 100 as percent %}
+                                <div class="progress-bar bg-success" style="width: {{ percent|default:0 }}%"></div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">{{ total_investments }}</div>
+                                    <div class="label">Investments</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">{{ total_pledges }}</div>
+                                    <div class="label">Donations</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">${{ total_pledge_amount|floatformat:0|intcomma }}</div>
+                                    <div class="label">Donation Total</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">${{ total_partner_capital|floatformat:0|intcomma }}</div>
+                                    <div class="label">Partner Capital</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Status -->
+            <div class="col-lg-4">
+                <div class="section-card h-100">
+                    <div class="section-header">
+                        <h3><i class="fas fa-tasks"></i> Project Status</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="progress-stat">
+                            <div class="progress-header">
+                                <span class="progress-label">Approved</span>
+                                <span class="progress-value">{{ projects_by_status.approved|default:0 }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: {% widthratio projects_by_status.approved|default:0 total_projects 100 %}%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-stat">
+                            <div class="progress-header">
+                                <span class="progress-label">Pending</span>
+                                <span class="progress-value">{{ projects_by_status.pending|default:0 }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" style="width: {% widthratio projects_by_status.pending|default:0 total_projects 100 %}%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-stat">
+                            <div class="progress-header">
+                                <span class="progress-label">Rejected</span>
+                                <span class="progress-value">{{ projects_by_status.rejected|default:0 }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-danger" style="width: {% widthratio projects_by_status.rejected|default:0 total_projects 100 %}%"></div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h6 class="text-muted mb-3">Top Funded Projects</h6>
+                        {% for project in top_projects %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-truncate" style="max-width: 180px;">{{ project.title }}</span>
+                            <strong class="text-success">${{ project.amount_raised|floatformat:0|intcomma }}</strong>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted small">No funded projects yet</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incubator & Revenue -->
+            <div class="col-lg-4">
+                <div class="section-card h-100">
+                    <div class="section-header">
+                        <h3><i class="fas fa-rocket"></i> Incubator & Revenue</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">{{ total_applications }}</div>
+                                    <div class="label">Applications</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value text-warning">{{ pending_applications }}</div>
+                                    <div class="label">Pending Review</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-muted mb-3">Application Status</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            <span class="status-badge approved">
+                                <i class="fas fa-check"></i> {{ applications_by_status.approved|default:0 }} Approved
+                            </span>
+                            <span class="status-badge pending">
+                                <i class="fas fa-clock"></i> {{ applications_by_status.pending|default:0 }} Pending
+                            </span>
+                            <span class="status-badge rejected">
+                                <i class="fas fa-times"></i> {{ applications_by_status.rejected|default:0 }} Rejected
+                            </span>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <h6 class="text-muted mb-3">Registration Revenue</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>USD Revenue</span>
+                            <strong class="text-success">${{ registration_revenue_usd|floatformat:2|intcomma }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>NGN Revenue</span>
+                            <strong class="text-success">₦{{ registration_revenue_ngn|floatformat:0|intcomma }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity Row -->
+        <div class="row g-4 mb-4">
+            <!-- Recent Users -->
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-user-plus"></i> Recent Users</h3>
+                        <a href="{% url 'admin:accounts_customuser_changelist' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+                    <div class="section-body">
+                        <ul class="activity-list">
+                            {% for user in recent_users %}
+                            <li>
+                                <div class="activity-icon" style="background: var(--teal-50); color: var(--teal-primary);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">{{ user.get_full_name|default:user.email }}</div>
+                                    <div class="activity-meta">{{ user.get_user_type_display }}</div>
+                                </div>
+                                <div class="activity-time">{{ user.date_joined|timesince }} ago</div>
+                            </li>
+                            {% empty %}
+                            <li class="text-muted text-center">No recent users</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Investments -->
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-hand-holding-usd"></i> Recent Investments</h3>
+                        <a href="{% url 'admin:funding_investment_changelist' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+                    <div class="section-body">
+                        <ul class="activity-list">
+                            {% for inv in recent_investments %}
+                            <li>
+                                <div class="activity-icon" style="background: #d1fae5; color: #059669;">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">${{ inv.amount|floatformat:0|intcomma }}</div>
+                                    <div class="activity-meta">{{ inv.investor.email|truncatechars:20 }} → {{ inv.project.title|truncatechars:15 }}</div>
+                                </div>
+                                <div class="activity-time">{{ inv.created_at|timesince }} ago</div>
+                            </li>
+                            {% empty %}
+                            <li class="text-muted text-center">No recent investments</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Applications -->
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-file-alt"></i> Recent Applications</h3>
+                        <a href="{% url 'admin:incubator_incubatorapplication_changelist' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+                    <div class="section-body">
+                        <ul class="activity-list">
+                            {% for app in recent_applications %}
+                            <li>
+                                <div class="activity-icon" style="background: #fef3c7; color: #d97706;">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">{{ app.project }}</div>
+                                    <div class="activity-meta">{{ app.applicant_name }}</div>
+                                </div>
+                                <div class="activity-time">{{ app.application_date|timesince }} ago</div>
+                            </li>
+                            {% empty %}
+                            <li class="text-muted text-center">No recent applications</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Engagement -->
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    </div>
+                    <div class="section-body">
+                        <a href="{% url 'admin:index' %}" class="quick-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Admin Panel</span>
+                        </a>
+                        <a href="{% url 'admin:accounts_customuser_changelist' %}" class="quick-link">
+                            <i class="fas fa-users"></i>
+                            <span>Manage Users</span>
+                        </a>
+                        <a href="{% url 'admin:projects_project_changelist' %}" class="quick-link">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Manage Projects</span>
+                        </a>
+                        <a href="{% url 'admin:incubator_incubatorapplication_changelist' %}" class="quick-link">
+                            <i class="fas fa-rocket"></i>
+                            <span>Review Applications</span>
+                        </a>
+                        <a href="{% url 'admin:cms_contact_changelist' %}" class="quick-link">
+                            <i class="fas fa-envelope"></i>
+                            <span>Contact Messages {% if unread_contacts %}<span class="badge bg-danger">{{ unread_contacts }}</span>{% endif %}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-chart-bar"></i> SRT Overview</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">{{ total_ventures }}</div>
+                                    <div class="label">Total Ventures</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value text-success">{{ active_ventures }}</div>
+                                    <div class="label">Active Ventures</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">{{ total_token_transactions }}</div>
+                                    <div class="label">Token Transactions</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">${{ total_partner_capital|floatformat:0|intcomma }}</div>
+                                    <div class="label">Total Capital</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-bell"></i> Engagement</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">{{ newsletter_subscribers }}</div>
+                                    <div class="label">Newsletter Subs</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">{{ total_contacts }}</div>
+                                    <div class="label">Contact Messages</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mini-stat" style="background: {% if unread_contacts > 0 %}#fef2f2{% else %}#f0fdf4{% endif %};">
+                                    <div class="value" style="color: {% if unread_contacts > 0 %}#dc2626{% else %}#16a34a{% endif %};">{{ unread_contacts }}</div>
+                                    <div class="label">Unread Messages</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // User Registration Chart
+    const registrationData = {{ user_registration_chart|safe }};
+    const regCtx = document.getElementById('registrationChart').getContext('2d');
+    new Chart(regCtx, {
+        type: 'line',
+        data: {
+            labels: registrationData.map(d => d.date),
+            datasets: [{
+                label: 'New Users',
+                data: registrationData.map(d => d.count),
+                borderColor: '#0d9488',
+                backgroundColor: 'rgba(13, 148, 136, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#0d9488',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // User Type Pie Chart
+    const userTypeData = {{ users_by_type_chart|safe }};
+    const typeCtx = document.getElementById('userTypeChart').getContext('2d');
+    new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: userTypeData.map(d => d.type.charAt(0).toUpperCase() + d.type.slice(1)),
+            datasets: [{
+                data: userTypeData.map(d => d.count),
+                backgroundColor: [
+                    '#0d9488',
+                    '#3b82f6',
+                    '#f97316',
+                    '#8b5cf6',
+                    '#ec4899',
+                ],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                    }
+                }
+            },
+            cutout: '65%',
+        }
+    });
+});
+</script>
+{% endblock %}
