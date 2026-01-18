@@ -40,10 +40,23 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'first_name', 'last_name',
+            'fields': ('email', 'username', 'password1', 'password2', 'first_name', 'last_name',
                        'phone_number', 'user_type'),
         }),
     )
+
+    def save_model(self, request, obj, form, change):
+        """Auto-generate username from email if not provided."""
+        if not change and not obj.username:
+            # For new users, generate username from email
+            base_username = obj.email.split('@')[0]
+            username = base_username
+            counter = 1
+            while CustomUser.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            obj.username = username
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(FounderProfile)
