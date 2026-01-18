@@ -19,7 +19,7 @@ def superadmin_dashboard(request):
     from apps.accounts.models import CustomUser, FounderProfile, InvestorProfile, PartnerProfile, RegistrationPayment
     from apps.projects.models import Project
     from apps.funding.models import Investment, Pledge
-    from apps.srt.models import PartnerCapitalAccount, TokenTransaction, Venture
+    from apps.srt.models import PartnerCapitalAccount, TokenPurchase, Venture
     from apps.incubator.models import IncubatorApplication
     from apps.cms.models import Contact, NewsletterSubscriber
 
@@ -99,11 +99,10 @@ def superadmin_dashboard(request):
 
     total_partner_capital = PartnerCapitalAccount.objects.aggregate(total=Sum('balance'))['total'] or 0
 
-    # Token transactions
-    total_token_transactions = TokenTransaction.objects.count()
-    token_purchases = TokenTransaction.objects.filter(transaction_type='purchase')
-    total_tokens_purchased = token_purchases.aggregate(total=Sum('token_amount'))['total'] or 0
-    total_token_revenue = token_purchases.aggregate(total=Sum('usd_amount'))['total'] or 0
+    # Token purchases
+    total_token_transactions = TokenPurchase.objects.count()
+    total_tokens_purchased = TokenPurchase.objects.filter(status='completed').aggregate(total=Sum('tokens'))['total'] or 0
+    total_token_revenue = TokenPurchase.objects.filter(status='completed').aggregate(total=Sum('amount_usd'))['total'] or 0
 
     # Ventures
     total_ventures = Venture.objects.count()
