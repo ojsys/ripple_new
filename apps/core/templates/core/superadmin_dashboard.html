@@ -605,7 +605,8 @@
                 <div class="section-card">
                     <div class="section-header">
                         <h3><i class="fas fa-user-plus"></i> Recent Users</h3>
-                        <a href="{% url 'admin:accounts_customuser_changelist' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                        {% url 'admin:accounts_customuser_changelist' as users_url %}
+                        {% if users_url %}<a href="{{ users_url }}" class="btn btn-sm btn-outline-secondary">View All</a>{% endif %}
                     </div>
                     <div class="section-body">
                         <ul class="activity-list">
