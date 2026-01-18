@@ -68,13 +68,14 @@ def superadmin_dashboard(request):
     investments_by_status = Investment.objects.values('status').annotate(count=Count('id'))
     investments_by_status_dict = {item['status']: item['count'] for item in investments_by_status}
 
+    # Investment status choices: active, pending, completed, failed
     total_investment_amount = Investment.objects.filter(
-        status='approved'
+        status__in=['active', 'completed']
     ).aggregate(total=Sum('amount'))['total'] or 0
 
     investments_30d = Investment.objects.filter(created_at__gte=thirty_days_ago)
     investments_30d_count = investments_30d.count()
-    investments_30d_amount = investments_30d.filter(status='approved').aggregate(total=Sum('amount'))['total'] or 0
+    investments_30d_amount = investments_30d.filter(status__in=['active', 'completed']).aggregate(total=Sum('amount'))['total'] or 0
 
     # Investment trend (last 30 days)
     investment_trend = (
@@ -125,7 +126,8 @@ def superadmin_dashboard(request):
 
     # ============== ENGAGEMENT STATISTICS ==============
     total_contacts = Contact.objects.count()
-    unread_contacts = Contact.objects.filter(is_read=False).count()
+    # Contact model doesn't have is_read field, so we'll just show total
+    unread_contacts = 0  # Can be updated if is_read field is added later
     newsletter_subscribers = NewsletterSubscriber.objects.count()
 
     # ============== RECENT ACTIVITY ==============
