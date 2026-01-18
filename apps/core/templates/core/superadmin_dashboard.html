@@ -774,7 +774,7 @@
 
         <!-- Quick Actions & Engagement Row -->
         <div class="row g-4">
-            <div class="col-lg-4">
+            <div class="col-lg-6">
                 <div class="section-card">
                     <div class="section-header">
                         <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
@@ -803,7 +803,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-6">
                 <div class="section-card">
                     <div class="section-header">
                         <h3><i class="fas fa-bell"></i> Engagement</h3>
@@ -829,32 +829,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3><i class="fas fa-file-alt"></i> Recent Applications</h3>
-                        <a href="{% url 'admin:incubator_incubatorapplication_changelist' %}" class="btn btn-sm btn-outline-secondary">View All</a>
-                    </div>
-                    <div class="section-body">
-                        <ul class="activity-list">
-                            {% for app in recent_applications %}
-                            <li>
-                                <div class="activity-icon" style="background: #fef3c7; color: #d97706;">
-                                    <i class="fas fa-rocket"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-title">{{ app.project }}</div>
-                                    <div class="activity-meta">{{ app.applicant_name }}</div>
-                                </div>
-                                <div class="activity-time">{{ app.application_date|timesince }} ago</div>
-                            </li>
-                            {% empty %}
-                            <li class="text-muted text-center">No recent applications</li>
-                            {% endfor %}
-                        </ul>
                     </div>
                 </div>
             </div>
