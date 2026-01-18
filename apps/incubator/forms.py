@@ -1,9 +1,30 @@
 from django import forms
+from ckeditor.widgets import CKEditorWidget
 from .models import IncubatorApplication
 
 
 class IncubatorApplicationForm(forms.ModelForm):
     """Form for incubator/accelerator applications."""
+
+    # WYSIWYG fields for Project Details step
+    application_text = forms.CharField(
+        widget=CKEditorWidget(config_name='default'),
+        label='Describe Your Startup',
+        required=False,
+        help_text='What problem are you solving? What is your solution?'
+    )
+    traction = forms.CharField(
+        widget=CKEditorWidget(config_name='default'),
+        label='Traction & Milestones',
+        required=False,
+        help_text='Users, revenue, partnerships, awards, or any notable achievements'
+    )
+    team_background = forms.CharField(
+        widget=CKEditorWidget(config_name='default'),
+        label='Team Background',
+        required=False,
+        help_text='Who are the founders? What is your relevant experience?'
+    )
 
     class Meta:
         model = IncubatorApplication
@@ -72,9 +93,6 @@ class IncubatorApplicationForm(forms.ModelForm):
             'website': 'Website URL',
             'stage': 'Current Stage',
             'industry': 'Industry/Sector',
-            'application_text': 'Describe Your Startup',
-            'traction': 'Traction & Milestones',
-            'team_background': 'Team Background',
             'goals_for_program': 'Goals for the Program',
             'funding_raised': 'Funding Already Raised',
             'funding_needed': 'Funding You\'re Seeking',

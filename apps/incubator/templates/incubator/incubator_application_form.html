@@ -4,6 +4,7 @@
 {% block title %}LaunchPad Application - StartUpRipple{% endblock %}
 
 {% block extra_css %}
+{{ form.media }}
 <style>
     :root {
         --teal-primary: #0d9488;
@@ -15,17 +16,32 @@
 
     .application-container {
         min-height: 100vh;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         padding: 100px 0 40px;
+        position: relative;
+        background: linear-gradient(135deg, rgba(13, 148, 136, 0.85) 0%, rgba(15, 118, 110, 0.9) 100%),
+                    url('{% static "images/accelerator_side.jpg" %}') center/cover no-repeat fixed;
+    }
+
+    .application-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
     }
 
     .application-card {
         background: #fff;
         border-radius: 24px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        box-shadow: 0 25px 80px rgba(0,0,0,0.2);
         overflow: hidden;
         max-width: 800px;
         margin: 0 auto;
+        position: relative;
+        z-index: 1;
     }
 
     /* Progress Steps Header */
@@ -385,7 +401,7 @@
         to { transform: rotate(360deg); }
     }
 
-    /* Textarea for CKEditor fields */
+    /* CKEditor WYSIWYG Styling */
     .django-ckeditor-widget {
         width: 100% !important;
     }
@@ -396,8 +412,55 @@
         overflow: hidden;
     }
 
+    .cke:focus-within {
+        border-color: var(--teal-primary) !important;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    }
+
     .cke_inner {
         border: none !important;
+    }
+
+    .cke_top {
+        background: #f9fafb !important;
+        border-bottom: 1px solid #e5e7eb !important;
+    }
+
+    .cke_bottom {
+        background: #f9fafb !important;
+        border-top: 1px solid #e5e7eb !important;
+    }
+
+    .wysiwyg-field {
+        margin-bottom: 24px;
+    }
+
+    .wysiwyg-field .form-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .wysiwyg-field .form-label i {
+        color: var(--teal-primary);
+        font-size: 0.9rem;
+    }
+
+    .wysiwyg-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+
+    .wysiwyg-hint i {
+        color: var(--teal-primary);
     }
 </style>
 {% endblock %}
@@ -547,38 +610,53 @@
                     </div>
                 </div>
 
-                <!-- Step 3: Project Details -->
+                <!-- Step 3: Project Details (WYSIWYG Fields) -->
                 <div class="form-step" data-step="2">
                     <div class="step-title">
                         <h2>Project Details</h2>
-                        <p>Share more about your venture</p>
+                        <p>Share more about your venture using the rich text editor</p>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Describe Your Startup *</label>
+                    <div class="wysiwyg-field">
+                        <label class="form-label">
+                            <i class="fas fa-lightbulb"></i> Describe Your Startup *
+                        </label>
                         {{ form.application_text }}
                         {% if form.application_text.errors %}
                         <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.application_text.errors.0 }}</div>
                         {% endif %}
-                        <div class="form-text">What problem are you solving? What's your solution?</div>
+                        <div class="wysiwyg-hint">
+                            <i class="fas fa-info-circle"></i>
+                            What problem are you solving? What's your unique solution?
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Traction & Milestones</label>
+                    <div class="wysiwyg-field">
+                        <label class="form-label">
+                            <i class="fas fa-chart-line"></i> Traction & Milestones
+                        </label>
                         {{ form.traction }}
                         {% if form.traction.errors %}
                         <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.traction.errors.0 }}</div>
                         {% endif %}
-                        <div class="form-text">Users, revenue, partnerships, awards, or any notable achievements</div>
+                        <div class="wysiwyg-hint">
+                            <i class="fas fa-info-circle"></i>
+                            Users, revenue, partnerships, awards, or notable achievements
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Team Background</label>
+                    <div class="wysiwyg-field">
+                        <label class="form-label">
+                            <i class="fas fa-users"></i> Team Background
+                        </label>
                         {{ form.team_background }}
                         {% if form.team_background.errors %}
                         <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.team_background.errors.0 }}</div>
                         {% endif %}
-                        <div class="form-text">Who are the founders? What's your relevant experience?</div>
+                        <div class="wysiwyg-hint">
+                            <i class="fas fa-info-circle"></i>
+                            Who are the founders? What's your relevant experience?
+                        </div>
                     </div>
                 </div>
 
