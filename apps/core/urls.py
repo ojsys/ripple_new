@@ -4,5 +4,5 @@ from . import views
 app_name = 'core'
 
 urlpatterns = [
-    path('superadmin/', views.superadmin_dashboard, name='superadmin_dashboard'),
+    path('superadmin/', views.analytics_dashboard, name='analytics_dashboard'),
 ]

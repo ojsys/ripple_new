@@ -11,7 +11,7 @@ from django.utils import timezone
 
 
 @staff_member_required
-def superadmin_dashboard(request):
+def analytics_dashboard(request):
     """
     Comprehensive analytics dashboard for superadmins.
     Shows statistics across all platform activities.
