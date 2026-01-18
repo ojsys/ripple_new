@@ -686,40 +686,11 @@
             </div>
         </div>
 
-        <!-- Quick Actions & Engagement -->
+        <!-- SRT Analytics Row -->
         <div class="row g-4">
+            <!-- SRT Tokenomics -->
             <div class="col-lg-4">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
-                    </div>
-                    <div class="section-body">
-                        <a href="{% url 'admin:index' %}" class="quick-link">
-                            <i class="fas fa-cog"></i>
-                            <span>Admin Panel</span>
-                        </a>
-                        <a href="{% url 'admin:accounts_customuser_changelist' %}" class="quick-link">
-                            <i class="fas fa-users"></i>
-                            <span>Manage Users</span>
-                        </a>
-                        <a href="{% url 'admin:projects_project_changelist' %}" class="quick-link">
-                            <i class="fas fa-project-diagram"></i>
-                            <span>Manage Projects</span>
-                        </a>
-                        <a href="{% url 'admin:incubator_incubatorapplication_changelist' %}" class="quick-link">
-                            <i class="fas fa-rocket"></i>
-                            <span>Review Applications</span>
-                        </a>
-                        <a href="{% url 'admin:cms_contact_changelist' %}" class="quick-link">
-                            <i class="fas fa-envelope"></i>
-                            <span>Contact Messages {% if unread_contacts %}<span class="badge bg-danger">{{ unread_contacts }}</span>{% endif %}</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="section-card">
+                <div class="section-card h-100">
                     <div class="section-header">
                         <h3><i class="fas fa-coins"></i> SRT Tokenomics</h3>
                     </div>
@@ -727,6 +698,10 @@
                         <div class="mini-stat mb-3">
                             <div class="value">{{ srt_total_tokens_in_circulation|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
                             <div class="label">Total Tokens in Circulation</div>
+                        </div>
+                        <div class="mini-stat mb-3">
+                            <div class="value">{{ srt_total_tokens_purchased|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
+                            <div class="label">Total Tokens Purchased</div>
                         </div>
                         <hr>
                         <h6 class="text-muted mb-3">Total Funds Raised from Tokens</h6>
@@ -742,31 +717,55 @@
                 </div>
             </div>
 
+            <!-- SRT Investments -->
             <div class="col-lg-4">
-                <div class="section-card">
+                <div class="section-card h-100">
                     <div class="section-header">
-                        <h3><i class="fas fa-bell"></i> Engagement</h3>
+                        <h3><i class="fas fa-chart-line"></i> SRT Investments</h3>
                     </div>
                     <div class="section-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="mini-stat">
-                                    <div class="value">{{ newsletter_subscribers }}</div>
-                                    <div class="label">Newsletter Subs</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="mini-stat">
-                                    <div class="value">{{ total_contacts }}</div>
-                                    <div class="label">Contact Messages</div>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="mini-stat" style="background: {% if unread_contacts > 0 %}#fef2f2{% else %}#f0fdf4{% endif %};">
-                                    <div class="value" style="color: {% if unread_contacts > 0 %}#dc2626{% else %}#16a34a{% endif %};">{{ unread_contacts }}</div>
-                                    <div class="label">Unread Messages</div>
-                                </div>
-                            </div>
+                        <div class="mini-stat mb-3">
+                            <div class="value">{{ srt_total_tokens_invested|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
+                            <div class="label">Total Tokens in Active Investments</div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Active Investments</span>
+                            <strong>{{ srt_active_investment_count|intcomma }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Total Investments (All Time)</span>
+                            <strong>{{ srt_total_investment_count|intcomma }}</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span>Open for Investment</span>
+                            <strong class="text-success">{{ active_ventures|intcomma }} Ventures</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SRT Withdrawals -->
+            <div class="col-lg-4">
+                <div class="section-card h-100">
+                    <div class="section-header">
+                        <h3><i class="fas fa-wallet"></i> SRT Withdrawals</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="mini-stat mb-3">
+                            <div class="value">{{ srt_total_tokens_withdrawn|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
+                            <div class="label">Total Tokens Withdrawn (Completed)</div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Withdrawn (NGN)</span>
+                            <strong>₦{{ srt_total_ngn_withdrawn|floatformat:0|intcomma }}</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between text-warning">
+                            <span>Pending Withdrawal Requests</span>
+                            <strong>{{ srt_pending_withdrawals|intcomma }}</strong>
                         </div>
                     </div>
                 </div>

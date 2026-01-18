@@ -19,7 +19,7 @@ def analytics_dashboard(request):
     from apps.accounts.models import CustomUser, FounderProfile, InvestorProfile, PartnerProfile, RegistrationPayment
     from apps.projects.models import Project
     from apps.funding.models import Investment, Pledge
-    from apps.srt.models import PartnerCapitalAccount, TokenPurchase, Venture
+    from apps.srt.models import PartnerCapitalAccount, TokenPurchase, Venture, VentureInvestment, TokenWithdrawal
     from apps.incubator.models import IncubatorApplication
     from apps.cms.models import Contact, NewsletterSubscriber
 
@@ -105,6 +105,17 @@ def analytics_dashboard(request):
     total_tokens_purchased = successful_token_purchases.aggregate(total=Sum('tokens'))['total'] or 0
     total_token_revenue_usd = successful_token_purchases.aggregate(total=Sum('amount_usd'))['total'] or 0
     total_token_revenue_ngn = successful_token_purchases.aggregate(total=Sum('amount_ngn'))['total'] or 0
+
+    # Investment
+    srt_total_tokens_invested = VentureInvestment.objects.filter(status='active').aggregate(total=Sum('tokens_invested'))['total'] or 0
+    srt_active_investment_count = VentureInvestment.objects.filter(status='active').count()
+    srt_total_investment_count = VentureInvestment.objects.count()
+
+    # Withdrawal
+    successful_withdrawals = TokenWithdrawal.objects.filter(status='completed')
+    srt_total_tokens_withdrawn = successful_withdrawals.aggregate(total=Sum('tokens'))['total'] or 0
+    srt_total_ngn_withdrawn = successful_withdrawals.aggregate(total=Sum('amount_ngn'))['total'] or 0
+    srt_pending_withdrawals = TokenWithdrawal.objects.filter(status='pending').count()
 
     # Ventures
     total_ventures = Venture.objects.count()
@@ -193,6 +204,12 @@ def analytics_dashboard(request):
         'srt_total_tokens_purchased': total_tokens_purchased,
         'srt_total_revenue_usd': total_token_revenue_usd,
         'srt_total_revenue_ngn': total_token_revenue_ngn,
+        'srt_total_tokens_invested': srt_total_tokens_invested,
+        'srt_active_investment_count': srt_active_investment_count,
+        'srt_total_investment_count': srt_total_investment_count,
+        'srt_total_tokens_withdrawn': srt_total_tokens_withdrawn,
+        'srt_total_ngn_withdrawn': srt_total_ngn_withdrawn,
+        'srt_pending_withdrawals': srt_pending_withdrawals,
         'total_ventures': total_ventures,
         'active_ventures': active_ventures,
 
