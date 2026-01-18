@@ -1,23 +1,235 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Thank You for Applying{% endblock %}
+{% block title %}Application Submitted - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    .thank-you-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 100px 0 40px;
+        display: flex;
+        align-items: center;
+    }
+
+    .thank-you-card {
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        overflow: hidden;
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+        padding: 60px 48px;
+    }
+
+    .success-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--teal-primary), var(--teal-dark));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 32px;
+        animation: scaleIn 0.5s ease-out;
+    }
+
+    .success-icon i {
+        font-size: 3rem;
+        color: #fff;
+    }
+
+    @keyframes scaleIn {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.1);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .thank-you-card h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 16px;
+    }
+
+    .thank-you-card .lead {
+        color: #6b7280;
+        font-size: 1.1rem;
+        line-height: 1.7;
+        margin-bottom: 32px;
+    }
+
+    .thank-you-card .lead strong {
+        color: var(--teal-primary);
+    }
+
+    .next-steps {
+        background: var(--teal-50);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 32px;
+        text-align: left;
+    }
+
+    .next-steps h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--teal-dark);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .next-steps ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .next-steps li {
+        color: #4b5563;
+        font-size: 0.95rem;
+        padding: 8px 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .next-steps li i {
+        color: var(--teal-primary);
+        margin-top: 4px;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        padding: 14px 28px;
+        background: linear-gradient(135deg, var(--teal-primary), var(--teal-dark));
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(13, 148, 136, 0.3);
+        color: #fff;
+    }
+
+    .btn-secondary {
+        padding: 14px 28px;
+        background: #fff;
+        color: #6b7280;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--teal-primary);
+        color: var(--teal-primary);
+    }
+
+    @media (max-width: 768px) {
+        .thank-you-container {
+            padding: 80px 16px 32px;
+        }
+
+        .thank-you-card {
+            padding: 40px 24px;
+        }
+
+        .thank-you-card h1 {
+            font-size: 1.5rem;
+        }
+
+        .btn-group {
+            flex-direction: column;
+        }
+
+        .btn-group a {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container text-center py-5">
-    <div class="row justify-content-center align-items-center">
-        <div class="col-md-8">
-            <img src="{% static 'images/thank_you.svg' %}" alt="Thank You" class="img-fluid mb-4" style="max-height: 300px;">
-            
-            <h1 class="display-5 fw-bold text-success">Thank You for Your Application!</h1>
-            <p class="lead mt-3 mb-4">
-                We've received your submission for the <strong>Accelerator</strong> program. Our team will review your application and contact you if you're shortlisted.
-            </p>
+<div class="thank-you-container">
+    <div class="thank-you-card">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
 
-            <div class="d-grid gap-2 d-md-block mt-4">
-                <a href="{% url 'home' %}" class="btn btn-outline-primary me-2">Back to Home</a>
-                <a href="{% url 'incubator_accelerator_page' %}" class="btn btn-success">Explore the Program</a>
-            </div>
+        <h1>Application Submitted!</h1>
+        <p class="lead">
+            Thank you for applying to the <strong>LaunchPad Accelerator Program</strong>.
+            We're excited to learn more about your startup journey.
+        </p>
+
+        <div class="next-steps">
+            <h3><i class="fas fa-list-check"></i> What Happens Next</h3>
+            <ul>
+                <li>
+                    <i class="fas fa-envelope"></i>
+                    <span>You'll receive a confirmation email shortly</span>
+                </li>
+                <li>
+                    <i class="fas fa-search"></i>
+                    <span>Our team will review your application within 5-7 business days</span>
+                </li>
+                <li>
+                    <i class="fas fa-phone"></i>
+                    <span>If shortlisted, we'll contact you for an interview</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="btn-group">
+            <a href="{% url 'home' %}" class="btn-secondary">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+            <a href="{% url 'incubator:incubator_page' %}" class="btn-primary">
+                <i class="fas fa-rocket"></i> Explore Program
+            </a>
         </div>
     </div>
 </div>

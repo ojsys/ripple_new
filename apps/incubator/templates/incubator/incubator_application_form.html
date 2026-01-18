@@ -1,496 +1,810 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags static %}
-{% block content %}
-<div class="container-fluid py-3">
-    <div class="row justify-content-center">
-        <div class="col-12 col-lg-10 col-xl-8">
-            <div class="card shadow-lg border-0">
-                <div class="row g-0">
-                    <!-- Left Column (Image) - Hidden on mobile -->
-                    <div class="col-lg-5 d-none d-lg-block">
-                        <img src="{% static 'images/accelerator_side.jpg' %}" alt="Accelerator" class="img-fluid h-100 w-100 object-fit-cover rounded-start">
-                    </div>
-                    
-                    <!-- Right Column (Form) -->
-                    <div class="col-12 col-lg-7">
-                        <div class="card-body p-4">
-                            <h2 class="text-center mb-4">LaunchPad Application</h2>
-                            
-                            <!-- Progress Bar -->
-                            <div class="progress mb-4" style="height: 8px;">
-                                <div id="formProgress" class="progress-bar bg-success" role="progressbar" style="width: 25%"></div>
-                            </div>
-                            
-                            <!-- Display form errors if any -->
-                            {% if form.errors %}
-                                <div class="alert alert-danger" role="alert">
-                                    <h6>Please correct the following errors:</h6>
-                                    {% for field, errors in form.errors.items %}
-                                        {% for error in errors %}
-                                            <div>{{ field|title }}: {{ error }}</div>
-                                        {% endfor %}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            
-                            <!-- Display messages -->
-                            {% if messages %}
-                                {% for message in messages %}
-                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                        {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                {% endfor %}
-                            {% endif %}
-                            
-                            <form id="applicationForm" method="POST" enctype="multipart/form-data" novalidate>
-                                {% csrf_token %}
-                                
-                                <!-- Step 1: Personal Information -->
-                                <div class="form-step active">
-                                    <h4 class="mb-3">Personal Information</h4>
-                                    <div class="mb-3">
-                                        {{ form.applicant_name.label_tag }}
-                                        {{ form.applicant_name }}
-                                        {% if form.applicant_name.errors %}
-                                            <div class="text-danger small">{{ form.applicant_name.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.applicant_email.label_tag }}
-                                        {{ form.applicant_email }}
-                                        {% if form.applicant_email.errors %}
-                                            <div class="text-danger small">{{ form.applicant_email.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.applicant_phone.label_tag }}
-                                        {{ form.applicant_phone }}
-                                        {% if form.applicant_phone.errors %}
-                                            <div class="text-danger small">{{ form.applicant_phone.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.applicant_company.label_tag }}
-                                        {{ form.applicant_company }}
-                                        {% if form.applicant_company.errors %}
-                                            <div class="text-danger small">{{ form.applicant_company.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <!-- Step 2: Project Information -->
-                                <div class="form-step">
-                                    <h4 class="mb-3">Project Information</h4>
-                                    <div class="mb-3">
-                                        {{ form.project.label_tag }}
-                                        {{ form.project }}
-                                        {% if form.project.errors %}
-                                            <div class="text-danger small">{{ form.project.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.website.label_tag }}
-                                        {{ form.website }}
-                                        {% if form.website.errors %}
-                                            <div class="text-danger small">{{ form.website.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.industry.label_tag }}
-                                        {{ form.industry }}
-                                        {% if form.industry.errors %}
-                                            <div class="text-danger small">{{ form.industry.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.stage.label_tag }}
-                                        {{ form.stage }}
-                                        {% if form.stage.errors %}
-                                            <div class="text-danger small">{{ form.stage.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <!-- Step 3: Detailed Information -->
-                                <div class="form-step">
-                                    <h4 class="mb-3">Project Details</h4>
-                                    <div class="mb-3">
-                                        {{ form.application_text.label_tag }}
-                                        {{ form.application_text }}
-                                        {% if form.application_text.errors %}
-                                            <div class="text-danger small">{{ form.application_text.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.traction.label_tag }}
-                                        {{ form.traction }}
-                                        {% if form.traction.errors %}
-                                            <div class="text-danger small">{{ form.traction.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.team_background.label_tag }}
-                                        {{ form.team_background }}
-                                        {% if form.team_background.errors %}
-                                            <div class="text-danger small">{{ form.team_background.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <!-- Step 4: Goals and Funding -->
-                                <div class="form-step">
-                                    <h4 class="mb-3">Goals & Funding</h4>
-                                    <div class="mb-3">
-                                        {{ form.goals_for_program.label_tag }}
-                                        {{ form.goals_for_program }}
-                                        {% if form.goals_for_program.errors %}
-                                            <div class="text-danger small">{{ form.goals_for_program.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.funding_raised.label_tag }}
-                                        {{ form.funding_raised }}
-                                        {% if form.funding_raised.errors %}
-                                            <div class="text-danger small">{{ form.funding_raised.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.funding_needed.label_tag }}
-                                        {{ form.funding_needed }}
-                                        {% if form.funding_needed.errors %}
-                                            <div class="text-danger small">{{ form.funding_needed.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mb-3">
-                                        {{ form.pitch_deck.label_tag }}
-                                        {{ form.pitch_deck }}
-                                        {% if form.pitch_deck.errors %}
-                                            <div class="text-danger small">{{ form.pitch_deck.errors.0 }}</div>
-                                        {% endif %}
-                                        <div class="form-text">Upload your pitch deck (PDF or PowerPoint, max 10MB)</div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Navigation Buttons -->
-                                <div class="navigation-buttons d-flex justify-content-between mt-4 pt-3 border-top">
-                                    <button type="button" id="prevBtn" class="btn btn-outline-secondary px-4" style="visibility: hidden;">
-                                        <i class="fas fa-arrow-left me-2"></i>Back
-                                    </button>
-                                    <button type="button" id="nextBtn" class="btn btn-success px-4">
-                                        Next<i class="fas fa-arrow-right ms-2"></i>
-                                    </button>
-                                    <button type="submit" id="submitBtn" class="btn btn-primary px-4" style="display: none;">
-                                        <i class="fas fa-paper-plane me-2"></i>Submit Application
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+{% load static %}
 
+{% block title %}LaunchPad Application - StartUpRipple{% endblock %}
+
+{% block extra_css %}
 <style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    .application-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 100px 0 40px;
+    }
+
+    .application-card {
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        overflow: hidden;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* Progress Steps Header */
+    .progress-steps {
+        display: flex;
+        justify-content: center;
+        padding: 32px 24px;
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        position: relative;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .step:not(:last-child)::after {
+        content: '';
+        width: 50px;
+        height: 2px;
+        background: rgba(255,255,255,0.3);
+        margin: 0 12px;
+    }
+
+    .step.completed:not(:last-child)::after {
+        background: #fff;
+    }
+
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .step.active .step-circle {
+        background: #fff;
+        color: var(--teal-primary);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .step.completed .step-circle {
+        background: #fff;
+        color: var(--teal-primary);
+    }
+
+    .step-label {
+        position: absolute;
+        top: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        font-size: 0.7rem;
+        color: rgba(255,255,255,0.7);
+        font-weight: 500;
+    }
+
+    .step.active .step-label,
+    .step.completed .step-label {
+        color: #fff;
+    }
+
+    /* Card Body */
+    .application-body {
+        padding: 40px 48px;
+    }
+
+    .step-title {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .step-title h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .step-title p {
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+
+    /* Form Styles */
     .form-step {
         display: none;
-        min-height: 400px;
     }
-    
+
     .form-step.active {
         display: block;
     }
-    
-    .object-fit-cover {
-        object-fit: cover;
+
+    .form-group {
+        margin-bottom: 20px;
     }
-    
-    .card {
-        border-radius: 15px;
-        overflow: hidden;
-    }
-    
-    .progress {
-        border-radius: 10px;
-    }
-    
-    /* Django form widget styling */
-    input[type="text"], input[type="email"], input[type="tel"], 
-    input[type="url"], textarea, select, input[type="file"] {
-        width: 100% !important;
-        border-radius: 8px !important;
-        border: 2px solid #e9ecef !important;
-        padding: 12px !important;
-        font-size: 16px !important;
-        transition: border-color 0.3s ease !important;
-        box-sizing: border-box !important;
-    }
-    
-    input[type="text"]:focus, input[type="email"]:focus, 
-    input[type="tel"]:focus, input[type="url"]:focus, 
-    textarea:focus, select:focus {
-        border-color: #198754 !important;
-        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
-        outline: none !important;
-    }
-    
+
     .form-label {
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #495057;
         display: block;
-    }
-    
-    /* CKEditor styling */
-    .django-ckeditor-widget {
-        width: 100% !important;
-    }
-    
-    .cke {
-        border: 2px solid #e9ecef !important;
-        border-radius: 8px !important;
-    }
-    
-    .btn {
-        border-radius: 8px;
         font-weight: 500;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background-color: #fff;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--teal-primary);
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: #9ca3af;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-text {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 6px;
+    }
+
+    /* File Input Styling */
+    .file-upload-wrapper {
+        position: relative;
+        border: 2px dashed #e5e7eb;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
         transition: all 0.3s ease;
-        min-height: 44px;
+        cursor: pointer;
+        background: #fafafa;
     }
-    
-    .btn:hover {
-        transform: translateY(-1px);
+
+    .file-upload-wrapper:hover {
+        border-color: var(--teal-primary);
+        background: var(--teal-50);
     }
-    
-    /* Mobile optimizations */
+
+    .file-upload-wrapper input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .file-upload-icon {
+        font-size: 2rem;
+        color: var(--teal-primary);
+        margin-bottom: 8px;
+    }
+
+    .file-upload-text {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .file-upload-text strong {
+        color: var(--teal-primary);
+    }
+
+    /* Buttons */
+    .btn-primary {
+        padding: 14px 28px;
+        background: linear-gradient(135deg, var(--teal-primary), var(--teal-dark));
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(13, 148, 136, 0.3);
+    }
+
+    .btn-secondary {
+        padding: 14px 28px;
+        background: #fff;
+        color: #6b7280;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--teal-primary);
+        color: var(--teal-primary);
+    }
+
+    .btn-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    /* Error Styling */
+    .field-error {
+        color: #dc2626;
+        font-size: 0.8rem;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .form-control.is-invalid {
+        border-color: #dc2626;
+    }
+
+    /* Alert Styling */
+    .alert {
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .alert-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #16a34a;
+    }
+
+    /* Program Badge */
+    .program-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: var(--teal-50);
+        border: 1px solid var(--teal-100);
+        border-radius: 20px;
+        color: var(--teal-dark);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 24px;
+    }
+
+    /* Responsive */
     @media (max-width: 768px) {
-        .container-fluid {
-            padding: 10px;
+        .application-container {
+            padding: 80px 16px 32px;
         }
-        
-        .card-body {
-            padding: 20px !important;
+
+        .application-body {
+            padding: 32px 24px;
         }
-        
-        .form-step {
-            min-height: auto;
+
+        .form-row {
+            grid-template-columns: 1fr;
         }
-        
-        .btn {
-            min-height: 48px;
-            font-size: 16px;
+
+        .step:not(:last-child)::after {
+            width: 30px;
+            margin: 0 8px;
         }
-        
-        h2 {
-            font-size: 1.5rem;
+
+        .step-label {
+            display: none;
         }
-        
-        h4 {
-            font-size: 1.25rem;
+
+        .btn-group {
+            flex-direction: column-reverse;
+            gap: 12px;
         }
-        
-        input[type="text"], input[type="email"], input[type="tel"], 
-        input[type="url"], textarea, select, input[type="file"] {
-            font-size: 16px !important;
-            padding: 14px !important;
-        }
-        
-        textarea {
-            min-height: 120px !important;
-        }
-        
-        /* Ensure navigation is always accessible */
-        .navigation-buttons {
-            position: sticky;
-            bottom: 0;
-            background: white;
-            padding: 15px 0;
-            margin: 0 -20px;
-            padding-left: 20px;
-            padding-right: 20px;
-            border-top: 2px solid #f8f9fa;
-            z-index: 100;
-        }
-    }
-    
-    /* Very small screens */
-    @media (max-width: 480px) {
-        .navigation-buttons {
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .navigation-buttons .btn {
+
+        .btn-group .btn-secondary,
+        .btn-group .btn-primary {
             width: 100%;
         }
+
+        .progress-steps {
+            padding: 24px 16px;
+        }
     }
-    
-    /* Error styling */
-    .text-danger {
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-    }
-    
-    /* Loading state */
-    .btn.loading {
+
+    /* Loading State */
+    .btn-loading {
         position: relative;
         color: transparent !important;
+        pointer-events: none;
     }
-    
-    .btn.loading::after {
+
+    .btn-loading::after {
         content: '';
         position: absolute;
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
         top: 50%;
         left: 50%;
-        margin-left: -8px;
-        margin-top: -8px;
+        margin-left: -10px;
+        margin-top: -10px;
         border: 2px solid #ffffff;
         border-radius: 50%;
         border-top-color: transparent;
-        animation: spin 1s ease-in-out infinite;
+        animation: spin 0.8s linear infinite;
     }
-    
+
     @keyframes spin {
         to { transform: rotate(360deg); }
     }
-</style>
 
+    /* Textarea for CKEditor fields */
+    .django-ckeditor-widget {
+        width: 100% !important;
+    }
+
+    .cke {
+        border: 2px solid #e5e7eb !important;
+        border-radius: 12px !important;
+        overflow: hidden;
+    }
+
+    .cke_inner {
+        border: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="application-container">
+    <div class="application-card">
+        <!-- Progress Steps Header -->
+        <div class="progress-steps">
+            <div class="step active" data-step="0">
+                <div class="step-circle">1</div>
+                <span class="step-label">Personal Info</span>
+            </div>
+            <div class="step" data-step="1">
+                <div class="step-circle">2</div>
+                <span class="step-label">Project Info</span>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-circle">3</div>
+                <span class="step-label">Details</span>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-circle">4</div>
+                <span class="step-label">Goals</span>
+            </div>
+        </div>
+
+        <div class="application-body">
+            <!-- Program Badge -->
+            <div class="text-center">
+                <span class="program-badge">
+                    <i class="fas fa-rocket"></i> LaunchPad Accelerator Program
+                </span>
+            </div>
+
+            <!-- Error Messages -->
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    <strong>Please correct the following errors:</strong>
+                    <ul style="margin: 8px 0 0; padding-left: 20px;">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                        <li>{{ field|title }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form id="applicationForm" method="POST" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                <!-- Step 1: Personal Information -->
+                <div class="form-step active" data-step="0">
+                    <div class="step-title">
+                        <h2>Personal Information</h2>
+                        <p>Tell us about yourself</p>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" name="applicant_name" class="form-control {% if form.applicant_name.errors %}is-invalid{% endif %}"
+                                   placeholder="John Doe" value="{{ form.applicant_name.value|default:'' }}" required>
+                            {% if form.applicant_name.errors %}
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.applicant_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" name="applicant_email" class="form-control {% if form.applicant_email.errors %}is-invalid{% endif %}"
+                                   placeholder="john@example.com" value="{{ form.applicant_email.value|default:'' }}" required>
+                            {% if form.applicant_email.errors %}
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.applicant_email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Phone Number *</label>
+                            <input type="tel" name="applicant_phone" class="form-control {% if form.applicant_phone.errors %}is-invalid{% endif %}"
+                                   placeholder="+234 800 000 0000" value="{{ form.applicant_phone.value|default:'' }}" required>
+                            {% if form.applicant_phone.errors %}
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.applicant_phone.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" name="applicant_company" class="form-control"
+                                   placeholder="Company name (if registered)" value="{{ form.applicant_company.value|default:'' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Project Information -->
+                <div class="form-step" data-step="1">
+                    <div class="step-title">
+                        <h2>Project Information</h2>
+                        <p>Tell us about your startup</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Project/Startup Name *</label>
+                        <input type="text" name="project" class="form-control {% if form.project.errors %}is-invalid{% endif %}"
+                               placeholder="Your startup name" value="{{ form.project.value|default:'' }}" required>
+                        {% if form.project.errors %}
+                        <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.project.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Industry/Sector *</label>
+                            <input type="text" name="industry" class="form-control {% if form.industry.errors %}is-invalid{% endif %}"
+                                   placeholder="e.g., FinTech, AgriTech, HealthTech" value="{{ form.industry.value|default:'' }}" required>
+                            {% if form.industry.errors %}
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.industry.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Stage *</label>
+                            {{ form.stage }}
+                            {% if form.stage.errors %}
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.stage.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Website URL</label>
+                        <input type="url" name="website" class="form-control"
+                               placeholder="https://yourwebsite.com" value="{{ form.website.value|default:'' }}">
+                        <div class="form-text">Optional - include if you have a website or landing page</div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Project Details -->
+                <div class="form-step" data-step="2">
+                    <div class="step-title">
+                        <h2>Project Details</h2>
+                        <p>Share more about your venture</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Describe Your Startup *</label>
+                        {{ form.application_text }}
+                        {% if form.application_text.errors %}
+                        <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.application_text.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">What problem are you solving? What's your solution?</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Traction & Milestones</label>
+                        {{ form.traction }}
+                        {% if form.traction.errors %}
+                        <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.traction.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Users, revenue, partnerships, awards, or any notable achievements</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Team Background</label>
+                        {{ form.team_background }}
+                        {% if form.team_background.errors %}
+                        <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.team_background.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Who are the founders? What's your relevant experience?</div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Goals & Funding -->
+                <div class="form-step" data-step="3">
+                    <div class="step-title">
+                        <h2>Goals & Funding</h2>
+                        <p>What are you looking to achieve?</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Goals for the Program *</label>
+                        <textarea name="goals_for_program" class="form-control {% if form.goals_for_program.errors %}is-invalid{% endif %}"
+                                  rows="4" placeholder="What do you hope to achieve during the accelerator program?" required>{{ form.goals_for_program.value|default:'' }}</textarea>
+                        {% if form.goals_for_program.errors %}
+                        <div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ form.goals_for_program.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Funding Already Raised</label>
+                            <input type="text" name="funding_raised" class="form-control"
+                                   placeholder="e.g., $10,000 from grants" value="{{ form.funding_raised.value|default:'' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Funding You're Seeking</label>
+                            <input type="text" name="funding_needed" class="form-control"
+                                   placeholder="e.g., $50,000 seed round" value="{{ form.funding_needed.value|default:'' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Pitch Deck</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" name="pitch_deck" accept=".pdf,.ppt,.pptx">
+                            <div class="file-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                            <div class="file-upload-text">
+                                <strong>Click to upload</strong> or drag and drop<br>
+                                <small>PDF or PowerPoint (max 10MB)</small>
+                            </div>
+                        </div>
+                        <div id="fileSelected" class="form-text" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="btn-group">
+                    <button type="button" id="prevBtn" class="btn-secondary" style="visibility: hidden;">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" id="nextBtn" class="btn-primary">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button type="submit" id="submitBtn" class="btn-primary" style="display: none;">
+                        <i class="fas fa-paper-plane"></i> Submit Application
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let currentStep = 0;
-        const totalSteps = 4;
-        const steps = document.querySelectorAll(".form-step");
-        const progress = document.getElementById("formProgress");
-        const nextBtn = document.getElementById("nextBtn");
-        const prevBtn = document.getElementById("prevBtn");
-        const submitBtn = document.getElementById("submitBtn");
-        const form = document.getElementById("applicationForm");
-        
-        // Initialize
-        showStep(currentStep);
-        
-        function showStep(n) {
-            // Hide all steps
-            steps.forEach((step, index) => {
-                step.classList.toggle("active", index === n);
-            });
-            
-            // Update progress bar
-            const progressPercent = ((n + 1) / totalSteps) * 100;
-            progress.style.width = progressPercent + "%";
-            
-            // Update buttons
-            if (n === 0) {
-                prevBtn.style.visibility = "hidden";
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 0;
+    const totalSteps = 4;
+    const steps = document.querySelectorAll('.form-step');
+    const stepIndicators = document.querySelectorAll('.progress-steps .step');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('applicationForm');
+
+    function showStep(n) {
+        // Update form steps
+        steps.forEach((step, index) => {
+            step.classList.toggle('active', index === n);
+        });
+
+        // Update step indicators
+        stepIndicators.forEach((indicator, index) => {
+            indicator.classList.remove('active', 'completed');
+            if (index < n) {
+                indicator.classList.add('completed');
+                indicator.querySelector('.step-circle').innerHTML = '<i class="fas fa-check"></i>';
+            } else if (index === n) {
+                indicator.classList.add('active');
+                indicator.querySelector('.step-circle').textContent = index + 1;
             } else {
-                prevBtn.style.visibility = "visible";
+                indicator.querySelector('.step-circle').textContent = index + 1;
             }
-            
-            if (n === totalSteps - 1) {
-                // Last step
-                nextBtn.style.display = "none";
-                submitBtn.style.display = "inline-block";
-            } else {
-                nextBtn.style.display = "inline-block";
-                submitBtn.style.display = "none";
-            }
-            
-            // Scroll to top on mobile
-            if (window.innerWidth <= 768) {
-                document.querySelector('.card-body').scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'start' 
-                });
-            }
+        });
+
+        // Update buttons
+        prevBtn.style.visibility = n === 0 ? 'hidden' : 'visible';
+
+        if (n === totalSteps - 1) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'inline-flex';
+        } else {
+            nextBtn.style.display = 'inline-flex';
+            submitBtn.style.display = 'none';
         }
-        
-        function nextStep() {
+
+        // Scroll to top of form on mobile
+        if (window.innerWidth <= 768) {
+            document.querySelector('.application-card').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    }
+
+    function validateStep(stepIndex) {
+        const currentStepEl = steps[stepIndex];
+        const requiredFields = currentStepEl.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        return isValid;
+    }
+
+    nextBtn.addEventListener('click', function() {
+        if (validateStep(currentStep)) {
             if (currentStep < totalSteps - 1) {
                 currentStep++;
                 showStep(currentStep);
             }
         }
-        
-        function prevStep() {
-            if (currentStep > 0) {
-                currentStep--;
-                showStep(currentStep);
-            }
-        }
-        
-        // Event listeners
-        nextBtn.addEventListener('click', nextStep);
-        prevBtn.addEventListener('click', prevStep);
-        
-        // Handle form submission
-        form.addEventListener('submit', function(e) {
-            // Show loading state
-            submitBtn.classList.add('loading');
-            submitBtn.disabled = true;
-            
-            // Let form submit naturally
-            console.log('Form submitting...');
-        });
-        
-        // Handle enter key navigation
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.target.matches('textarea')) {
-                e.preventDefault();
-                if (currentStep < totalSteps - 1) {
-                    nextStep();
-                }
-            }
-        });
-        
-        // Auto-save form data to localStorage (optional enhancement)
-        function saveFormData() {
-            const formData = new FormData(form);
-            const data = {};
-            for (let [key, value] of formData.entries()) {
-                if (value instanceof File) continue; // Skip files
-                data[key] = value;
-            }
-            localStorage.setItem('incubatorApplicationDraft', JSON.stringify(data));
-        }
-        
-        function loadFormData() {
-            const saved = localStorage.getItem('incubatorApplicationDraft');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    Object.keys(data).forEach(key => {
-                        const field = form.querySelector(`[name="${key}"]`);
-                        if (field && field.type !== 'file') {
-                            field.value = data[key];
-                        }
-                    });
-                } catch (e) {
-                    console.log('Could not load saved form data');
-                }
-            }
-        }
-        
-        // Load saved data on page load
-        loadFormData();
-        
-        // Save data on input (debounced)
-        let saveTimeout;
-        form.addEventListener('input', function() {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(saveFormData, 1000);
-        });
-        
-        // Clear saved data on successful submission
-        form.addEventListener('submit', function() {
-            localStorage.removeItem('incubatorApplicationDraft');
-        });
-        
-        console.log('Form initialized successfully');
     });
-</script>
 
+    prevBtn.addEventListener('click', function() {
+        if (currentStep > 0) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        if (!validateStep(currentStep)) {
+            e.preventDefault();
+            return;
+        }
+        submitBtn.classList.add('btn-loading');
+        submitBtn.disabled = true;
+    });
+
+    // File upload display
+    const fileInput = document.querySelector('input[name="pitch_deck"]');
+    const fileSelected = document.getElementById('fileSelected');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileSelected.textContent = 'Selected: ' + this.files[0].name;
+                fileSelected.style.display = 'block';
+            } else {
+                fileSelected.style.display = 'none';
+            }
+        });
+    }
+
+    // Handle Enter key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.target.matches('textarea')) {
+            e.preventDefault();
+            if (currentStep < totalSteps - 1) {
+                nextBtn.click();
+            }
+        }
+    });
+
+    // Auto-save to localStorage
+    function saveFormData() {
+        const formData = new FormData(form);
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+            if (value instanceof File) continue;
+            data[key] = value;
+        }
+        localStorage.setItem('incubatorApplicationDraft', JSON.stringify(data));
+    }
+
+    function loadFormData() {
+        const saved = localStorage.getItem('incubatorApplicationDraft');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                Object.keys(data).forEach(key => {
+                    const field = form.querySelector(`[name="${key}"]`);
+                    if (field && field.type !== 'file') {
+                        field.value = data[key];
+                    }
+                });
+            } catch (e) {
+                console.log('Could not load saved form data');
+            }
+        }
+    }
+
+    loadFormData();
+
+    let saveTimeout;
+    form.addEventListener('input', function() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(saveFormData, 1000);
+    });
+
+    form.addEventListener('submit', function() {
+        localStorage.removeItem('incubatorApplicationDraft');
+    });
+
+    // Initialize
+    showStep(0);
+});
+</script>
 {% endblock %}
