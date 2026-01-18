@@ -47,6 +47,12 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
+# CSRF trusted origins - REQUIRED for Django 4.0+ with DEBUG=False
+CSRF_TRUSTED_ORIGINS = [
+    'https://staging.startupripple.com',
+    'https://www.staging.startupripple.com',
+]
+
 # Static files storage
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
@@ -69,7 +75,7 @@ LOGGING = {
             'formatter': 'verbose',
         },
         'file': {
-            'level': 'WARNING',
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': BASE_DIR / 'logs' / 'staging.log',
             'formatter': 'verbose',
@@ -80,6 +86,11 @@ LOGGING = {
             'handlers': ['console', 'file'],
             'level': 'WARNING',
             'propagate': True,
+        },
+        'apps.accounts': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
         },
     },
 }

@@ -2,9 +2,12 @@
 Account views for user authentication, registration, and profile management.
 """
 import uuid
+import logging
 from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
+
+logger = logging.getLogger(__name__)
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
@@ -33,6 +36,8 @@ from apps.srt.models import PartnerCapitalAccount
 
 def signup(request):
     """Handle progressive multi-step user registration."""
+    logger.info(f"Signup view accessed - Method: {request.method}")
+
     # Handle reset request (Back button)
     if request.GET.get('reset') == '1':
         clear_registration_session(request)
@@ -40,9 +45,11 @@ def signup(request):
 
     # Get current step from session or default to 1
     current_step = request.session.get('registration_step', 1)
+    logger.info(f"Current registration step: {current_step}")
 
     if request.method == 'POST':
         step = request.POST.get('step', '1')
+        logger.info(f"POST received for step: {step}")
 
         # Step 1: User type selection
         if step == '1':
@@ -113,6 +120,7 @@ def signup(request):
 
             # SRT Partners don't need to pay - create account directly
             if user_type == 'partner':
+                logger.info(f"Creating SRT Partner account directly for: {email}")
                 # Clear registration session data
                 clear_registration_session(request)
                 return create_user_directly(request, cleaned_data)
@@ -179,6 +187,7 @@ def clear_registration_session(request):
 
 def create_user_directly(request, cleaned_data):
     """Create user account directly without payment (for SRT Partners)."""
+    logger.info(f"create_user_directly called for: {cleaned_data.get('email')}")
     try:
         # Create the user
         user = CustomUser.objects.create(
@@ -209,11 +218,13 @@ def create_user_directly(request, cleaned_data):
 
         # Log the user in
         login(request, user)
+        logger.info(f"SRT Partner account created and logged in: {user.email}")
 
         messages.success(request, f"Welcome to StartUpRipple, {user.first_name}! Your SRT Partner account has been created.")
         return redirect('srt:dashboard')
 
     except Exception as e:
+        logger.error(f"Error creating SRT Partner account: {str(e)}", exc_info=True)
         messages.error(request, f"Error creating account: {str(e)}")
         return redirect('accounts:signup')
 
@@ -582,7 +593,10 @@ def initialize_registration_payment(request):
 def registration_payment_callback(request):
     """Handle payment callback from Paystack."""
     reference = request.GET.get('reference')
+    logger.info(f"Payment callback received with reference: {reference}")
+
     if not reference:
+        logger.warning("Payment callback received without reference")
         messages.error(request, "Invalid payment reference.")
         return redirect('accounts:signup')
 
@@ -604,9 +618,12 @@ def registration_payment_callback(request):
 
         if response.status_code == 200:
             response_data = response.json()
+            logger.info(f"Paystack verification response: {response_data.get('status')}, payment status: {response_data.get('data', {}).get('status')}")
+
             if response_data['status'] and response_data['data']['status'] == 'success':
                 pending_registration.payment_status = 'successful'
                 pending_registration.save()
+                logger.info(f"Payment verified for: {pending_registration.email}")
 
                 # Create the actual user account
                 user = CustomUser.objects.create(
@@ -652,6 +669,7 @@ def registration_payment_callback(request):
                     del request.session['pending_registration_id']
 
                 login(request, user)
+                logger.info(f"User created and logged in after payment: {user.email}, type: {user.user_type}")
 
                 messages.success(
                     request,
@@ -662,15 +680,19 @@ def registration_payment_callback(request):
             else:
                 pending_registration.payment_status = 'failed'
                 pending_registration.save()
+                logger.warning(f"Payment verification failed for {pending_registration.email}: {response_data}")
                 messages.error(request, "Payment verification failed. Please try again.")
                 return redirect('accounts:registration_payment')
         else:
+            logger.error(f"Paystack API error: {response.status_code} - {response.text}")
             messages.error(request, "Payment verification failed. Please try again.")
             return redirect('accounts:registration_payment')
 
     except PendingRegistration.DoesNotExist:
+        logger.warning(f"PendingRegistration not found for reference: {reference}")
         messages.error(request, "Invalid payment reference.")
         return redirect('accounts:signup')
     except Exception as e:
+        logger.error(f"Error processing payment callback: {str(e)}", exc_info=True)
         messages.error(request, f"Error processing payment: {str(e)}")
         return redirect('accounts:registration_payment')
