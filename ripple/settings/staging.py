@@ -47,6 +47,11 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
+# Proxy settings - Required when behind a reverse proxy (nginx/Apache/Passenger)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
 # CSRF trusted origins - REQUIRED for Django 4.0+ with DEBUG=False
 CSRF_TRUSTED_ORIGINS = [
     'https://staging.startupripple.com',
