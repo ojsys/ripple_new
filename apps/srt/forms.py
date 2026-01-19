@@ -22,7 +22,7 @@ class WithdrawalForm(forms.ModelForm):
     )
 
     bank_name = forms.ChoiceField(
-        choices=[('', 'Select Your Bank')] + list(TokenWithdrawal.BANK_CHOICES),
+        choices=[('', 'Select Your Bank')] + TokenWithdrawal.BANK_CHOICES_GROUPED,
         widget=forms.Select(attrs={
             'class': 'form-select form-select-lg',
         })

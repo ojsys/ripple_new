@@ -160,26 +160,45 @@
     </div>
 </div>
 
-<!-- Filter Buttons -->
-<div class="d-flex gap-2 mb-4 flex-wrap">
-    <a href="{% url 'srt:my_withdrawals' %}" class="filter-btn {% if not current_status %}active{% endif %}">
-        All
-    </a>
-    <a href="{% url 'srt:my_withdrawals' %}?status=pending" class="filter-btn {% if current_status == 'pending' %}active{% endif %}">
-        Pending
-    </a>
-    <a href="{% url 'srt:my_withdrawals' %}?status=approved" class="filter-btn {% if current_status == 'approved' %}active{% endif %}">
-        Approved
-    </a>
-    <a href="{% url 'srt:my_withdrawals' %}?status=processing" class="filter-btn {% if current_status == 'processing' %}active{% endif %}">
-        Processing
-    </a>
-    <a href="{% url 'srt:my_withdrawals' %}?status=completed" class="filter-btn {% if current_status == 'completed' %}active{% endif %}">
-        Completed
-    </a>
-    <a href="{% url 'srt:my_withdrawals' %}?status=rejected" class="filter-btn {% if current_status == 'rejected' %}active{% endif %}">
-        Rejected
-    </a>
+<!-- Filter Buttons and Export -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'srt:my_withdrawals' %}" class="filter-btn {% if not current_status %}active{% endif %}">
+            All
+        </a>
+        <a href="{% url 'srt:my_withdrawals' %}?status=pending" class="filter-btn {% if current_status == 'pending' %}active{% endif %}">
+            Pending
+        </a>
+        <a href="{% url 'srt:my_withdrawals' %}?status=approved" class="filter-btn {% if current_status == 'approved' %}active{% endif %}">
+            Approved
+        </a>
+        <a href="{% url 'srt:my_withdrawals' %}?status=processing" class="filter-btn {% if current_status == 'processing' %}active{% endif %}">
+            Processing
+        </a>
+        <a href="{% url 'srt:my_withdrawals' %}?status=completed" class="filter-btn {% if current_status == 'completed' %}active{% endif %}">
+            Completed
+        </a>
+        <a href="{% url 'srt:my_withdrawals' %}?status=rejected" class="filter-btn {% if current_status == 'rejected' %}active{% endif %}">
+            Rejected
+        </a>
+    </div>
+    <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-download me-1"></i>Export
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" href="{% url 'srt:export_withdrawals_excel' %}">
+                    <i class="fas fa-file-excel me-2 text-success"></i>Export to Excel
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="{% url 'srt:export_withdrawals_csv' %}">
+                    <i class="fas fa-file-csv me-2 text-primary"></i>Export to CSV
+                </a>
+            </li>
+        </ul>
+    </div>
 </div>
 
 <!-- Withdrawals Table -->

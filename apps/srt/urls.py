@@ -19,6 +19,8 @@ urlpatterns = [
     # Token Withdrawal
     path('withdraw/', views.withdraw_tokens, name='withdraw_tokens'),
     path('withdrawals/', views.my_withdrawals, name='my_withdrawals'),
+    path('withdrawals/export/excel/', views.export_my_withdrawals_excel, name='export_withdrawals_excel'),
+    path('withdrawals/export/csv/', views.export_my_withdrawals_csv, name='export_withdrawals_csv'),
     path('withdrawal/<str:reference>/', views.withdrawal_detail, name='withdrawal_detail'),
     path('withdrawal/<str:reference>/cancel/', views.cancel_withdrawal, name='cancel_withdrawal'),
 
@@ -34,6 +36,8 @@ urlpatterns = [
 
     # Transactions
     path('transactions/', views.transaction_history, name='transaction_history'),
+    path('transactions/export/excel/', views.export_my_transactions_excel, name='export_transactions_excel'),
+    path('transactions/export/csv/', views.export_my_transactions_csv, name='export_transactions_csv'),
 
     # Profile
     path('profile/', views.partner_profile, name='partner_profile'),

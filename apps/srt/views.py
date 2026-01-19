@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.db.models import Sum, Q
@@ -10,6 +10,11 @@ from django.conf import settings
 from decimal import Decimal
 import uuid
 import requests
+import csv
+from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
 
 from .models import (
     TokenPackage, PartnerCapitalAccount, Venture,
@@ -827,3 +832,215 @@ def modify_investment(request, reference):
         'potential_return': potential_return,
     }
     return render(request, 'srt/modify_investment.html', context)
+
+
+# ============================================
+# EXPORT FUNCTIONS
+# ============================================
+
+def create_excel_workbook(title, headers, data, column_widths=None):
+    """Helper function to create styled Excel workbook"""
+    wb = Workbook()
+    ws = wb.active
+    ws.title = title
+
+    # Define styles
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="1E3A5F", end_color="1E3A5F", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    thin_border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+
+    # Write headers
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+        cell.border = thin_border
+
+    # Write data
+    for row_num, row_data in enumerate(data, 2):
+        for col_num, value in enumerate(row_data, 1):
+            cell = ws.cell(row=row_num, column=col_num, value=value)
+            cell.border = thin_border
+            cell.alignment = Alignment(vertical="center")
+
+    # Set column widths
+    if column_widths:
+        for col, width in enumerate(column_widths, 1):
+            ws.column_dimensions[get_column_letter(col)].width = width
+    else:
+        # Auto-fit columns (approximate)
+        for col in range(1, len(headers) + 1):
+            ws.column_dimensions[get_column_letter(col)].width = 18
+
+    return wb
+
+
+@login_required
+@partner_required
+def export_my_withdrawals_excel(request):
+    """Export user's withdrawals to Excel"""
+    withdrawals = TokenWithdrawal.objects.filter(partner=request.user).order_by('-created_at')
+
+    headers = [
+        'Reference', 'Tokens (SRT)', 'Fee (NGN)', 'Amount (NGN)',
+        'Bank Name', 'Account Number', 'Account Name',
+        'Status', 'Created Date', 'Processed Date', 'Completed Date'
+    ]
+
+    data = []
+    for w in withdrawals:
+        data.append([
+            w.reference,
+            float(w.tokens),
+            float(w.fee) if w.fee else 0,
+            float(w.amount_ngn),
+            w.get_bank_name_display(),
+            w.account_number,
+            w.account_name,
+            w.get_status_display(),
+            w.created_at.strftime('%Y-%m-%d %H:%M') if w.created_at else '',
+            w.processed_at.strftime('%Y-%m-%d %H:%M') if w.processed_at else '',
+            w.completed_at.strftime('%Y-%m-%d %H:%M') if w.completed_at else '',
+        ])
+
+    wb = create_excel_workbook(
+        'My Withdrawals',
+        headers,
+        data,
+        [15, 15, 15, 15, 25, 15, 25, 15, 18, 18, 18]
+    )
+
+    # Create response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"my_withdrawals_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    # Save workbook to response
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    response.write(buffer.getvalue())
+
+    return response
+
+
+@login_required
+@partner_required
+def export_my_transactions_excel(request):
+    """Export user's transactions to Excel"""
+    account = get_or_create_capital_account(request.user)
+    transactions = SRTTransaction.objects.filter(account=account).order_by('-created_at')
+
+    headers = [
+        'Reference', 'Type', 'Amount (SRT)', 'Balance After',
+        'Venture', 'Description', 'Payment Reference', 'Date'
+    ]
+
+    data = []
+    for t in transactions:
+        data.append([
+            t.reference,
+            t.get_transaction_type_display(),
+            float(t.amount),
+            float(t.balance_after),
+            t.venture.title if t.venture else '',
+            t.description or '',
+            t.payment_reference or '',
+            t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '',
+        ])
+
+    wb = create_excel_workbook(
+        'My Transactions',
+        headers,
+        data,
+        [18, 18, 15, 15, 25, 40, 20, 18]
+    )
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"my_transactions_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    response.write(buffer.getvalue())
+
+    return response
+
+
+@login_required
+@partner_required
+def export_my_transactions_csv(request):
+    """Export user's transactions to CSV"""
+    account = get_or_create_capital_account(request.user)
+    transactions = SRTTransaction.objects.filter(account=account).order_by('-created_at')
+
+    response = HttpResponse(content_type='text/csv')
+    filename = f"my_transactions_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Reference', 'Type', 'Amount (SRT)', 'Balance After',
+        'Venture', 'Description', 'Payment Reference', 'Date'
+    ])
+
+    for t in transactions:
+        writer.writerow([
+            t.reference,
+            t.get_transaction_type_display(),
+            float(t.amount),
+            float(t.balance_after),
+            t.venture.title if t.venture else '',
+            t.description or '',
+            t.payment_reference or '',
+            t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '',
+        ])
+
+    return response
+
+
+@login_required
+@partner_required
+def export_my_withdrawals_csv(request):
+    """Export user's withdrawals to CSV"""
+    withdrawals = TokenWithdrawal.objects.filter(partner=request.user).order_by('-created_at')
+
+    response = HttpResponse(content_type='text/csv')
+    filename = f"my_withdrawals_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Reference', 'Tokens (SRT)', 'Fee (NGN)', 'Amount (NGN)',
+        'Bank Name', 'Account Number', 'Account Name',
+        'Status', 'Created Date', 'Processed Date', 'Completed Date'
+    ])
+
+    for w in withdrawals:
+        writer.writerow([
+            w.reference,
+            float(w.tokens),
+            float(w.fee) if w.fee else 0,
+            float(w.amount_ngn),
+            w.get_bank_name_display(),
+            w.account_number,
+            w.account_name,
+            w.get_status_display(),
+            w.created_at.strftime('%Y-%m-%d %H:%M') if w.created_at else '',
+            w.processed_at.strftime('%Y-%m-%d %H:%M') if w.processed_at else '',
+            w.completed_at.strftime('%Y-%m-%d %H:%M') if w.completed_at else '',
+        ])
+
+    return response

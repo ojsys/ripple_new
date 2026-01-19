@@ -25,19 +25,38 @@
     </div>
 </div>
 
-<!-- Filters -->
+<!-- Filters and Export -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-2">
-        <div class="d-flex gap-2 flex-wrap align-items-center">
-            <span class="text-muted me-2">Filter by type:</span>
-            <a href="{% url 'srt:transaction_history' %}" class="btn btn-sm {% if not current_type %}btn-success{% else %}btn-outline-secondary{% endif %}">
-                All
-            </a>
-            {% for type_code, type_name in transaction_types %}
-            <a href="{% url 'srt:transaction_history' %}?type={{ type_code }}" class="btn btn-sm {% if current_type == type_code %}btn-success{% else %}btn-outline-secondary{% endif %}">
-                {{ type_name }}
-            </a>
-            {% endfor %}
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <span class="text-muted me-2">Filter by type:</span>
+                <a href="{% url 'srt:transaction_history' %}" class="btn btn-sm {% if not current_type %}btn-success{% else %}btn-outline-secondary{% endif %}">
+                    All
+                </a>
+                {% for type_code, type_name in transaction_types %}
+                <a href="{% url 'srt:transaction_history' %}?type={{ type_code }}" class="btn btn-sm {% if current_type == type_code %}btn-success{% else %}btn-outline-secondary{% endif %}">
+                    {{ type_name }}
+                </a>
+                {% endfor %}
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'srt:export_transactions_excel' %}">
+                            <i class="fas fa-file-excel me-2 text-success"></i>Export to Excel
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'srt:export_transactions_csv' %}">
+                            <i class="fas fa-file-csv me-2 text-primary"></i>Export to CSV
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>

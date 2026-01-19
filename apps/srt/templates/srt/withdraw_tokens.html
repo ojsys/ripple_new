@@ -180,7 +180,7 @@
                         </div>
                         <div class="col-md-6 text-md-end">
                             <small class="text-muted d-block mb-1">Locked in Investments</small>
-                            <div class="text-muted">{{ account.locked_tokens|floatformat:2 }} SRT</div>
+                            <div class="text-muted">{{ account.locked_tokens|floatformat:2|intcomma }} SRT</div>
                         </div>
                     </div>
                 </div>
@@ -191,7 +191,7 @@
                         <i class="fas fa-info-circle text-warning me-3 fa-lg"></i>
                         <div>
                             <strong>Conversion Rate:</strong> 1 SRT = 2,000 NGN<br>
-                            <small class="text-muted">A 4% fee will be deducted from the NGN amount.</small>
+                            <small class="text-muted">Withdrawals are typically processed within 24-48 hours</small>
                         </div>
                     </div>
                 </div>
@@ -206,20 +206,9 @@
                         {% if form.tokens.errors %}
                         <div class="text-danger small mt-1">{{ form.tokens.errors.0 }}</div>
                         {% endif %}
-                        <div class="mt-2 p-3 bg-light rounded">
-                            <div class="d-flex justify-content-between">
-                                <small class="text-muted">Gross Amount:</small>
-                                <span id="ngn-preview">0 NGN</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <small class="text-muted">Fee (4%):</small>
-                                <span id="fee-preview" class="text-danger">- 0 NGN</span>
-                            </div>
-                            <hr class="my-1">
-                            <div class="d-flex justify-content-between">
-                                <strong class="text-muted">You'll receive:</strong>
-                                <strong id="final-preview">0 NGN</strong>
-                            </div>
+                        <div class="mt-2">
+                            <small class="text-muted">You'll receive: </small>
+                            <span id="ngn-preview">0 NGN</span>
                         </div>
                     </div>
 
@@ -288,7 +277,7 @@
                     </li>
                     <li class="mb-0">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <strong>Fee:</strong> 4% of withdrawal amount
+                        <strong>No fees</strong> on withdrawals
                     </li>
                 </ul>
             </div>
@@ -326,25 +315,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     const tokensInput = document.querySelector('[name="tokens"]');
     const ngnPreview = document.getElementById('ngn-preview');
-    const feePreview = document.getElementById('fee-preview');
-    const finalPreview = document.getElementById('final-preview');
 
-    if (tokensInput && ngnPreview && feePreview && finalPreview) {
+    if (tokensInput && ngnPreview) {
         tokensInput.addEventListener('input', function() {
             const tokens = parseFloat(this.value) || 0;
-            const grossNgn = tokens * 2000;
-            const fee = grossNgn * 0.04;
-            const finalNgn = grossNgn - fee;
-
-            const formatter = new Intl.NumberFormat('en-NG', {
+            const ngn = tokens * 2000;
+            ngnPreview.textContent = new Intl.NumberFormat('en-NG', {
                 style: 'currency',
                 currency: 'NGN',
-                minimumFractionDigits: 2
-            });
-
-            ngnPreview.textContent = formatter.format(grossNgn);
-            feePreview.textContent = `- ${formatter.format(fee)}`;
-            finalPreview.textContent = formatter.format(finalNgn);
+                minimumFractionDigits: 0
+            }).format(ngn);
         });
     }
 });

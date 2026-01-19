@@ -576,24 +576,129 @@ class TokenWithdrawal(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
-    BANK_CHOICES = [
+    # Commercial Banks
+    COMMERCIAL_BANKS = [
         ('access', 'Access Bank'),
-        ('gtbank', 'GTBank'),
-        ('first', 'First Bank'),
-        ('uba', 'UBA'),
-        ('zenith', 'Zenith Bank'),
-        ('stanbic', 'Stanbic IBTC'),
-        ('sterling', 'Sterling Bank'),
-        ('union', 'Union Bank'),
-        ('wema', 'Wema Bank'),
+        ('citibank', 'Citibank Nigeria'),
+        ('ecobank', 'Ecobank Nigeria'),
         ('fidelity', 'Fidelity Bank'),
-        ('fcmb', 'FCMB'),
-        ('polaris', 'Polaris Bank'),
-        ('keystone', 'Keystone Bank'),
-        ('ecobank', 'Ecobank'),
+        ('first', 'First Bank of Nigeria'),
+        ('fcmb', 'First City Monument Bank (FCMB)'),
+        ('globus', 'Globus Bank'),
+        ('gtbank', 'Guaranty Trust Bank (GTBank)'),
         ('heritage', 'Heritage Bank'),
-        ('other', 'Other'),
+        ('keystone', 'Keystone Bank'),
+        ('optimus', 'Optimus Bank'),
+        ('polaris', 'Polaris Bank'),
+        ('providus', 'Providus Bank'),
+        ('stanbic', 'Stanbic IBTC Bank'),
+        ('standard_chartered', 'Standard Chartered Bank'),
+        ('sterling', 'Sterling Bank'),
+        ('suntrust', 'SunTrust Bank'),
+        ('titan', 'Titan Trust Bank'),
+        ('union', 'Union Bank of Nigeria'),
+        ('uba', 'United Bank for Africa (UBA)'),
+        ('unity', 'Unity Bank'),
+        ('wema', 'Wema Bank'),
+        ('zenith', 'Zenith Bank'),
     ]
+
+    # Non-Interest (Islamic) Banks
+    NON_INTEREST_BANKS = [
+        ('jaiz', 'Jaiz Bank'),
+        ('taj', 'TAJ Bank'),
+        ('lotus', 'Lotus Bank'),
+    ]
+
+    # Payment Service Banks (PSBs)
+    PAYMENT_SERVICE_BANKS = [
+        ('9psb', '9 Payment Service Bank (9PSB)'),
+        ('hope_psb', 'Hope PSB'),
+        ('kuda', 'Kuda Bank'),
+        ('money_master', 'Money Master PSB'),
+        ('moniepoint', 'Moniepoint MFB'),
+        ('opay', 'OPay Digital Services'),
+        ('palmpay', 'PalmPay'),
+        ('paga', 'Paga'),
+    ]
+
+    # Microfinance Banks (MFBs)
+    MICROFINANCE_BANKS = [
+        ('ab_mfb', 'AB Microfinance Bank'),
+        ('accion_mfb', 'Accion Microfinance Bank'),
+        ('addosser_mfb', 'ADDOSSER Microfinance Bank'),
+        ('aella_mfb', 'Aella Microfinance Bank'),
+        ('alat_mfb', 'ALAT by Wema'),
+        ('balogun_gambari_mfb', 'Balogun Gambari Microfinance Bank'),
+        ('bowen_mfb', 'Bowen Microfinance Bank'),
+        ('branch_mfb', 'Branch International'),
+        ('brightway_mfb', 'Brightway Microfinance Bank'),
+        ('carbon', 'Carbon (Paylater)'),
+        ('cellulant_mfb', 'Cellulant'),
+        ('chipper_cash', 'Chipper Cash'),
+        ('corestep_mfb', 'Corestep Microfinance Bank'),
+        ('covenant_mfb', 'Covenant Microfinance Bank'),
+        ('eyowo', 'Eyowo'),
+        ('fairmoney', 'FairMoney Microfinance Bank'),
+        ('fbn_quest_mfb', 'FBNQuest Microfinance Bank'),
+        ('finca_mfb', 'FINCA Microfinance Bank'),
+        ('firmus_mfb', 'Firmus Microfinance Bank'),
+        ('first_royal_mfb', 'First Royal Microfinance Bank'),
+        ('flutterwave', 'Flutterwave'),
+        ('fsdh_mfb', 'FSDH Merchant Bank'),
+        ('gomoney', 'GoMoney'),
+        ('grassroots_mfb', 'Grassroots Microfinance Bank'),
+        ('grooming_mfb', 'Grooming Microfinance Bank'),
+        ('hackman_mfb', 'Hackman Microfinance Bank'),
+        ('hasal_mfb', 'Hasal Microfinance Bank'),
+        ('ibile_mfb', 'IBILE Microfinance Bank'),
+        ('infinity_mfb', 'Infinity Microfinance Bank'),
+        ('kredi_mfb', 'Kredi Microfinance Bank'),
+        ('lapo_mfb', 'LAPO Microfinance Bank'),
+        ('mainstreet_mfb', 'Mainstreet Microfinance Bank'),
+        ('mint_mfb', 'Mint Finex MFB'),
+        ('mutual_trust_mfb', 'Mutual Trust Microfinance Bank'),
+        ('navy_mfb', 'Navy Microfinance Bank'),
+        ('npf_mfb', 'NPF Microfinance Bank'),
+        ('parallex_mfb', 'Parallex Bank'),
+        ('peace_mfb', 'Peace Microfinance Bank'),
+        ('petra_mfb', 'Petra Microfinance Bank'),
+        ('piggyvest', 'PiggyVest'),
+        ('quickteller', 'Quickteller (Interswitch)'),
+        ('rand_mfb', 'Rand Merchant Bank'),
+        ('regent_mfb', 'Regent Microfinance Bank'),
+        ('renmoney', 'Renmoney Microfinance Bank'),
+        ('rubies_mfb', 'Rubies Microfinance Bank'),
+        ('safe_haven_mfb', 'Safe Haven Microfinance Bank'),
+        ('sparkle_mfb', 'Sparkle Microfinance Bank'),
+        ('tcf_mfb', 'TCF Microfinance Bank'),
+        ('trident_mfb', 'Trident Microfinance Bank'),
+        ('unical_mfb', 'Unical Microfinance Bank'),
+        ('unilag_mfb', 'Unilag Microfinance Bank'),
+        ('vfd_mfb', 'VFD Microfinance Bank'),
+        ('zedvance_mfb', 'Zedvance'),
+    ]
+
+    # Flat list of all bank choices for model validation
+    ALL_BANK_CHOICES = (
+        COMMERCIAL_BANKS +
+        NON_INTEREST_BANKS +
+        PAYMENT_SERVICE_BANKS +
+        MICROFINANCE_BANKS +
+        [('other', 'Other (Please specify in notes)')]
+    )
+
+    # Grouped choices for forms (with optgroups)
+    BANK_CHOICES_GROUPED = [
+        ('Commercial Banks', COMMERCIAL_BANKS),
+        ('Non-Interest (Islamic) Banks', NON_INTEREST_BANKS),
+        ('Payment Service Banks (PSBs)', PAYMENT_SERVICE_BANKS),
+        ('Microfinance Banks', MICROFINANCE_BANKS),
+        ('Other', [('other', 'Other (Please specify in notes)')]),
+    ]
+
+    # Combined flat choices for the model field
+    BANK_CHOICES = ALL_BANK_CHOICES
 
     partner = models.ForeignKey(
         settings.AUTH_USER_MODEL,

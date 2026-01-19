@@ -1,6 +1,13 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
+from django.http import HttpResponse
+from django.utils import timezone
+import csv
+from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
 from .models import (
     TokenPackage, PartnerCapitalAccount, Venture,
     VentureInvestment, SRTTransaction, TokenPurchase, TokenWithdrawal
@@ -207,6 +214,98 @@ class SRTTransactionAdmin(admin.ModelAdmin):
             return format_html('<span style="color:red;">{}</span>', formatted_amount)
     amount_display.short_description = "Amount"
 
+    actions = ['export_to_excel', 'export_to_csv']
+
+    def export_to_excel(self, request, queryset):
+        """Export selected transactions to Excel"""
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Transactions"
+
+        # Styles
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="1E3A5F", end_color="1E3A5F", fill_type="solid")
+        thin_border = Border(
+            left=Side(style='thin'), right=Side(style='thin'),
+            top=Side(style='thin'), bottom=Side(style='thin')
+        )
+
+        headers = [
+            'Reference', 'Partner Name', 'Partner Email', 'Type', 'Amount (SRT)',
+            'Balance After', 'Venture', 'Description', 'Payment Reference', 'Date'
+        ]
+
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = thin_border
+
+        for row_num, t in enumerate(queryset.order_by('-created_at'), 2):
+            row_data = [
+                t.reference,
+                t.account.partner.get_full_name() or t.account.partner.email,
+                t.account.partner.email,
+                t.get_transaction_type_display(),
+                float(t.amount),
+                float(t.balance_after),
+                t.venture.title if t.venture else '',
+                t.description or '',
+                t.payment_reference or '',
+                t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '',
+            ]
+            for col_num, value in enumerate(row_data, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.border = thin_border
+
+        # Set column widths
+        widths = [18, 20, 25, 18, 15, 15, 25, 40, 20, 18]
+        for col, width in enumerate(widths, 1):
+            ws.column_dimensions[get_column_letter(col)].width = width
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        filename = f"transactions_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        response.write(buffer.getvalue())
+
+        return response
+    export_to_excel.short_description = "Export selected to Excel"
+
+    def export_to_csv(self, request, queryset):
+        """Export selected transactions to CSV"""
+        response = HttpResponse(content_type='text/csv')
+        filename = f"transactions_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        writer = csv.writer(response)
+        writer.writerow([
+            'Reference', 'Partner Name', 'Partner Email', 'Type', 'Amount (SRT)',
+            'Balance After', 'Venture', 'Description', 'Payment Reference', 'Date'
+        ])
+
+        for t in queryset.order_by('-created_at'):
+            writer.writerow([
+                t.reference,
+                t.account.partner.get_full_name() or t.account.partner.email,
+                t.account.partner.email,
+                t.get_transaction_type_display(),
+                float(t.amount),
+                float(t.balance_after),
+                t.venture.title if t.venture else '',
+                t.description or '',
+                t.payment_reference or '',
+                t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '',
+            ])
+
+        return response
+    export_to_csv.short_description = "Export selected to CSV"
+
 
 @admin.register(TokenPurchase)
 class TokenPurchaseAdmin(admin.ModelAdmin):
@@ -283,7 +382,7 @@ class TokenWithdrawalAdmin(admin.ModelAdmin):
         return obj.partner.get_full_name() or obj.partner.email
     partner_name.short_description = "Partner"
 
-    actions = ['approve_withdrawals', 'reject_withdrawals', 'mark_completed']
+    actions = ['approve_withdrawals', 'reject_withdrawals', 'mark_completed', 'export_to_excel', 'export_to_csv']
 
     def approve_withdrawals(self, request, queryset):
         count = 0
@@ -308,3 +407,103 @@ class TokenWithdrawalAdmin(admin.ModelAdmin):
                 count += 1
         self.message_user(request, f"Marked {count} withdrawals as completed")
     mark_completed.short_description = "Mark selected as completed"
+
+    def export_to_excel(self, request, queryset):
+        """Export selected withdrawals to Excel"""
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Withdrawals"
+
+        # Styles
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="1E3A5F", end_color="1E3A5F", fill_type="solid")
+        thin_border = Border(
+            left=Side(style='thin'), right=Side(style='thin'),
+            top=Side(style='thin'), bottom=Side(style='thin')
+        )
+
+        headers = [
+            'Reference', 'Partner Name', 'Partner Email', 'Tokens (SRT)', 'Fee (NGN)',
+            'Amount (NGN)', 'Bank Name', 'Account Number', 'Account Name',
+            'Status', 'Created Date', 'Processed Date', 'Completed Date', 'Admin Notes'
+        ]
+
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = thin_border
+
+        for row_num, w in enumerate(queryset.order_by('-created_at'), 2):
+            row_data = [
+                w.reference,
+                w.partner.get_full_name() or w.partner.email,
+                w.partner.email,
+                float(w.tokens),
+                float(w.fee) if w.fee else 0,
+                float(w.amount_ngn),
+                w.get_bank_name_display(),
+                w.account_number,
+                w.account_name,
+                w.get_status_display(),
+                w.created_at.strftime('%Y-%m-%d %H:%M') if w.created_at else '',
+                w.processed_at.strftime('%Y-%m-%d %H:%M') if w.processed_at else '',
+                w.completed_at.strftime('%Y-%m-%d %H:%M') if w.completed_at else '',
+                w.admin_notes or '',
+            ]
+            for col_num, value in enumerate(row_data, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.border = thin_border
+
+        # Set column widths
+        widths = [15, 20, 25, 12, 12, 15, 25, 15, 25, 12, 18, 18, 18, 30]
+        for col, width in enumerate(widths, 1):
+            ws.column_dimensions[get_column_letter(col)].width = width
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        filename = f"withdrawals_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        response.write(buffer.getvalue())
+
+        return response
+    export_to_excel.short_description = "Export selected to Excel"
+
+    def export_to_csv(self, request, queryset):
+        """Export selected withdrawals to CSV"""
+        response = HttpResponse(content_type='text/csv')
+        filename = f"withdrawals_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        writer = csv.writer(response)
+        writer.writerow([
+            'Reference', 'Partner Name', 'Partner Email', 'Tokens (SRT)', 'Fee (NGN)',
+            'Amount (NGN)', 'Bank Name', 'Account Number', 'Account Name',
+            'Status', 'Created Date', 'Processed Date', 'Completed Date', 'Admin Notes'
+        ])
+
+        for w in queryset.order_by('-created_at'):
+            writer.writerow([
+                w.reference,
+                w.partner.get_full_name() or w.partner.email,
+                w.partner.email,
+                float(w.tokens),
+                float(w.fee) if w.fee else 0,
+                float(w.amount_ngn),
+                w.get_bank_name_display(),
+                w.account_number,
+                w.account_name,
+                w.get_status_display(),
+                w.created_at.strftime('%Y-%m-%d %H:%M') if w.created_at else '',
+                w.processed_at.strftime('%Y-%m-%d %H:%M') if w.processed_at else '',
+                w.completed_at.strftime('%Y-%m-%d %H:%M') if w.completed_at else '',
+                w.admin_notes or '',
+            ])
+
+        return response
+    export_to_csv.short_description = "Export selected to CSV"
