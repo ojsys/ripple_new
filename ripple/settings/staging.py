@@ -10,7 +10,7 @@ pymysql.install_as_MySQLdb()
 # Keep debug false but with more verbose errors
 DEBUG = False
 
-ALLOWED_HOSTS = ['staging.startupripple.com', 'www.staging.startupripple.com', 'localhost']
+ALLOWED_HOSTS = ['.staging.startupripple.com', 'staging.startupripple.com', 'localhost']
 
 # Database - MySQL for staging
 DATABASES = {
