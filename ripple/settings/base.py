@@ -158,6 +158,10 @@ USE_TZ = True
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Admin Email Configuration
+ADMIN_EMAIL = config('ADMIN_EMAIL', default='admin@startupripple.com')
+ADMIN_EMAILS = [ADMIN_EMAIL]  # List of admin emails for notifications
+
 # Paystack Configuration
 PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY', default='')
 PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY', default='')

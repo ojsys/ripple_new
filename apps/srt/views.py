@@ -16,6 +16,13 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 
+from .email_utils import (
+    send_token_purchase_confirmation_to_user,
+    send_token_purchase_notification_to_admin,
+    send_withdrawal_request_to_user,
+    send_withdrawal_request_to_admin,
+)
+
 from .models import (
     TokenPackage, PartnerCapitalAccount, Venture,
     VentureInvestment, SRTTransaction, TokenPurchase, TokenWithdrawal
@@ -331,6 +338,9 @@ def token_purchase_callback(request):
                     request,
                     f"Payment successful! {purchase.total_tokens} SRT tokens have been added to your account."
                 )
+                # Send email notifications
+                send_token_purchase_confirmation_to_user(purchase)
+                send_token_purchase_notification_to_admin(purchase)
             else:
                 messages.info(request, "This purchase has already been processed.")
         else:
@@ -626,6 +636,10 @@ def withdraw_tokens(request):
             withdrawal.partner = request.user
             withdrawal.account = account
             withdrawal.save()  # This will calculate fee and amount_ngn
+
+            # Send email notifications
+            send_withdrawal_request_to_user(withdrawal)
+            send_withdrawal_request_to_admin(withdrawal)
 
             messages.success(
                 request,

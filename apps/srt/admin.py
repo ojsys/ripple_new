@@ -12,6 +12,11 @@ from .models import (
     TokenPackage, PartnerCapitalAccount, Venture,
     VentureInvestment, SRTTransaction, TokenPurchase, TokenWithdrawal
 )
+from .email_utils import (
+    send_withdrawal_approved_to_user,
+    send_withdrawal_completed_to_user,
+    send_withdrawal_rejected_to_user,
+)
 
 
 @admin.register(TokenPackage)
@@ -389,7 +394,9 @@ class TokenWithdrawalAdmin(admin.ModelAdmin):
         for withdrawal in queryset.filter(status='pending'):
             if withdrawal.approve(request.user):
                 count += 1
-        self.message_user(request, f"Approved {count} withdrawal requests")
+                # Send email notification to user
+                send_withdrawal_approved_to_user(withdrawal)
+        self.message_user(request, f"Approved {count} withdrawal requests and sent email notifications")
     approve_withdrawals.short_description = "Approve selected withdrawals"
 
     def reject_withdrawals(self, request, queryset):
@@ -397,7 +404,9 @@ class TokenWithdrawalAdmin(admin.ModelAdmin):
         for withdrawal in queryset.filter(status='pending'):
             if withdrawal.reject(request.user, "Rejected by admin"):
                 count += 1
-        self.message_user(request, f"Rejected {count} withdrawal requests")
+                # Send email notification to user
+                send_withdrawal_rejected_to_user(withdrawal)
+        self.message_user(request, f"Rejected {count} withdrawal requests and sent email notifications")
     reject_withdrawals.short_description = "Reject selected withdrawals"
 
     def mark_completed(self, request, queryset):
@@ -405,7 +414,9 @@ class TokenWithdrawalAdmin(admin.ModelAdmin):
         for withdrawal in queryset.filter(status__in=['approved', 'processing']):
             if withdrawal.complete():
                 count += 1
-        self.message_user(request, f"Marked {count} withdrawals as completed")
+                # Send email notification to user
+                send_withdrawal_completed_to_user(withdrawal)
+        self.message_user(request, f"Marked {count} withdrawals as completed and sent email notifications")
     mark_completed.short_description = "Mark selected as completed"
 
     def export_to_excel(self, request, queryset):
