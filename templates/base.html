@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}StartUpRipple{% endblock %}</title>
+    <title>{% block title %}{% if site_settings and site_settings.site_name %}{{ site_settings.site_name }}{% else %}StartUpRipple{% endif %}{% endblock %}</title>
+
+    <!-- Favicon -->
+    {% if site_settings and site_settings.favicon %}
+    <link rel="icon" type="image/x-icon" href="{{ site_settings.favicon.url }}">
+    <link rel="shortcut icon" href="{{ site_settings.favicon.url }}">
+    {% endif %}
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -535,8 +541,12 @@
     <nav class="navbar navbar-expand-lg navbar-md fixed-top">
         <div class="container navbar-inner">
             <a class="navbar-brand" href="{% url 'projects:home' %}">
+                {% if site_settings and site_settings.logo %}
+                <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name|default:'StartUpRipple' }}" style="height: 40px; width: auto;">
+                {% else %}
                 <span class="brand-icon"><i class="fas fa-rocket"></i></span>
-                StartUpRipple
+                {% endif %}
+                {{ site_settings.site_name|default:'StartUpRipple' }}
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -651,8 +661,12 @@
             <div class="row g-4">
                 <div class="col-lg-4 col-md-6">
                     <div class="footer-brand">
+                        {% if site_settings and site_settings.logo %}
+                        <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name|default:'StartUpRipple' }}" style="height: 40px; width: auto;">
+                        {% else %}
                         <span class="brand-icon"><i class="fas fa-rocket"></i></span>
-                        StartUpRipple
+                        {% endif %}
+                        {{ site_settings.site_name|default:'StartUpRipple' }}
                     </div>
                     <p class="mb-4">Empowering African entrepreneurs and connecting them with global investors to build innovative solutions that transform communities.</p>
                     <div class="social-links-md">
@@ -703,7 +717,7 @@
             <div class="footer-bottom-md">
                 <div class="row align-items-center">
                     <div class="col-md-6 text-center text-md-start">
-                        <p>&copy; {% now "Y" %} StartUpRipple. All rights reserved.</p>
+                        <p>&copy; {% now "Y" %} {{ site_settings.site_name|default:'StartUpRipple' }}. All rights reserved.</p>
                     </div>
                     <div class="col-md-6">
                         <div class="footer-bottom-links">
