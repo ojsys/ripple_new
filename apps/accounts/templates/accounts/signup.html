@@ -85,49 +85,103 @@
 <div class="auth-container">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
+            <div class="col-md-8 col-lg-7">
                 <div class="auth-card card">
                     <div class="auth-header">
-                        <div class="auth-logo">
-                            <i class="fas fa-ripple"></i>
-                        </div>
+                        <a href="{% url 'projects:home' %}" class="auth-logo text-decoration-none">
+                            <i class="fas fa-ripple"></i> 
+                        </a>
                         <h3 class="fw-bold mb-1">Join StartUpRipple</h3>
-                        <p class="text-muted">Create your account to get started</p>
+                        <p class="text-muted">Create your account in a few simple steps.</p>
                     </div>
                     
-                    <div class="card-body p-4 pt-0">
-                        <div class="info-box mb-4">
-                            <div class="d-flex">
-                                <i class="fas fa-info-circle mt-1 me-2 text-success"></i>
-                                <div>
-                                    <h6 class="mb-2">Registration Fee Information</h6>
-                                    <p class="mb-2 small">To maintain platform quality, we require a one-time registration fee:</p>
-                                    <ul class="mb-0 small ps-3">
-                                        <li><strong>Founders:</strong> $5 USD</li>
-                                        <li><strong>Donors & Investors:</strong> $25 USD</li>
-                                    </ul>
-                                    <div class="mt-2 text-muted fst-italic" style="font-size: 0.8rem;">
-                                        You'll be redirected to payment after registration.
-                                    </div>
+                    <div class="card-body p-4 p-md-5 pt-2">
+                        {% if messages %}
+                            <div class="mb-4">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                 </div>
+                            {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Step Indicator -->
+                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <span class="badge rounded-pill {% if step == 1 %}bg-success{% else %}bg-secondary{% endif %} me-2">1</span>
+                                <span class="fw-medium {% if step == 1 %}text-dark{% else %}text-muted{% endif %}">Account Type</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted fa-xs"></i>
+                            <div class="d-flex align-items-center">
+                                <span class="badge rounded-pill {% if step == 2 %}bg-success{% else %}bg-secondary{% endif %} me-2">2</span>
+                                <span class="fw-medium {% if step == 2 %}text-dark{% else %}text-muted{% endif %}">Your Details</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted fa-xs"></i>
+                            <div class="d-flex align-items-center">
+                                <span class="badge rounded-pill {% if step == 3 %}bg-success{% else %}bg-secondary{% endif %} me-2">3</span>
+                                <span class="fw-medium {% if step == 3 %}text-dark{% else %}text-muted{% endif %}">Payment</span>
                             </div>
                         </div>
-                        
+
+                        <!-- Step 1: User Type -->
+                        {% if step == 1 %}
                         <form method="post">
                             {% csrf_token %}
-                            {{ form|crispy }}
+                            <input type="hidden" name="step" value="1">
+                            <h5 class="mb-3">How will you be using StartUpRipple?</h5>
+                            
+                            <div class="mb-3">
+                                <p class="text-muted small">This helps us tailor your experience. You can't change this later.</p>
+                                <select name="user_type" class="form-select form-select-lg" required>
+                                    <option value="" selected disabled>Select account type...</option>
+                                    <option value="founder">I'm a Founder seeking funding</option>
+                                    <option value="investor">I'm an Investor looking for projects</option>
+                                    <option value="donor">I'm a Donor supporting projects</option>
+                                    <option value="partner">I'm an SRT Partner</option>
+                                </select>
+                            </div>
                             
                             <div class="d-grid gap-2 mt-4">
                                 <button type="submit" class="btn btn-brand">
-                                    Continue to Payment <i class="fas fa-arrow-right ms-2"></i>
+                                    Continue <i class="fas fa-arrow-right ms-2"></i>
                                 </button>
                             </div>
+                        </form>
+                        
+                        <!-- Step 2: Personal Details -->
+                        {% elif step == 2 %}
+                        <form method="post" class="row g-3">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            <input type="hidden" name="step" value="2">
+                            <h5 class="mb-3">Tell us a bit about yourself</h5>
+
+                            <div class="info-box mt-3">
+                                <p class="small mb-0">
+                                    A one-time registration fee applies: <strong>$5</strong> for Founders, <strong>$25</strong> for Investors/Donors. 
+                                    SRT Partners are exempt.
+                                </p>
+                            </div>
                             
-                            <div class="text-center mt-4">
-                                <span class="text-muted small">Already have an account?</span>
-                                <a href="{% url 'accounts:login' %}" class="auth-link ms-1 small">Sign In</a>
+                            <div class="d-grid gap-2 mt-3">
+                                <button type="submit" class="btn btn-brand">
+                                    Register & Proceed to Payment <i class="fas fa-lock ms-2"></i>
+                                </button>
+                            </div>
+                             <div class="mt-3 text-center">
+                                <a href="?reset=1" class="auth-link small text-muted">
+                                    <i class="fas fa-arrow-left me-1"></i> Back to account type selection
+                                </a>
                             </div>
                         </form>
+                        {% endif %}
+                        
+                        <div class="text-center mt-4">
+                            <span class="text-muted small">Already have an account?</span>
+                            <a href="{% url 'accounts:login' %}" class="auth-link ms-1 small">Sign In</a>
+                        </div>
                     </div>
                 </div>
             </div>

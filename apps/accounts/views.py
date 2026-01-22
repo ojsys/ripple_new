@@ -64,114 +64,79 @@ def signup(request):
 
         # Step 2: Personal details
         elif step == '2':
-            user_type = request.session.get('registration_user_type')
-            if not user_type:
-                request.session['registration_step'] = 1
-                return redirect('accounts:signup')
+            form = SignUpForm(request.POST)
+            if form.is_valid():
+                user_type = request.session.get('registration_user_type')
+                if not user_type:
+                    request.session['registration_step'] = 1
+                    return redirect('accounts:signup')
 
-            # Validate form data
-            first_name = request.POST.get('first_name', '').strip()
-            last_name = request.POST.get('last_name', '').strip()
-            email = request.POST.get('email', '').strip().lower()
-            phone_number = request.POST.get('phone_number', '').strip()
-            password = request.POST.get('password', '')
-            password2 = request.POST.get('password2', '')
+                cleaned_data = form.cleaned_data
+                cleaned_data['user_type'] = user_type
 
-            errors = []
-            if not first_name:
-                errors.append("First name is required.")
-            if not last_name:
-                errors.append("Last name is required.")
-            if not email:
-                errors.append("Email is required.")
-            elif CustomUser.objects.filter(email=email).exists():
-                errors.append("A user with this email already exists.")
-            if not phone_number:
-                errors.append("Phone number is required.")
-            if not password:
-                errors.append("Password is required.")
-            elif len(password) < 8:
-                errors.append("Password must be at least 8 characters.")
-            elif password != password2:
-                errors.append("Passwords don't match.")
+                # SRT Partners don't need to pay - create account directly
+                if user_type == 'partner':
+                    logger.info(f"Creating SRT Partner account directly for: {cleaned_data['email']}")
+                    # Clear registration session data
+                    clear_registration_session(request)
+                    return create_user_directly(request, cleaned_data)
 
-            if errors:
-                for error in errors:
-                    messages.error(request, error)
-                request.session['registration_step'] = 2
-                # Store form data in session for repopulation
-                request.session['registration_form_data'] = {
-                    'first_name': first_name,
-                    'last_name': last_name,
-                    'email': email,
-                    'phone_number': phone_number,
-                }
-                return redirect('accounts:signup')
+                # For other user types, create pending registration and go to payment
+                # Check if email already has a pending registration
+                existing_pending = PendingRegistration.objects.filter(email=cleaned_data['email']).first()
+                if existing_pending:
+                    if existing_pending.is_expired():
+                        existing_pending.delete()
+                    else:
+                        request.session['pending_registration_id'] = existing_pending.id
+                        clear_registration_session(request)
+                        return redirect('accounts:registration_payment')
 
-            # Store validated data
-            cleaned_data = {
-                'first_name': first_name,
-                'last_name': last_name,
-                'email': email,
-                'phone_number': phone_number,
-                'password': password,
-                'user_type': user_type,
-            }
+                # Generate unique reference
+                reference = f"reg_{uuid.uuid4().hex[:12]}"
 
-            # SRT Partners don't need to pay - create account directly
-            if user_type == 'partner':
-                logger.info(f"Creating SRT Partner account directly for: {email}")
+                # Create pending registration
+                pending_registration = PendingRegistration.objects.create(
+                    first_name=cleaned_data['first_name'],
+                    last_name=cleaned_data['last_name'],
+                    email=cleaned_data['email'],
+                    phone_number=cleaned_data['phone_number'],
+                    user_type=user_type,
+                    password_hash=make_password(cleaned_data['password']),
+                    paystack_reference=reference,
+                    amount_usd=0,
+                    amount_ngn=0,
+                    expires_at=timezone.now() + timedelta(hours=24),
+                )
+
+                # Set amounts based on user type
+                pending_registration.amount_usd = pending_registration.get_registration_fee()
+                pending_registration.amount_ngn = pending_registration.get_registration_fee_ngn()
+                pending_registration.save()
+
+                # Store pending registration ID in session
+                request.session['pending_registration_id'] = pending_registration.id
+
                 # Clear registration session data
                 clear_registration_session(request)
-                return create_user_directly(request, cleaned_data)
 
-            # For other user types, create pending registration and go to payment
-            # Check if email already has a pending registration
-            existing_pending = PendingRegistration.objects.filter(email=email).first()
-            if existing_pending:
-                if existing_pending.is_expired():
-                    existing_pending.delete()
-                else:
-                    request.session['pending_registration_id'] = existing_pending.id
-                    clear_registration_session(request)
-                    return redirect('accounts:registration_payment')
-
-            # Generate unique reference
-            reference = f"reg_{uuid.uuid4().hex[:12]}"
-
-            # Create pending registration
-            pending_registration = PendingRegistration.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                phone_number=phone_number,
-                user_type=user_type,
-                password_hash=make_password(password),
-                paystack_reference=reference,
-                amount_usd=0,
-                amount_ngn=0,
-                expires_at=timezone.now() + timedelta(hours=24),
-            )
-
-            # Set amounts based on user type
-            pending_registration.amount_usd = pending_registration.get_registration_fee()
-            pending_registration.amount_ngn = pending_registration.get_registration_fee_ngn()
-            pending_registration.save()
-
-            # Store pending registration ID in session
-            request.session['pending_registration_id'] = pending_registration.id
-
-            # Clear registration session data
-            clear_registration_session(request)
-
-            # Redirect to payment page
-            return redirect('accounts:registration_payment')
+                # Redirect to payment page
+                return redirect('accounts:registration_payment')
+            else:
+                # Store form data in session for repopulation
+                request.session['registration_form_data'] = request.POST
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field}: {error}")
+                return redirect('accounts:signup')
 
     # GET request - show appropriate step
+    form = SignUpForm()
     context = {
         'step': current_step,
         'user_type': request.session.get('registration_user_type'),
         'form_data': request.session.get('registration_form_data', {}),
+        'form': form
     }
 
     return render(request, 'accounts/signup.html', context)
