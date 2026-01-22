@@ -158,16 +158,22 @@
                             <input type="hidden" name="step" value="2">
                             <h5 class="mb-3">Tell us a bit about yourself</h5>
 
+                            {% if user_type != 'partner' %}
                             <div class="info-box mt-3">
                                 <p class="small mb-0">
                                     A one-time registration fee applies: <strong>$5</strong> for Founders, <strong>$25</strong> for Investors/Donors. 
                                     SRT Partners are exempt.
                                 </p>
                             </div>
+                            {% endif %}
                             
                             <div class="d-grid gap-2 mt-3">
                                 <button type="submit" class="btn btn-brand">
-                                    Register & Proceed to Payment <i class="fas fa-lock ms-2"></i>
+                                    {% if user_type == 'partner' %}
+                                        Create Account
+                                    {% else %}
+                                        Register & Proceed to Payment <i class="fas fa-lock ms-2"></i>
+                                    {% endif %}
                                 </button>
                             </div>
                              <div class="mt-3 text-center">
