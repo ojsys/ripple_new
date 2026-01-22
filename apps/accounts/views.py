@@ -177,8 +177,8 @@ def create_user_directly(request, cleaned_data):
 
         # Create capital account
         PartnerCapitalAccount.objects.create(
-            partner=partner_profile,
-            balance=0
+            partner=user,
+            token_balance=0
         )
 
         # Log the user in
@@ -616,7 +616,7 @@ def registration_payment_callback(request):
                     while PartnerProfile.objects.filter(partner_id=partner_id).exists():
                         partner_id = f"SRT-{random.randint(1000, 9999)}"
                     PartnerProfile.objects.create(user=user, partner_id=partner_id)
-                    PartnerCapitalAccount.objects.create(partner=user)
+                    PartnerCapitalAccount.objects.create(partner=user, token_balance=0)
 
                 # Create registration payment record
                 RegistrationPayment.objects.create(
