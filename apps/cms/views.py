@@ -104,16 +104,21 @@ def legal_page(request, page_type):
     return render(request, 'cms/legal_page.html', context)
 
 
-def terms_and_conditions(request):
-    """Shortcut view for Terms & Conditions."""
-    return legal_page(request, 'terms')
+def terms_of_service(request):
+    """Shortcut view for Terms of Service."""
+    return legal_page(request, 'terms_of_service')
 
 
-def investment_risk_disclosure(request):
-    """Shortcut view for Investment Risk Disclosure."""
-    return legal_page(request, 'investment_risk')
+def investor_terms(request):
+    """Shortcut view for Investor Terms."""
+    return legal_page(request, 'investor_terms')
 
 
 def privacy_policy(request):
     """Shortcut view for Privacy Policy."""
-    return legal_page(request, 'privacy')
+    return legal_page(request, 'privacy_policy')
+
+
+def cookie_policy(request):
+    """Shortcut view for Cookie Policy."""
+    return legal_page(request, 'cookie_policy')

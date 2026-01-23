@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Investor Terms - {{ site_settings.site_name|default:'StartUpRipple' }}{% endblock %}
+
+{% block body_class %}legal-page{% endblock %}
+
+{% block content %}
+<div class="page-header-md">
+    <div class="container">
+        <h1>Investor Terms</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'projects:home' %}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Investor Terms</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card-md p-4 p-md-5">
+                <h2>1. Introduction to Investor Terms</h2>
+                <p>These Investor Terms ("Terms") govern your participation as an investor on the StartUpRipple platform. By investing through our platform, you agree to be bound by these Terms, in addition to our general Terms of Service and Privacy Policy. Please read these Terms carefully before making any investment.</p>
+
+                <h2>2. Eligibility to Invest</h2>
+                <p>To be eligible to invest through StartUpRipple, you must be of legal age in your jurisdiction and meet the accreditation or investor suitability requirements applicable to your location and the specific investment opportunity. You represent and warrant that all information you provide regarding your investor status is true and accurate.</p>
+
+                <h2>3. Investment Risks</h2>
+                <p>Investing in startups and early-stage companies involves significant risks, including the potential loss of your entire investment. Such investments are illiquid, speculative, and carry a high degree of risk. You should not invest any funds that you cannot afford to lose. StartUpRipple does not provide investment advice, and you are solely responsible for conducting your own due diligence and risk assessment.</p>
+                <ul>
+                    <li><strong>Loss of Investment:</strong> Most startups fail, and you could lose all of the money you invest.</li>
+                    <li><strong>Illiquidity:</strong> Investments made through the platform are highly illiquid, and there may be no secondary market for your investment.</li>
+                    <li><strong>Lack of Dividends:</strong> Many early-stage companies do not pay dividends and may never do so.</li>
+                    <li><strong>Dilution:</strong> Your ownership percentage in a company may decrease over time if the company issues additional shares.</li>
+                    <li><strong>Valuation Risk:</strong> The valuation of early-stage companies is highly subjective and may not reflect their true worth.</li>
+                </ul>
+
+                <h2>4. Role of StartUpRipple</h2>
+                <p>StartUpRipple operates as a platform connecting investors with entrepreneurs. We facilitate the presentation of investment opportunities but do not endorse any specific project or guarantee any returns. We do not provide investment advice, legal advice, or tax advice.</p>
+
+                <h2>5. Due Diligence</h2>
+                <p>You acknowledge and agree that you are solely responsible for performing your own due diligence before making any investment. This includes reviewing all available information, asking questions of the entrepreneurs, and seeking independent professional advice (legal, financial, tax) as you deem necessary.</p>
+
+                <h2>6. Investor Representations and Warranties</h2>
+                <p>By investing, you represent and warrant that:</p>
+                <ul>
+                    <li>You have read and understood these Investor Terms and all associated risks.</li>
+                    <li>You have the financial capacity to bear the risk of losing your entire investment.</li>
+                    <li>You are investing for your own account and not on behalf of others, unless explicitly disclosed and approved.</li>
+                    <li>All information you provide to StartUpRipple is truthful, accurate, and complete.</li>
+                </ul>
+
+                <h2>7. Confidentiality</h2>
+                <p>You may gain access to confidential information about companies when reviewing investment opportunities. You agree to keep such information confidential and use it solely for the purpose of evaluating the investment.</p>
+
+                <h2>8. Fees</h2>
+                <p>StartUpRipple may charge fees to investors for platform usage or successful investments. Any applicable fees will be clearly disclosed to you before you commit to an investment.</p>
+
+                <h2>9. Governing Law</h2>
+                <p>These Investor Terms shall be governed by and construed in accordance with the laws of [Jurisdiction, e.g., "the country where StartUpRipple is registered"], without regard to its conflict of law principles.</p>
+
+                <h2>10. Changes to Investor Terms</h2>
+                <p>We reserve the right to modify these Investor Terms at any time. We will notify you of any material changes, and your continued use of the platform and participation in investments after such changes constitutes your acceptance of the new Terms.</p>
+
+                <h2>11. Contact Us</h2>
+                <p>If you have any questions about these Investor Terms, please contact us at support@startupriffle.org.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

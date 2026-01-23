@@ -357,10 +357,10 @@ class LegalPage(models.Model):
     """Model for legal pages like Terms & Conditions, Privacy Policy, etc."""
 
     PAGE_TYPES = [
-        ('terms', 'Terms & Conditions'),
-        ('investment_risk', 'Investment Risk Disclosure'),
-        ('privacy', 'Privacy Policy'),
-        ('cookie', 'Cookie Policy'),
+        ('terms_of_service', 'Terms of Service'),
+        ('investor_terms', 'Investor Terms'),
+        ('privacy_policy', 'Privacy Policy'),
+        ('cookie_policy', 'Cookie Policy'),
         ('refund', 'Refund Policy'),
         ('aml', 'Anti-Money Laundering Policy'),
     ]

@@ -12,7 +12,8 @@ urlpatterns = [
 
     # Legal Pages
     path('legal/<str:page_type>/', views.legal_page, name='legal_page'),
-    path('terms/', views.terms_and_conditions, name='terms'),
-    path('investment-risk-disclosure/', views.investment_risk_disclosure, name='investment_risk'),
-    path('privacy-policy/', views.privacy_policy, name='privacy'),
+    path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
+    path('investor-terms/', views.investor_terms, name='investor_terms'),
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('cookie-policy/', views.cookie_policy, name='cookie_policy'),
 ]
