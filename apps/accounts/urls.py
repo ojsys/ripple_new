@@ -40,7 +40,9 @@ urlpatterns = [
          name='password_reset_complete'),
 
     path('verify-email/<uidb64>/<token>/', views.verify_email, name='verify_email'),
+    path('initiate-email-verification/', views.initiate_email_verification, name='initiate_email_verification'),
     path('edit-profile/', views.edit_profile, name='edit_profile'),
+    path('profile/', views.profile_view, name='profile_view'),
     path('complete-profile/', views.complete_profile, name='complete_profile'),
     path('registration-payment/', views.registration_payment, name='registration_payment'),
     path('initialize-registration-payment/', views.initialize_registration_payment, name='initialize_registration_payment'),

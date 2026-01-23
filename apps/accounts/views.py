@@ -6,6 +6,10 @@ import logging
 from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.core.mail import EmailMessage
 
 logger = logging.getLogger(__name__)
 from django.contrib.auth import login, logout
@@ -194,6 +198,39 @@ def create_user_directly(request, cleaned_data):
         return redirect('accounts:signup')
 
 
+@login_required
+def initiate_email_verification(request):
+    """
+    Initiates the email verification process by sending a verification email to the user.
+    Can be triggered from the user's profile view if their email is not verified.
+    """
+    user = request.user
+    if user.email_verified:
+        messages.info(request, "Your email is already verified.")
+        return redirect('accounts:profile_view')
+
+    if request.method == 'POST':
+        # Re-send verification email logic
+        current_site = get_current_site(request)
+        mail_subject = 'Activate Your StartUpRipple Account'
+        message = render_to_string('registration/account_activation_email.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': default_token_generator.make_token(user),
+            'protocol': 'https' if request.is_secure() else 'http',
+        })
+        email = EmailMessage(mail_subject, message, to=[user.email])
+        if email.send():
+            messages.success(request, 'A new verification link has been sent to your email address.')
+        else:
+            messages.error(request, 'Failed to send verification email. Please try again later.')
+    else:
+        messages.warning(request, 'Please confirm your email address to access all features.')
+
+    return redirect('accounts:profile_view')
+
+
 def verify_email(request, uidb64, token):
     """Verify user email from verification link."""
     try:
@@ -346,6 +383,33 @@ def edit_profile(request):
     }
 
     return render(request, 'accounts/edit_profile.html', context)
+
+
+@login_required
+def profile_view(request):
+    """
+    Displays the current user's profile information.
+    Includes details from CustomUser and related profile models (FounderProfile, InvestorProfile, PartnerProfile).
+    """
+    user = request.user
+    founder_profile = None
+    investor_profile = None
+    partner_profile = None
+
+    if user.user_type == 'founder':
+        founder_profile = getattr(user, 'founderprofile', None)
+    elif user.user_type == 'investor':
+        investor_profile = getattr(user, 'investorprofile', None)
+    elif user.user_type == 'partner':
+        partner_profile = getattr(user, 'partnerprofile', None)
+
+    context = {
+        'user': user,
+        'founder_profile': founder_profile,
+        'investor_profile': investor_profile,
+        'partner_profile': partner_profile,
+    }
+    return render(request, 'accounts/profile_view.html', context)
 
 
 def complete_profile(request):

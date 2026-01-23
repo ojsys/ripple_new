@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Your Profile</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <h5 class="mb-3">Basic Information</h5>
+                    <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}
+                        {% if not user.email_verified %}
+                            <span class="badge bg-warning text-dark ms-2">Unverified</span>
+                            <a href="{% url 'accounts:initiate_email_verification' %}" class="btn btn-sm btn-outline-primary ms-2">Verify Email</a>
+                        {% else %}
+                            <span class="badge bg-success ms-2">Verified</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Phone Number:</strong> {{ user.phone_number }}</p>
+                    <p><strong>Account Type:</strong> {{ user.get_user_type_display }}</p>
+                    <p><strong>Date Joined:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
+
+                    <hr>
+
+                    {% if user.user_type == 'founder' and founder_profile %}
+                        <h5 class="mt-4 mb-3">Founder Profile Details</h5>
+                        <p><strong>Company Name:</strong> {{ founder_profile.company_name|default:"N/A" }}</p>
+                        <p><strong>Industry:</strong> {{ founder_profile.industry|default:"N/A" }}</p>
+                        <p><strong>Experience:</strong> {{ founder_profile.experience|default:"N/A"|safe }}</p>
+                        <p><strong>Website:</strong> 
+                            {% if founder_profile.website %}
+                                <a href="{{ founder_profile.website }}" target="_blank">{{ founder_profile.website }}</a>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                        <p><strong>Bio:</strong> {{ founder_profile.bio|default:"N/A" }}</p>
+                        {% if founder_profile.image %}
+                            <p><strong>Profile Image:</strong> <img src="{{ founder_profile.image.url }}" alt="Profile Image" class="img-thumbnail" width="150"></p>
+                        {% endif %}
+                        {% if founder_profile.cv %}
+                            <p><strong>CV/Resume:</strong> <a href="{{ founder_profile.cv.url }}" target="_blank">View CV</a></p>
+                        {% endif %}
+                    {% elif user.user_type == 'investor' and investor_profile %}
+                        <h5 class="mt-4 mb-3">Investor Profile Details</h5>
+                        <p><strong>Investment Focus:</strong> {{ investor_profile.investment_focus|default:"N/A" }}</p>
+                        <p><strong>Preferred Industries:</strong> {{ investor_profile.preferred_industries|default:"N/A" }}</p>
+                    {% elif user.user_type == 'partner' and partner_profile %}
+                        <h5 class="mt-4 mb-3">Partner Profile Details</h5>
+                        <p><strong>Partner ID:</strong> {{ partner_profile.partner_id|default:"N/A" }}</p>
+                        <p><strong>Accreditation Status:</strong> {{ partner_profile.accreditation_status|default:"N/A" }}</p>
+                        <p><strong>Company Name:</strong> {{ partner_profile.company_name|default:"N/A" }}</p>
+                        <p><strong>Occupation:</strong> {{ partner_profile.occupation|default:"N/A" }}</p>
+                        <p><strong>Bio:</strong> {{ partner_profile.bio|default:"N/A" }}</p>
+                        <p><strong>Risk Profile:</strong> {{ partner_profile.get_risk_profile_display|default:"N/A" }}</p>
+                        {% if partner_profile.image %}
+                            <p><strong>Profile Image:</strong> <img src="{{ partner_profile.image.url }}" alt="Profile Image" class="img-thumbnail" width="150"></p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">No specific profile details available for your account type yet.</p>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
