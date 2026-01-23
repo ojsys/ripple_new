@@ -91,11 +91,21 @@ def legal_page(request, page_type):
         raise Http404("Page not found")
 
     page = LegalPage.get_page(page_type)
-    if not page:
-        raise Http404("Page not found")
-
-    # Get all published legal pages for navigation
     all_legal_pages = LegalPage.objects.filter(is_published=True)
+
+    if not page:
+        # If the page is not in the database, render the placeholder template
+        placeholder_templates = {
+            'terms_of_service': 'cms/terms_of_service.html',
+            'investor_terms': 'cms/investor_terms.html',
+            'privacy_policy': 'cms/privacy_policy.html',
+            'cookie_policy': 'cms/cookie_policy.html',
+        }
+        if page_type in placeholder_templates:
+            return render(request, placeholder_templates[page_type])
+        else:
+            raise Http404("Page not found")
+
 
     context = {
         'page': page,
