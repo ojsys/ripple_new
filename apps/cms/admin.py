@@ -48,9 +48,11 @@ class FooterSectionInline(admin.TabularInline):
     extra = 1
 
 
-class SocialMediaLinkInline(admin.TabularInline):
-    model = SocialMediaLink
-    extra = 1
+@admin.register(SocialMediaLink)
+class SocialMediaLinkAdmin(admin.ModelAdmin):
+    list_display = ['platform', 'url', 'icon_class', 'order']
+    list_editable = ['url', 'icon_class', 'order']
+    ordering = ['order']
 
 
 @admin.register(ThemeSettings)

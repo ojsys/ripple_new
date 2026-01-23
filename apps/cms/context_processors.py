@@ -1,12 +1,6 @@
-from .models import SiteSettings
+from .models import SocialMediaLink
 
-
-def site_settings(request):
-    """
-    Context processor to make site settings available in all templates.
-    """
-    try:
-        settings = SiteSettings.load()
-        return {'site_settings': settings}
-    except Exception:
-        return {'site_settings': None}
+def social_links(request):
+    return {
+        'social_links': SocialMediaLink.objects.all().order_by('order')
+    }

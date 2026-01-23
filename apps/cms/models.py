@@ -151,10 +151,16 @@ class SocialMediaLink(models.Model):
     
     platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
     url = models.URLField()
-    order = models.PositiveIntegerField(default=0)
-    
-    class Meta:
-        ordering = ['order']
+    def get_icon_class(self):
+        """Returns the Font Awesome icon class for the platform."""
+        icon_map = {
+            'facebook': 'fab fa-facebook-f',
+            'twitter': 'fab fa-twitter',
+            'linkedin': 'fab fa-linkedin-in',
+            'instagram': 'fab fa-instagram',
+            'youtube': 'fab fa-youtube',
+        }
+        return self.icon_class or icon_map.get(self.platform, 'fas fa-share-alt') # Default if custom icon not provided
 
 
 class SEOSettings(models.Model):
