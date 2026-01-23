@@ -151,6 +151,12 @@ class SocialMediaLink(models.Model):
     
     platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
     url = models.URLField()
+    icon_class = models.CharField(max_length=50, blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        ordering = ['order']
+
     def get_icon_class(self):
         """Returns the Font Awesome icon class for the platform."""
         icon_map = {
