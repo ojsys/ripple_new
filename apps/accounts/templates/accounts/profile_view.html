@@ -1,83 +1,945 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    /* Hero Section */
+    .profile-hero {
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        padding: 80px 0 120px;
+        margin-top: 76px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .profile-hero::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Profile Avatar */
+    .profile-avatar-wrapper {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-avatar-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+        font-weight: 700;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .verification-badge {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        border: 3px solid white;
+    }
+
+    .verification-badge.verified {
+        background: #10b981;
+        color: white;
+    }
+
+    .verification-badge.unverified {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .profile-name {
+        color: white;
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+
+    .profile-email {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
+
+    .user-type-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .user-type-badge i {
+        margin-right: 8px;
+    }
+
+    /* Profile Content */
+    .profile-content {
+        margin-top: -70px;
+        position: relative;
+        z-index: 10;
+        padding-bottom: 60px;
+    }
+
+    /* Profile Card */
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 24px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-custom {
+        background: var(--teal-50);
+        padding: 20px 28px;
+        border-bottom: 1px solid var(--teal-100);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .card-title {
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: var(--teal-dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .card-title i {
+        color: var(--teal-primary);
+        margin-right: 12px;
+        font-size: 1.2rem;
+    }
+
+    .card-body-custom {
+        padding: 28px;
+    }
+
+    /* Info Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-item.full-width {
+        grid-column: span 2;
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        font-size: 1.05rem;
+        color: #1f2937;
+        font-weight: 500;
+    }
+
+    .info-value a {
+        color: var(--teal-primary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .info-value a:hover {
+        color: var(--teal-dark);
+        text-decoration: underline;
+    }
+
+    .info-value .badge {
+        font-size: 0.8rem;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .info-value .badge.bg-success {
+        background: #d1fae5 !important;
+        color: #059669;
+    }
+
+    .info-value .badge.bg-warning {
+        background: #fef3c7 !important;
+        color: #d97706;
+    }
+
+    /* Profile Image Display */
+    .profile-image-display {
+        width: 100px;
+        height: 100px;
+        border-radius: 16px;
+        object-fit: cover;
+        border: 3px solid var(--teal-100);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Quick Stats */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .stat-item {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+        font-size: 1.3rem;
+    }
+
+    .stat-icon.primary { background: var(--teal-50); color: var(--teal-primary); }
+    .stat-icon.secondary { background: #fef3c7; color: #d97706; }
+    .stat-icon.success { background: #d1fae5; color: #059669; }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    /* Bio/Experience Section */
+    .content-block {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 20px;
+        color: #374151;
+        line-height: 1.7;
+    }
+
+    .content-block p {
+        margin: 0;
+    }
+
+    /* Action Buttons */
+    .btn-edit-profile {
+        background: var(--teal-primary);
+        color: white;
+        padding: 12px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-edit-profile:hover {
+        background: var(--teal-dark);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
+    }
+
+    .btn-edit-profile i {
+        margin-right: 8px;
+    }
+
+    .btn-outline-teal {
+        background: transparent;
+        color: var(--teal-primary);
+        border: 2px solid var(--teal-primary);
+        padding: 10px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-teal:hover {
+        background: var(--teal-primary);
+        color: white;
+    }
+
+    .btn-outline-teal i {
+        margin-right: 8px;
+    }
+
+    /* Document Link */
+    .document-link {
+        display: inline-flex;
+        align-items: center;
+        padding: 12px 20px;
+        background: var(--teal-50);
+        border-radius: 10px;
+        color: var(--teal-dark);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid var(--teal-100);
+    }
+
+    .document-link:hover {
+        background: var(--teal-100);
+        color: var(--teal-dark);
+        transform: translateX(4px);
+    }
+
+    .document-link i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+
+    /* Email Verification Alert */
+    .verification-alert {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #f59e0b;
+        border-radius: 12px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+
+    .verification-alert .alert-content {
+        display: flex;
+        align-items: center;
+    }
+
+    .verification-alert i {
+        font-size: 1.5rem;
+        color: #d97706;
+        margin-right: 15px;
+    }
+
+    .verification-alert .alert-text {
+        color: #92400e;
+    }
+
+    .verification-alert .alert-text strong {
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .btn-verify {
+        background: #d97706;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .btn-verify:hover {
+        background: #b45309;
+        color: white;
+    }
+
+    /* Messages */
+    .alert-custom {
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+    }
+
+    .alert-custom i {
+        font-size: 1.3rem;
+        margin-right: 12px;
+    }
+
+    .alert-success {
+        background: var(--teal-50);
+        border: 1px solid var(--teal-100);
+        color: var(--teal-dark);
+    }
+
+    /* Empty State */
+    .empty-profile {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6b7280;
+    }
+
+    .empty-profile i {
+        font-size: 3rem;
+        color: var(--teal-100);
+        margin-bottom: 16px;
+    }
+
+    /* Responsive */
+    @media (max-width: 991px) {
+        .quick-stats {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .profile-hero {
+            padding: 60px 0 100px;
+            margin-top: 60px;
+        }
+
+        .profile-avatar, .profile-avatar-placeholder {
+            width: 100px;
+            height: 100px;
+            font-size: 2.5rem;
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-item.full-width {
+            grid-column: span 1;
+        }
+
+        .quick-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .verification-alert {
+            flex-direction: column;
+            text-align: center;
+            gap: 15px;
+        }
+
+        .verification-alert .alert-content {
+            flex-direction: column;
+        }
+
+        .verification-alert i {
+            margin-right: 0;
+            margin-bottom: 10px;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0">Your Profile</h4>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-
-                    <h5 class="mb-3">Basic Information</h5>
-                    <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
-                    <p><strong>Email:</strong> {{ user.email }}
-                        {% if not user.email_verified %}
-                            <span class="badge bg-warning text-dark ms-2">Unverified</span>
-                            <a href="{% url 'accounts:initiate_email_verification' %}" class="btn btn-sm btn-outline-primary ms-2">Verify Email</a>
-                        {% else %}
-                            <span class="badge bg-success ms-2">Verified</span>
-                        {% endif %}
-                    </p>
-                    <p><strong>Phone Number:</strong> {{ user.phone_number }}</p>
-                    <p><strong>Account Type:</strong> {{ user.get_user_type_display }}</p>
-                    <p><strong>Date Joined:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
-
-                    <hr>
-
-                    {% if user.user_type == 'founder' and founder_profile %}
-                        <h5 class="mt-4 mb-3">Founder Profile Details</h5>
-                        <p><strong>Company Name:</strong> {{ founder_profile.company_name|default:"N/A" }}</p>
-                        <p><strong>Industry:</strong> {{ founder_profile.industry|default:"N/A" }}</p>
-                        <p><strong>Experience:</strong> {{ founder_profile.experience|default:"N/A"|safe }}</p>
-                        <p><strong>Website:</strong> 
-                            {% if founder_profile.website %}
-                                <a href="{{ founder_profile.website }}" target="_blank">{{ founder_profile.website }}</a>
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </p>
-                        <p><strong>Bio:</strong> {{ founder_profile.bio|default:"N/A" }}</p>
-                        {% if founder_profile.image %}
-                            <p><strong>Profile Image:</strong> <img src="{{ founder_profile.image.url }}" alt="Profile Image" class="img-thumbnail" width="150"></p>
-                        {% endif %}
-                        {% if founder_profile.cv %}
-                            <p><strong>CV/Resume:</strong> <a href="{{ founder_profile.cv.url }}" target="_blank">View CV</a></p>
-                        {% endif %}
-                    {% elif user.user_type == 'investor' and investor_profile %}
-                        <h5 class="mt-4 mb-3">Investor Profile Details</h5>
-                        <p><strong>Investment Focus:</strong> {{ investor_profile.investment_focus|default:"N/A" }}</p>
-                        <p><strong>Preferred Industries:</strong> {{ investor_profile.preferred_industries|default:"N/A" }}</p>
-                    {% elif user.user_type == 'partner' and partner_profile %}
-                        <h5 class="mt-4 mb-3">Partner Profile Details</h5>
-                        <p><strong>Partner ID:</strong> {{ partner_profile.partner_id|default:"N/A" }}</p>
-                        <p><strong>Accreditation Status:</strong> {{ partner_profile.accreditation_status|default:"N/A" }}</p>
-                        <p><strong>Company Name:</strong> {{ partner_profile.company_name|default:"N/A" }}</p>
-                        <p><strong>Occupation:</strong> {{ partner_profile.occupation|default:"N/A" }}</p>
-                        <p><strong>Bio:</strong> {{ partner_profile.bio|default:"N/A" }}</p>
-                        <p><strong>Risk Profile:</strong> {{ partner_profile.get_risk_profile_display|default:"N/A" }}</p>
-                        {% if partner_profile.image %}
-                            <p><strong>Profile Image:</strong> <img src="{{ partner_profile.image.url }}" alt="Profile Image" class="img-thumbnail" width="150"></p>
-                        {% endif %}
-                    {% else %}
-                        <p class="text-muted">No specific profile details available for your account type yet.</p>
-                    {% endif %}
-
-                    <div class="mt-4">
-                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+<!-- Hero Section -->
+<section class="profile-hero">
+    <div class="container">
+        <div class="hero-content text-center">
+            <!-- Profile Avatar -->
+            <div class="profile-avatar-wrapper d-inline-block">
+                {% if user.user_type == 'founder' and founder_profile and founder_profile.image %}
+                    <img src="{{ founder_profile.image.url }}" alt="{{ user.get_full_name }}" class="profile-avatar">
+                {% elif user.user_type == 'partner' and partner_profile and partner_profile.image %}
+                    <img src="{{ partner_profile.image.url }}" alt="{{ user.get_full_name }}" class="profile-avatar">
+                {% else %}
+                    <div class="profile-avatar-placeholder">
+                        {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
                     </div>
-                </div>
+                {% endif %}
+
+                <!-- Email Verification Badge -->
+                {% if user.email_verified %}
+                    <div class="verification-badge verified" title="Email Verified">
+                        <i class="fas fa-check"></i>
+                    </div>
+                {% else %}
+                    <div class="verification-badge unverified" title="Email Not Verified">
+                        <i class="fas fa-exclamation"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Profile Name & Info -->
+            <h1 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="profile-email">{{ user.email }}</p>
+
+            <!-- User Type Badge -->
+            <div class="user-type-badge">
+                {% if user.user_type == 'founder' %}
+                    <i class="fas fa-rocket"></i>
+                {% elif user.user_type == 'investor' %}
+                    <i class="fas fa-chart-line"></i>
+                {% elif user.user_type == 'partner' %}
+                    <i class="fas fa-handshake"></i>
+                {% else %}
+                    <i class="fas fa-heart"></i>
+                {% endif %}
+                {{ user.get_user_type_display }}
             </div>
         </div>
     </div>
+</section>
+
+<!-- Profile Content -->
+<div class="container profile-content">
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-custom alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Email Verification Alert -->
+    {% if not user.email_verified %}
+    <div class="verification-alert">
+        <div class="alert-content">
+            <i class="fas fa-envelope-open-text"></i>
+            <div class="alert-text">
+                <strong>Verify Your Email</strong>
+                <span>Please verify your email address to unlock all features.</span>
+            </div>
+        </div>
+        <a href="{% url 'accounts:initiate_email_verification' %}" class="btn-verify">
+            <i class="fas fa-paper-plane me-2"></i>Send Verification Email
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Left Column - Main Info -->
+        <div class="col-lg-8">
+            <!-- Basic Information Card -->
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">
+                        <i class="fas fa-user-circle"></i>Basic Information
+                    </h5>
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn-outline-teal btn-sm">
+                        <i class="fas fa-edit"></i>Edit
+                    </a>
+                </div>
+                <div class="card-body-custom">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Full Name</span>
+                            <span class="info-value">{{ user.first_name }} {{ user.last_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email Address</span>
+                            <span class="info-value">
+                                {{ user.email }}
+                                {% if user.email_verified %}
+                                    <span class="badge bg-success ms-2"><i class="fas fa-check me-1"></i>Verified</span>
+                                {% else %}
+                                    <span class="badge bg-warning ms-2"><i class="fas fa-clock me-1"></i>Unverified</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Phone Number</span>
+                            <span class="info-value">{{ user.phone_number|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Account Type</span>
+                            <span class="info-value">{{ user.get_user_type_display }}</span>
+                        </div>
+                        {% if user.location %}
+                        <div class="info-item">
+                            <span class="info-label">Location</span>
+                            <span class="info-value"><i class="fas fa-map-marker-alt text-muted me-2"></i>{{ user.location }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="info-item">
+                            <span class="info-label">Member Since</span>
+                            <span class="info-value"><i class="fas fa-calendar-alt text-muted me-2"></i>{{ user.date_joined|date:"F j, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Founder Profile Details -->
+            {% if user.user_type == 'founder' and founder_profile %}
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">
+                        <i class="fas fa-rocket"></i>Founder Profile
+                    </h5>
+                </div>
+                <div class="card-body-custom">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Company Name</span>
+                            <span class="info-value">{{ founder_profile.company_name|default:"Not specified" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Industry</span>
+                            <span class="info-value">{{ founder_profile.industry|default:"Not specified" }}</span>
+                        </div>
+                        <div class="info-item full-width">
+                            <span class="info-label">Website</span>
+                            <span class="info-value">
+                                {% if founder_profile.website %}
+                                    <a href="{{ founder_profile.website }}" target="_blank">
+                                        <i class="fas fa-external-link-alt me-2"></i>{{ founder_profile.website }}
+                                    </a>
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% if founder_profile.bio %}
+                        <div class="info-item full-width">
+                            <span class="info-label">Bio</span>
+                            <div class="content-block">{{ founder_profile.bio|safe }}</div>
+                        </div>
+                        {% endif %}
+                        {% if founder_profile.experience %}
+                        <div class="info-item full-width">
+                            <span class="info-label">Experience</span>
+                            <div class="content-block">{{ founder_profile.experience|safe }}</div>
+                        </div>
+                        {% endif %}
+                        {% if founder_profile.cv %}
+                        <div class="info-item full-width">
+                            <span class="info-label">Resume/CV</span>
+                            <span class="info-value">
+                                <a href="{{ founder_profile.cv.url }}" target="_blank" class="document-link">
+                                    <i class="fas fa-file-pdf"></i>View Resume
+                                </a>
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Investor Profile Details -->
+            {% if user.user_type == 'investor' and investor_profile %}
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-line"></i>Investor Profile
+                    </h5>
+                </div>
+                <div class="card-body-custom">
+                    <div class="info-grid">
+                        {% if investor_profile.investment_focus %}
+                        <div class="info-item full-width">
+                            <span class="info-label">Investment Focus</span>
+                            <div class="content-block">{{ investor_profile.investment_focus }}</div>
+                        </div>
+                        {% endif %}
+                        {% if investor_profile.preferred_industries %}
+                        <div class="info-item full-width">
+                            <span class="info-label">Preferred Industries</span>
+                            <div class="content-block">{{ investor_profile.preferred_industries }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if not investor_profile.investment_focus and not investor_profile.preferred_industries %}
+                    <div class="empty-profile">
+                        <i class="fas fa-info-circle"></i>
+                        <p class="mb-0">No investor details added yet. <a href="{% url 'accounts:edit_profile' %}">Complete your profile</a></p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Partner Profile Details -->
+            {% if user.user_type == 'partner' and partner_profile %}
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">
+                        <i class="fas fa-handshake"></i>Partner Profile
+                    </h5>
+                </div>
+                <div class="card-body-custom">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Partner ID</span>
+                            <span class="info-value">
+                                <code style="background: var(--teal-50); padding: 4px 10px; border-radius: 6px; color: var(--teal-dark);">
+                                    {{ partner_profile.partner_id|default:"Not assigned" }}
+                                </code>
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Accreditation Status</span>
+                            <span class="info-value">
+                                {% if partner_profile.accreditation_status == 'approved' %}
+                                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Approved</span>
+                                {% elif partner_profile.accreditation_status == 'pending' %}
+                                    <span class="badge bg-warning"><i class="fas fa-clock me-1"></i>Pending</span>
+                                {% else %}
+                                    {{ partner_profile.accreditation_status|default:"Not specified" }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Company Name</span>
+                            <span class="info-value">{{ partner_profile.company_name|default:"Not specified" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Occupation</span>
+                            <span class="info-value">{{ partner_profile.occupation|default:"Not specified" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Risk Profile</span>
+                            <span class="info-value">{{ partner_profile.get_risk_profile_display|default:"Not specified" }}</span>
+                        </div>
+                        {% if partner_profile.bio %}
+                        <div class="info-item full-width">
+                            <span class="info-label">Bio</span>
+                            <div class="content-block">{{ partner_profile.bio|safe }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- No Specific Profile -->
+            {% if not founder_profile and not investor_profile and not partner_profile and user.user_type != 'donor' %}
+            <div class="profile-card">
+                <div class="card-body-custom">
+                    <div class="empty-profile">
+                        <i class="fas fa-user-plus"></i>
+                        <h5 class="mt-3">Complete Your Profile</h5>
+                        <p class="text-muted mb-3">Add more details to your profile to get the most out of StartUpRipple.</p>
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn-edit-profile">
+                            <i class="fas fa-edit"></i>Complete Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column - Quick Stats & Actions -->
+        <div class="col-lg-4">
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-item">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-value">{{ user.date_joined|timesince }}</div>
+                    <div class="stat-label">Member</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon {% if user.email_verified %}success{% else %}secondary{% endif %}">
+                        <i class="fas fa-{% if user.email_verified %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                    </div>
+                    <div class="stat-value">{% if user.email_verified %}Verified{% else %}Pending{% endif %}</div>
+                    <div class="stat-label">Email Status</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-{% if user.user_type == 'founder' %}rocket{% elif user.user_type == 'investor' %}chart-pie{% elif user.user_type == 'partner' %}coins{% else %}heart{% endif %}"></i>
+                    </div>
+                    <div class="stat-value">{{ user.get_user_type_display }}</div>
+                    <div class="stat-label">Account Type</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">
+                        <i class="fas fa-bolt"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body-custom">
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'accounts:edit_profile' %}" class="btn-edit-profile w-100 justify-content-center">
+                            <i class="fas fa-user-edit"></i>Edit Profile
+                        </a>
+                        <a href="{% url 'accounts:dashboard' %}" class="btn-outline-teal w-100 justify-content-center">
+                            <i class="fas fa-th-large"></i>Go to Dashboard
+                        </a>
+                        {% if user.user_type == 'founder' %}
+                        <a href="{% url 'projects:my_projects' %}" class="btn-outline-teal w-100 justify-content-center">
+                            <i class="fas fa-folder-open"></i>My Projects
+                        </a>
+                        {% elif user.user_type == 'investor' %}
+                        <a href="{% url 'projects:my_investments' %}" class="btn-outline-teal w-100 justify-content-center">
+                            <i class="fas fa-chart-pie"></i>My Investments
+                        </a>
+                        {% elif user.user_type == 'partner' or user.is_srt_partner %}
+                        <a href="{% url 'srt:dashboard' %}" class="btn-outline-teal w-100 justify-content-center">
+                            <i class="fas fa-coins"></i>SRT Dashboard
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Image Preview (for founders/partners with images) -->
+            {% if user.user_type == 'founder' and founder_profile and founder_profile.image %}
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">
+                        <i class="fas fa-image"></i>Profile Photo
+                    </h5>
+                </div>
+                <div class="card-body-custom text-center">
+                    <img src="{{ founder_profile.image.url }}" alt="Profile Photo" class="profile-image-display">
+                    <p class="text-muted small mt-3 mb-0">Your public profile photo</p>
+                </div>
+            </div>
+            {% elif user.user_type == 'partner' and partner_profile and partner_profile.image %}
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">
+                        <i class="fas fa-image"></i>Profile Photo
+                    </h5>
+                </div>
+                <div class="card-body-custom text-center">
+                    <img src="{{ partner_profile.image.url }}" alt="Profile Photo" class="profile-image-display">
+                    <p class="text-muted small mt-3 mb-0">Your public profile photo</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stats on scroll
+    const statItems = document.querySelectorAll('.stat-item');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 100);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    statItems.forEach(item => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        item.style.transition = 'all 0.4s ease';
+        observer.observe(item);
+    });
+
+    // Animate cards on scroll
+    const cards = document.querySelectorAll('.profile-card');
+    const cardObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 150);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    cards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = 'all 0.5s ease';
+        cardObserver.observe(card);
+    });
+});
+</script>
 {% endblock %}
