@@ -4,7 +4,7 @@ from .models import (
     HeaderLink, FooterSection, ThemeSettings, Announcement,
     SocialMediaLink, SEOSettings, Testimonial, Contact,
     HomePage, HowItWorksStep, PartnerLogo, NewsletterSubscriber,
-    LegalPage
+    LegalPage, ContactPage, ContactFAQ
 )
 
 
@@ -229,3 +229,40 @@ class LegalPageAdmin(admin.ModelAdmin):
         if obj:
             return ['created_at', 'updated_at', 'page_type']
         return ['created_at', 'updated_at']
+
+
+class ContactFAQInline(admin.TabularInline):
+    model = ContactFAQ
+    extra = 1
+    fields = ['order', 'question', 'answer', 'is_active']
+
+
+@admin.register(ContactPage)
+class ContactPageAdmin(admin.ModelAdmin):
+    inlines = [ContactFAQInline]
+
+    fieldsets = (
+        ('Hero Section', {
+            'fields': ('hero_title', 'hero_subtitle'),
+        }),
+        ('Contact Information', {
+            'fields': ('email', 'phone', 'location', 'whatsapp', 'office_hours'),
+        }),
+        ('Address (Optional)', {
+            'fields': ('address_line_1', 'address_line_2'),
+            'classes': ('collapse',),
+        }),
+        ('Form Settings', {
+            'fields': ('form_title',),
+        }),
+        ('Map Settings', {
+            'fields': ('show_map', 'map_embed_code'),
+            'classes': ('collapse',),
+        }),
+    )
+
+    def has_add_permission(self, request):
+        return not ContactPage.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False

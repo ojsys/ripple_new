@@ -400,3 +400,69 @@ class LegalPage(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('cms:legal_page', kwargs={'page_type': self.page_type})
+
+
+class ContactPage(models.Model):
+    """CMS model for the Contact page content."""
+
+    # Hero Section
+    hero_title = models.CharField(max_length=200, default="Get in Touch")
+    hero_subtitle = models.TextField(
+        default="Have questions about StartUpRipple? We'd love to hear from you. Send us a message and we'll respond as soon as possible."
+    )
+
+    # Contact Info
+    email = models.EmailField(default="hello@startupripple.com")
+    phone = models.CharField(max_length=50, default="+234 (0) 800 000 0000")
+    location = models.CharField(max_length=200, default="Lagos, Nigeria")
+
+    # Additional Contact Info (optional)
+    whatsapp = models.CharField(max_length=50, blank=True, help_text="WhatsApp number")
+    address_line_1 = models.CharField(max_length=200, blank=True)
+    address_line_2 = models.CharField(max_length=200, blank=True)
+
+    # Form Section
+    form_title = models.CharField(max_length=100, default="Send us a Message")
+
+    # Office Hours
+    office_hours = models.CharField(max_length=200, blank=True, default="Mon - Fri: 9:00 AM - 5:00 PM WAT")
+
+    # Map Settings
+    show_map = models.BooleanField(default=True)
+    map_embed_code = models.TextField(blank=True, help_text="Google Maps embed code (iframe)")
+
+    # Meta
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return "Contact Page Content"
+
+    class Meta:
+        verbose_name = "Contact Page"
+        verbose_name_plural = "Contact Page"
+
+
+class ContactFAQ(models.Model):
+    """FAQ items for the Contact page."""
+    contact_page = models.ForeignKey(ContactPage, on_delete=models.CASCADE, related_name='faqs')
+    question = models.CharField(max_length=300)
+    answer = models.TextField()
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = "Contact FAQ"
+        verbose_name_plural = "Contact FAQs"
+
+    def __str__(self):
+        return self.question[:50]

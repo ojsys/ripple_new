@@ -4,7 +4,7 @@ from django.http import JsonResponse, Http404
 from django.views.decorators.http import require_POST
 from .models import (
     AboutPage, TeamMember, SiteSettings, HeroSlider,
-    Testimonial, Contact, Announcement, LegalPage
+    Testimonial, Contact, Announcement, LegalPage, ContactPage
 )
 from .forms import ContactForm
 
@@ -40,8 +40,14 @@ def contact_page(request):
     else:
         form = ContactForm()
 
+    # Load contact page content
+    page_content = ContactPage.load()
+    faqs = page_content.faqs.filter(is_active=True).order_by('order')
+
     context = {
         'form': form,
+        'page': page_content,
+        'faqs': faqs,
     }
     return render(request, 'cms/contact.html', context)
 

@@ -255,8 +255,8 @@
 <!-- Hero Section -->
 <section class="contact-hero">
     <div class="container position-relative" style="z-index: 2;">
-        <h1>Get in Touch</h1>
-        <p>Have questions about StartUpRipple? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+        <h1>{{ page.hero_title }}</h1>
+        <p>{{ page.hero_subtitle }}</p>
     </div>
 </section>
 
@@ -271,7 +271,7 @@
                         <i class="fas fa-envelope"></i>
                     </div>
                     <h5>Email</h5>
-                    <p><a href="mailto:hello@startupripple.com">hello@startupripple.com</a></p>
+                    <p><a href="mailto:{{ page.email }}">{{ page.email }}</a></p>
                 </div>
             </div>
             <div class="col-md-4">
@@ -280,7 +280,10 @@
                         <i class="fas fa-phone"></i>
                     </div>
                     <h5>Phone</h5>
-                    <p><a href="tel:+2348000000000">+234 (0) 800 000 0000</a></p>
+                    <p><a href="tel:{{ page.phone|urlencode }}">{{ page.phone }}</a></p>
+                    {% if page.whatsapp %}
+                    <p class="mt-2"><a href="https://wa.me/{{ page.whatsapp }}" target="_blank"><i class="fab fa-whatsapp me-1"></i>WhatsApp</a></p>
+                    {% endif %}
                 </div>
             </div>
             <div class="col-md-4">
@@ -289,7 +292,16 @@
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
                     <h5>Location</h5>
-                    <p>Lagos, Nigeria</p>
+                    <p>{{ page.location }}</p>
+                    {% if page.address_line_1 %}
+                    <p class="small mt-2">{{ page.address_line_1 }}</p>
+                    {% endif %}
+                    {% if page.address_line_2 %}
+                    <p class="small">{{ page.address_line_2 }}</p>
+                    {% endif %}
+                    {% if page.office_hours %}
+                    <p class="small mt-2"><i class="far fa-clock me-1"></i>{{ page.office_hours }}</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -298,7 +310,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="contact-form-card">
-                    <h3>Send us a Message</h3>
+                    <h3>{{ page.form_title }}</h3>
                     <form method="post">
                         {% csrf_token %}
                         <div class="row g-4">
@@ -347,6 +359,7 @@
 </section>
 
 <!-- FAQ Section -->
+{% if faqs %}
 <section class="faq-section">
     <div class="container">
         <div class="text-center mb-5">
@@ -355,63 +368,36 @@
         </div>
         <div class="row justify-content-center">
             <div class="col-lg-8">
+                {% for faq in faqs %}
                 <div class="faq-item">
                     <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
-                        <span>How do I start a project on StartUpRipple?</span>
+                        <span>{{ faq.question }}</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="faq-answer">
-                        Simply create an account as a founder, then click "Create Project" from your dashboard. Fill in your project details, set your funding goal, and submit for approval. Our team typically reviews projects within 2-3 business days.
+                        {{ faq.answer|linebreaks }}
                     </div>
                 </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
-                        <span>What are SRT tokens and how do they work?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        SRT (StartUp Ripple Tokens) are our unique investment mechanism that allows partners to invest in a diversified portfolio of vetted African startups. Purchase tokens, allocate them to ventures, and earn returns as those ventures succeed.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
-                        <span>How does the accelerator program work?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        Our 12-week accelerator program provides intensive mentorship, up to $50,000 in seed funding, and access to our network of investors and partners. Apply through the Programs section and our team will review your application.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
-                        <span>What payment methods do you accept?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        We accept payments through Paystack, which supports bank transfers, card payments (Visa, Mastercard), and mobile money across multiple African countries. All transactions are secure and encrypted.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
-                        <span>How can I track my investments?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        Log into your dashboard to see real-time updates on all your investments. You'll receive regular updates from project founders and can track funding progress, milestones, and returns directly from your account.
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 </section>
+{% endif %}
 
-<!-- Map Section Placeholder -->
+<!-- Map Section -->
+{% if page.show_map %}
 <section class="map-section">
+    {% if page.map_embed_code %}
+    {{ page.map_embed_code|safe }}
+    {% else %}
     <div class="map-overlay">
         <div class="map-placeholder">
             <i class="fas fa-map-marked-alt"></i>
-            <p>Lagos, Nigeria</p>
+            <p>{{ page.location }}</p>
         </div>
     </div>
+    {% endif %}
 </section>
+{% endif %}
 {% endblock %}
