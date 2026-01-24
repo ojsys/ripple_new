@@ -1,162 +1,684 @@
 {% extends 'base.html' %}
-{% load project_tags %}
+{% load project_tags humanize %}
 
-{% block title %}My Investment{% endblock %}
+{% block title %}My Investments - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-light: #14b8a6;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+
+    /* Hero Section */
+    .investments-hero {
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        padding: 80px 0 120px;
+        margin-top: 76px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .investments-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .investments-hero::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-content h1 {
+        color: white;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .hero-content p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .btn-hero {
+        background: white;
+        color: var(--teal-dark);
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-hero:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        color: var(--teal-primary);
+    }
+
+    .btn-hero i {
+        margin-right: 8px;
+    }
+
+    /* Main Content */
+    .investments-content {
+        margin-top: -70px;
+        position: relative;
+        z-index: 10;
+        padding-bottom: 60px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .stat-icon.primary { background: var(--teal-50); color: var(--teal-primary); }
+    .stat-icon.success { background: #d1fae5; color: #059669; }
+    .stat-icon.info { background: #dbeafe; color: #2563eb; }
+    .stat-icon.warning { background: #fef3c7; color: #d97706; }
+
+    .stat-info h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .stat-info p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Section Header */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+    }
+
+    .section-title i {
+        color: var(--teal-primary);
+    }
+
+    /* Investment Cards */
+    .investments-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 24px;
+    }
+
+    .investment-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .investment-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .investment-image {
+        height: 160px;
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .investment-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .investment-image .placeholder-icon {
+        font-size: 3rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .investment-status {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-active { background: #d1fae5; color: #059669; }
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-rejected { background: #fee2e2; color: #dc2626; }
+
+    .investment-body {
+        padding: 24px;
+    }
+
+    .investment-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 16px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .investment-meta {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .meta-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .meta-badge.amount {
+        background: var(--teal-50);
+        color: var(--teal-dark);
+    }
+
+    .meta-badge.equity {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .meta-badge i {
+        margin-right: 6px;
+    }
+
+    /* Progress Section */
+    .progress-section {
+        margin-bottom: 20px;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+    }
+
+    .progress-header .label {
+        color: #6b7280;
+    }
+
+    .progress-header .value {
+        color: var(--teal-primary);
+        font-weight: 600;
+    }
+
+    .progress-bar-wrapper {
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 100px;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--teal-primary) 0%, var(--teal-light) 100%);
+        border-radius: 100px;
+        transition: width 0.5s ease;
+    }
+
+    /* Investment Footer */
+    .investment-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .investment-date {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .investment-date i {
+        margin-right: 6px;
+        color: var(--teal-primary);
+    }
+
+    .investment-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .btn-action i {
+        margin-right: 6px;
+    }
+
+    .btn-action.primary {
+        background: var(--teal-primary);
+        color: white;
+    }
+
+    .btn-action.primary:hover {
+        background: var(--teal-dark);
+        color: white;
+    }
+
+    .btn-action.outline {
+        background: transparent;
+        color: var(--teal-primary);
+        border: 2px solid var(--teal-primary);
+    }
+
+    .btn-action.outline:hover {
+        background: var(--teal-primary);
+        color: white;
+    }
+
+    /* Empty State */
+    .empty-state {
+        background: white;
+        border-radius: 20px;
+        padding: 80px 40px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+    }
+
+    .empty-state-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: var(--teal-50);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+
+    .empty-state-icon i {
+        font-size: 3rem;
+        color: var(--teal-primary);
+    }
+
+    .empty-state h4 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 12px;
+    }
+
+    .empty-state p {
+        color: #6b7280;
+        font-size: 1.05rem;
+        margin-bottom: 24px;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .btn-explore {
+        background: var(--teal-primary);
+        color: white;
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .btn-explore:hover {
+        background: var(--teal-dark);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
+    }
+
+    .btn-explore i {
+        margin-right: 8px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .investments-hero {
+            padding: 60px 0 100px;
+            margin-top: 60px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .investments-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .investment-meta {
+            flex-direction: column;
+        }
+
+        .investment-footer {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .investment-actions {
+            width: 100%;
+        }
+
+        .investment-actions .btn-action {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-chart-pie me-2"></i>My Investments</h2>
-        <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
-        </a>
+<!-- Hero Section -->
+<section class="investments-hero">
+    <div class="container">
+        <div class="hero-content">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-chart-pie me-3"></i>My Investments</h1>
+                    <p>Track your investment portfolio and monitor the growth of projects you've backed.</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <a href="{% url 'projects:project_list' %}" class="btn-hero">
+                        <i class="fas fa-search"></i>Explore Projects
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
+</section>
 
-    <!-- Investment Summary Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center mb-3 shadow-sm border-0 rounded-3">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <i class="fas fa-money-bill-wave fa-2x text-success me-2"></i>
-                    </div>
-                    <h5 class="card-title display-6">${{ investments|sum_attr:"amount"|default:"0" }}</h5>
-                    <p class="card-text text-muted">Total Invested</p>
-                </div>
+<!-- Main Content -->
+<div class="container investments-content">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-info">
+                <h3>${{ investments|sum_attr:"amount"|default:"0"|intcomma }}</h3>
+                <p>Total Invested</p>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center mb-3 shadow-sm border-0 rounded-3">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <i class="fas fa-project-diagram fa-2x text-primary me-2"></i>
-                    </div>
-                    <h5 class="card-title display-6">{{ investments|length }}</h5>
-                    <p class="card-text text-muted">Projects</p>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-folder-open"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ investments|length }}</h3>
+                <p>Projects Backed</p>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center mb-3 shadow-sm border-0 rounded-3">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <i class="fas fa-percentage fa-2x text-info me-2"></i>
-                    </div>
-                    <h5 class="card-title display-6">{{ investments|sum_attr:"equity_percentage"|floatformat:2 }}%</h5>
-                    <p class="card-text text-muted">Total Equity</p>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ investments|sum_attr:"equity_percentage"|floatformat:1|default:"0" }}%</h3>
+                <p>Total Equity</p>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center mb-3 shadow-sm border-0 rounded-3">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-center mb-2">
-                        <i class="fas fa-check-circle fa-2x text-success me-2"></i>
-                    </div>
-                    <h5 class="card-title display-6">{{ investments|filter_by:"status,active"|length }}</h5>
-                    <p class="card-text text-muted">Active Investments</p>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ investments|filter_by:"status,active"|length }}</h3>
+                <p>Active Investments</p>
             </div>
         </div>
     </div>
 
     {% if investments %}
-    <div class="card shadow-sm border-0 rounded-3">
-        <div class="card-header bg-success text-white">
-            <h3 class="h5 mb-0"><i class="fas fa-list me-2"></i>Investment Portfolio</h3>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                {% for investment in investments %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm border-0 rounded-3 hover-shadow">
-                        {% if investment.project.image %}
-                        <img src="{{ investment.project.image.url }}" class="card-img-top rounded-top" alt="{{ investment.project.title }}" style="height: 140px; object-fit: cover;">
-                        {% else %}
-                        <div class="bg-light text-center py-4 rounded-top">
-                            <i class="fas fa-project-diagram fa-3x text-muted"></i>
-                        </div>
-                        {% endif %}
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h5 class="card-title mb-0">{{ investment.project.title|truncatechars:20 }}</h5>
-                                <span class="badge rounded-pill
-                                    {% if investment.status == 'pending' %}bg-warning
-                                    {% elif investment.status == 'active' %}bg-success
-                                    {% elif investment.status == 'rejected' %}bg-danger
-                                    {% else %}bg-secondary{% endif %}">
-                                    {% if investment.status == 'pending' %}<i class="fas fa-clock me-1"></i>
-                                    {% elif investment.status == 'active' %}<i class="fas fa-check-circle me-1"></i>
-                                    {% elif investment.status == 'rejected' %}<i class="fas fa-times-circle me-1"></i>
-                                    {% else %}<i class="fas fa-question-circle me-1"></i>{% endif %}
-                                    {{ investment.get_status_display }}
-                                </span>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <span class="badge bg-success rounded-pill mb-1 d-inline-block">
-                                    <i class="fas fa-dollar-sign me-1"></i>${{ investment.amount }}
-                                </span>
-                                <span class="badge bg-info rounded-pill mb-1 d-inline-block">
-                                    <i class="fas fa-percentage me-1"></i>{{ investment.equity_percentage|floatformat:2 }}% equity
-                                </span>
-                            </div>
-                            
-                            <div class="progress mb-2" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar bg-success" 
-                                     style="width: {{ investment.project.amount_raised|percentage:investment.project.funding_goal }}%">
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between mb-3">
-                                <small class="text-muted">
-                                    <i class="fas fa-calendar-alt me-1"></i>{{ investment.created_at|date:"M d, Y" }}
-                                </small>
-                                <small class="text-muted">
-                                    {{ investment.project.amount_raised|percentage:investment.project.funding_goal|floatformat:1 }}% funded
-                                </small>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between">
-                                <a href="{% url 'project_detail' investment.project.id %}" class="btn btn-sm btn-outline-success">
-                                    <i class="fas fa-eye me-1"></i> Project
-                                </a>
-                                <a href="{% url 'investment_detail' investment.id %}" class="btn btn-sm btn-outline-success">
-                                    <i class="fas fa-info-circle me-1"></i> Details
-                                </a>
-                            </div>
-                        </div>
+    <!-- Section Header -->
+    <div class="section-header">
+        <h2 class="section-title">
+            <i class="fas fa-briefcase"></i>Investment Portfolio
+        </h2>
+        <a href="{% url 'accounts:dashboard' %}" class="btn-action outline">
+            <i class="fas fa-th-large"></i>Dashboard
+        </a>
+    </div>
+
+    <!-- Investments Grid -->
+    <div class="investments-grid">
+        {% for investment in investments %}
+        <div class="investment-card">
+            <div class="investment-image">
+                {% if investment.project.image %}
+                    <img src="{{ investment.project.image.url }}" alt="{{ investment.project.title }}">
+                {% else %}
+                    <i class="fas fa-rocket placeholder-icon"></i>
+                {% endif %}
+                <span class="investment-status
+                    {% if investment.status == 'active' %}status-active
+                    {% elif investment.status == 'pending' %}status-pending
+                    {% else %}status-rejected{% endif %}">
+                    {% if investment.status == 'active' %}<i class="fas fa-check-circle me-1"></i>
+                    {% elif investment.status == 'pending' %}<i class="fas fa-clock me-1"></i>
+                    {% else %}<i class="fas fa-times-circle me-1"></i>{% endif %}
+                    {{ investment.get_status_display }}
+                </span>
+            </div>
+
+            <div class="investment-body">
+                <h3 class="investment-title">{{ investment.project.title }}</h3>
+
+                <div class="investment-meta">
+                    <span class="meta-badge amount">
+                        <i class="fas fa-dollar-sign"></i>${{ investment.amount|intcomma }}
+                    </span>
+                    <span class="meta-badge equity">
+                        <i class="fas fa-chart-pie"></i>{{ investment.equity_percentage|floatformat:2 }}% Equity
+                    </span>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span class="label">Project Funding</span>
+                        <span class="value">{{ investment.project.amount_raised|percentage:investment.project.funding_goal|floatformat:0 }}%</span>
+                    </div>
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar-fill" style="width: {{ investment.project.amount_raised|percentage:investment.project.funding_goal }}%;"></div>
                     </div>
                 </div>
-                {% endfor %}
+
+                <div class="investment-footer">
+                    <span class="investment-date">
+                        <i class="fas fa-calendar-alt"></i>{{ investment.created_at|date:"M d, Y" }}
+                    </span>
+                    <div class="investment-actions">
+                        <a href="{% url 'projects:project_detail' investment.project.id %}" class="btn-action outline">
+                            <i class="fas fa-eye"></i>View
+                        </a>
+                        <a href="{% url 'projects:investment_detail' investment.id %}" class="btn-action primary">
+                            <i class="fas fa-info-circle"></i>Details
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
+        {% endfor %}
     </div>
+
     {% else %}
-    <div class="card shadow-sm border-0 rounded-3">
-        <div class="card-body text-center py-5">
-            <i class="fas fa-chart-pie fa-4x text-muted mb-3"></i>
-            <h4>You haven't made any investments yet</h4>
-            <p class="text-muted">Explore projects and start building your investment portfolio</p>
-            <a href="{% url 'projects:project_list' %}" class="btn btn-primary mt-2">
-                <i class="fas fa-search me-1"></i> Explore Projects
-            </a>
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-chart-pie"></i>
         </div>
+        <h4>No Investments Yet</h4>
+        <p>Start building your investment portfolio by exploring promising projects on our platform.</p>
+        <a href="{% url 'projects:project_list' %}" class="btn-explore">
+            <i class="fas fa-compass"></i>Explore Projects
+        </a>
     </div>
     {% endif %}
 </div>
+{% endblock %}
 
-<style>
-.hover-shadow:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-    transition: all 0.3s ease;
-}
-.card {
-    transition: all 0.3s ease;
-}
-.display-6 {
-    font-size: 2rem;
-    font-weight: 300;
-}
-</style>
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stats on scroll
+    const statCards = document.querySelectorAll('.stat-card');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 100);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    statCards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.4s ease';
+        observer.observe(card);
+    });
+
+    // Animate investment cards
+    const investmentCards = document.querySelectorAll('.investment-card');
+    const cardObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 100);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    investmentCards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = 'all 0.5s ease';
+        cardObserver.observe(card);
+    });
+
+    // Animate progress bars
+    const progressBars = document.querySelectorAll('.progress-bar-fill');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 300);
+    });
+});
+</script>
 {% endblock %}
