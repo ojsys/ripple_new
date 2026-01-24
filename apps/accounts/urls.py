@@ -43,6 +43,7 @@ urlpatterns = [
     path('initiate-email-verification/', views.initiate_email_verification, name='initiate_email_verification'),
     path('edit-profile/', views.edit_profile, name='edit_profile'),
     path('profile/', views.profile_view, name='profile_view'),
+    path('update-profile-image/', views.update_profile_image, name='update_profile_image'),
     path('complete-profile/', views.complete_profile, name='complete_profile'),
     path('registration-payment/', views.registration_payment, name='registration_payment'),
     path('initialize-registration-payment/', views.initialize_registration_payment, name='initialize_registration_payment'),

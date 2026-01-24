@@ -247,6 +247,44 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
+    .profile-image-placeholder {
+        width: 100px;
+        height: 100px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--teal-50) 0%, var(--teal-100) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        border: 3px dashed var(--teal-primary);
+    }
+
+    .profile-image-placeholder i {
+        font-size: 2.5rem;
+        color: var(--teal-primary);
+        opacity: 0.5;
+    }
+
+    .btn-upload {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--teal-50);
+        color: var(--teal-dark);
+        border: 2px solid var(--teal-primary);
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-upload:hover {
+        background: var(--teal-primary);
+        color: white;
+    }
+
     /* Quick Stats */
     .quick-stats {
         display: grid;
@@ -528,7 +566,9 @@
         <div class="hero-content text-center">
             <!-- Profile Avatar -->
             <div class="profile-avatar-wrapper d-inline-block">
-                {% if user.user_type == 'founder' and founder_profile and founder_profile.image %}
+                {% if user.profile_image %}
+                    <img src="{{ user.profile_image.url }}" alt="{{ user.get_full_name }}" class="profile-avatar">
+                {% elif user.user_type == 'founder' and founder_profile and founder_profile.image %}
                     <img src="{{ founder_profile.image.url }}" alt="{{ user.get_full_name }}" class="profile-avatar">
                 {% elif user.user_type == 'partner' and partner_profile and partner_profile.image %}
                     <img src="{{ partner_profile.image.url }}" alt="{{ user.get_full_name }}" class="profile-avatar">
@@ -874,32 +914,37 @@
                 </div>
             </div>
 
-            <!-- Profile Image Preview (for founders/partners with images) -->
-            {% if user.user_type == 'founder' and founder_profile and founder_profile.image %}
+            <!-- Profile Image Card -->
             <div class="profile-card">
                 <div class="card-header-custom">
                     <h5 class="card-title">
-                        <i class="fas fa-image"></i>Profile Photo
+                        <i class="fas fa-camera"></i>Profile Photo
                     </h5>
                 </div>
                 <div class="card-body-custom text-center">
-                    <img src="{{ founder_profile.image.url }}" alt="Profile Photo" class="profile-image-display">
-                    <p class="text-muted small mt-3 mb-0">Your public profile photo</p>
+                    {% if user.profile_image %}
+                        <img src="{{ user.profile_image.url }}" alt="Profile Photo" class="profile-image-display mb-3">
+                    {% elif user.user_type == 'founder' and founder_profile and founder_profile.image %}
+                        <img src="{{ founder_profile.image.url }}" alt="Profile Photo" class="profile-image-display mb-3">
+                    {% elif user.user_type == 'partner' and partner_profile and partner_profile.image %}
+                        <img src="{{ partner_profile.image.url }}" alt="Profile Photo" class="profile-image-display mb-3">
+                    {% else %}
+                        <div class="profile-image-placeholder mb-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+
+                    <form action="{% url 'accounts:update_profile_image' %}" method="post" enctype="multipart/form-data" class="upload-form">
+                        {% csrf_token %}
+                        <label for="profile_image_input" class="btn-upload">
+                            <i class="fas fa-upload me-2"></i>
+                            {% if user.profile_image %}Change Photo{% else %}Upload Photo{% endif %}
+                        </label>
+                        <input type="file" id="profile_image_input" name="profile_image" accept="image/*" class="d-none" onchange="this.form.submit()">
+                    </form>
+                    <p class="text-muted small mt-2 mb-0">JPG, PNG or GIF. Max 5MB.</p>
                 </div>
             </div>
-            {% elif user.user_type == 'partner' and partner_profile and partner_profile.image %}
-            <div class="profile-card">
-                <div class="card-header-custom">
-                    <h5 class="card-title">
-                        <i class="fas fa-image"></i>Profile Photo
-                    </h5>
-                </div>
-                <div class="card-body-custom text-center">
-                    <img src="{{ partner_profile.image.url }}" alt="Profile Photo" class="profile-image-display">
-                    <p class="text-muted small mt-3 mb-0">Your public profile photo</p>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>

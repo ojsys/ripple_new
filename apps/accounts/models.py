@@ -30,6 +30,9 @@ class CustomUser(AbstractUser):
     is_srt_partner = models.BooleanField(default=False, help_text="User has SRT Partner capabilities")
     srt_partner_since = models.DateTimeField(null=True, blank=True, help_text="Date when user became an SRT partner")
 
+    # Profile image for all users
+    profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True, help_text="User profile photo")
+
     # Add these if missing
     email = models.EmailField(unique=True)
     

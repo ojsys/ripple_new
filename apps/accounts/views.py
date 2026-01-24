@@ -412,6 +412,35 @@ def profile_view(request):
     return render(request, 'accounts/profile_view.html', context)
 
 
+@login_required
+def update_profile_image(request):
+    """Handle profile image upload."""
+    if request.method == 'POST' and request.FILES.get('profile_image'):
+        user = request.user
+        image = request.FILES['profile_image']
+
+        # Validate file size (max 5MB)
+        if image.size > 5 * 1024 * 1024:
+            messages.error(request, 'Image file is too large. Maximum size is 5MB.')
+            return redirect('accounts:profile_view')
+
+        # Validate file type
+        allowed_types = ['image/jpeg', 'image/png', 'image/gif']
+        if image.content_type not in allowed_types:
+            messages.error(request, 'Invalid file type. Please upload a JPG, PNG, or GIF image.')
+            return redirect('accounts:profile_view')
+
+        # Delete old image if exists
+        if user.profile_image:
+            user.profile_image.delete(save=False)
+
+        user.profile_image = image
+        user.save()
+        messages.success(request, 'Profile photo updated successfully!')
+
+    return redirect('accounts:profile_view')
+
+
 def complete_profile(request):
     """Complete profile after registration."""
     if not request.user.is_authenticated:
