@@ -227,5 +227,5 @@ class LegalPageAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         """Make page_type readonly after creation to prevent duplicates."""
         if obj:
-            return list(self.readonly_fields) + ['page_type']
-        return self.readonly_fields
+            return ['created_at', 'updated_at', 'page_type']
+        return ['created_at', 'updated_at']
