@@ -424,6 +424,10 @@
         text-decoration: none;
         transition: all 0.2s ease;
         white-space: nowrap;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
     }
 
     .btn-verify:hover {
@@ -590,9 +594,12 @@
                 <span>Please verify your email address to unlock all features.</span>
             </div>
         </div>
-        <a href="{% url 'accounts:initiate_email_verification' %}" class="btn-verify">
-            <i class="fas fa-paper-plane me-2"></i>Send Verification Email
-        </a>
+        <form action="{% url 'accounts:initiate_email_verification' %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-verify">
+                <i class="fas fa-paper-plane me-2"></i>Send Verification Email
+            </button>
+        </form>
     </div>
     {% endif %}
 
