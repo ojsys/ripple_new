@@ -297,7 +297,12 @@ def add_update(request, project_id):
 @login_required
 def make_pledge(request, project_id):
     """Initialize a donation/pledge to a project."""
-    project = get_object_or_404(Project, id=project_id, status='approved')
+    project = get_object_or_404(Project, id=project_id)
+
+    # Check if project is approved
+    if project.status != 'approved':
+        messages.error(request, 'This project is not yet approved for funding. Please check back later.')
+        return redirect('projects:project_detail', project_id=project.id)
 
     if project.deadline < timezone.now():
         messages.error(request, 'This project has ended.')
@@ -461,7 +466,12 @@ def donation_callback(request):
 @login_required
 def investment_proposal(request, project_id):
     """Submit an investment for an equity project."""
-    project = get_object_or_404(Project, id=project_id, status='approved')
+    project = get_object_or_404(Project, id=project_id)
+
+    # Check if project is approved
+    if project.status != 'approved':
+        messages.error(request, 'This project is not yet approved for investment. Please check back later.')
+        return redirect('projects:project_detail', project_id=project.id)
 
     if request.user.user_type != 'investor':
         messages.error(request, 'Only investors can submit investments.')
