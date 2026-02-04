@@ -61,8 +61,8 @@ class ProjectAdmin(admin.ModelAdmin):
         else:
             color = 'red'
         return format_html(
-            '<span style="color: {}; font-weight: bold;">{:.1f}%</span>',
-            color, percent
+            '<span style="color: {}; font-weight: bold;">{}%</span>',
+            color, f'{percent:.1f}'
         )
     percent_funded_display.short_description = 'Funded'
 
