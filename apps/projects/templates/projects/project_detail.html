@@ -87,8 +87,10 @@
 
     .main-image-card img {
         width: 100%;
-        height: 400px;
-        object-fit: cover;
+        height: auto;
+        max-height: 600px;
+        object-fit: contain;
+        background: #f8f9fa;
     }
 
     .main-image-placeholder {
@@ -205,9 +207,24 @@
     }
 
     .content-card .description {
-        color: var(--md-outline);
+        color: #1a1a1a;
         line-height: 1.8;
         font-size: 1rem;
+    }
+
+    .content-card .description p,
+    .content-card .description li,
+    .content-card .description span {
+        color: #1a1a1a;
+    }
+
+    .content-card .description h1,
+    .content-card .description h2,
+    .content-card .description h3,
+    .content-card .description h4,
+    .content-card .description h5,
+    .content-card .description h6 {
+        color: #111111;
     }
 
     /* Creator Card */
@@ -401,7 +418,10 @@
             margin-top: -40px;
         }
 
-        .main-image-card img,
+        .main-image-card img {
+            max-height: 350px;
+        }
+
         .main-image-placeholder {
             height: 250px;
         }
@@ -507,13 +527,13 @@
                         </div>
                     </div>
 
-                    {% if project.funding_type.name == 'Donation' %}
-                    <a href="{% url 'projects:make_pledge' project.id %}" class="btn-fund d-block text-center text-decoration-none">
-                        <i class="fas fa-heart me-2"></i>Support This Project
-                    </a>
-                    {% elif project.funding_type.name == 'Equity' %}
+                    {% if project.funding_type.name == 'Equity' %}
                     <a href="{% url 'projects:investment_proposal' project.id %}" class="btn-fund d-block text-center text-decoration-none">
                         <i class="fas fa-chart-line me-2"></i>Invest in This Project
+                    </a>
+                    {% else %}
+                    <a href="{% url 'projects:make_pledge' project.id %}" class="btn-fund d-block text-center text-decoration-none">
+                        <i class="fas fa-heart me-2"></i>Support This Project
                     </a>
                     {% endif %}
                 </div>
@@ -542,7 +562,21 @@
                 </div>
 
                 <!-- Rewards/Investment Terms -->
-                {% if project.funding_type.name == 'Donation' and project.rewards.all %}
+                {% if project.funding_type.name == 'Equity' and project.investment_terms.all %}
+                <div class="content-card">
+                    <h2>Investment Terms</h2>
+                    {% for term in project.investment_terms.all %}
+                    <div class="reward-card">
+                        <div class="reward-amount">{{ term.equity_offered }}% Equity</div>
+                        <div class="reward-description">
+                            <div class="mb-2"><strong>Min. Investment:</strong> ${{ term.minimum_investment|intcomma }}</div>
+                            <div class="mb-2"><strong>Valuation:</strong> ${{ term.valuation|intcomma }}</div>
+                            <div><strong>Deadline:</strong> {{ term.deadline|date:"M j, Y" }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% elif project.rewards.all %}
                 <div class="content-card">
                     <h2>Select a Reward</h2>
                     <p class="text-muted small mb-3">Click on a reward to support this project</p>
@@ -564,20 +598,6 @@
                         <i class="fas fa-hand-holding-heart me-2"></i>Donate without a reward
                     </a>
                 </div>
-                {% elif project.funding_type.name == 'Equity' and project.investment_terms.all %}
-                <div class="content-card">
-                    <h2>Investment Terms</h2>
-                    {% for term in project.investment_terms.all %}
-                    <div class="reward-card">
-                        <div class="reward-amount">{{ term.equity_offered }}% Equity</div>
-                        <div class="reward-description">
-                            <div class="mb-2"><strong>Min. Investment:</strong> ${{ term.minimum_investment|intcomma }}</div>
-                            <div class="mb-2"><strong>Valuation:</strong> ${{ term.valuation|intcomma }}</div>
-                            <div><strong>Deadline:</strong> {{ term.deadline|date:"M j, Y" }}</div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
                 {% endif %}
 
                 <!-- Owner Actions -->
@@ -598,13 +618,13 @@
 
 <!-- Mobile Fixed Support Button -->
 <div class="d-lg-none fixed-bottom bg-white border-top py-3 px-4 shadow">
-    {% if project.funding_type.name == 'Donation' %}
-    <a href="{% url 'projects:make_pledge' project.id %}" class="btn-fund d-block text-center">
-        <i class="fas fa-heart me-2"></i>Support This Project
-    </a>
-    {% else %}
+    {% if project.funding_type.name == 'Equity' %}
     <a href="{% url 'projects:investment_proposal' project.id %}" class="btn-fund d-block text-center">
         <i class="fas fa-chart-line me-2"></i>Invest Now
+    </a>
+    {% else %}
+    <a href="{% url 'projects:make_pledge' project.id %}" class="btn-fund d-block text-center">
+        <i class="fas fa-heart me-2"></i>Support This Project
     </a>
     {% endif %}
 </div>
