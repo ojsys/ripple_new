@@ -508,6 +508,31 @@
         background: var(--teal-dark) !important;
         border-color: var(--teal-dark) !important;
     }
+
+    /* Reward Form Styling */
+    .reward-form-item {
+        transition: all 0.3s ease;
+    }
+
+    .reward-form-item:hover {
+        border-color: var(--teal-primary) !important;
+    }
+
+    #add-reward-btn {
+        border-color: var(--teal-primary);
+        color: var(--teal-primary);
+    }
+
+    #add-reward-btn:hover {
+        background: var(--teal-50);
+        border-color: var(--teal-primary);
+        color: var(--teal-dark);
+    }
+
+    .form-check-input:checked {
+        background-color: var(--teal-primary);
+        border-color: var(--teal-primary);
+    }
 </style>
 {% endblock %}
 
@@ -541,6 +566,10 @@
                         </div>
                         <div class="step-indicator" data-step="3">
                             <div class="step-number">3</div>
+                            <span class="step-label">Rewards</span>
+                        </div>
+                        <div class="step-indicator" data-step="4">
+                            <div class="step-number">4</div>
                             <span class="step-label">Story & Media</span>
                         </div>
                     </div>
@@ -649,8 +678,76 @@
                             </div>
                         </div>
 
-                        <!-- Step 3: The Story -->
+                        <!-- Step 3: Rewards -->
                         <div class="form-step" id="step-3">
+                            <h3 class="step-title"><i class="fas fa-gift me-2" style="color: var(--teal-primary);"></i>Backer Rewards</h3>
+                            <p class="step-subtitle">Create rewards to incentivize backers (optional but recommended)</p>
+
+                            <div class="info-box mb-4">
+                                <div class="d-flex">
+                                    <i class="fas fa-lightbulb me-3 mt-1"></i>
+                                    <div>
+                                        <strong>Tips for Great Rewards</strong>
+                                        <ul class="mb-0 mt-2 small" style="color: #4b5563;">
+                                            <li>Offer a variety of price points to appeal to different backers</li>
+                                            <li>Make rewards unique and related to your project</li>
+                                            <li>Include estimated delivery dates in descriptions</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{ reward_formset.management_form }}
+
+                            <div id="rewards-container">
+                                {% for reward_form in reward_formset %}
+                                <div class="reward-form-item mb-4 p-3" style="background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0" style="color: var(--teal-dark); font-weight: 600;">
+                                            <i class="fas fa-star me-2"></i>Reward {{ forloop.counter }}
+                                        </h6>
+                                        {% if reward_form.instance.pk %}
+                                        <div class="form-check">
+                                            {{ reward_form.DELETE }}
+                                            <label class="form-check-label text-danger small" for="{{ reward_form.DELETE.id_for_label }}">
+                                                <i class="fas fa-trash-alt me-1"></i>Delete
+                                            </label>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    {{ reward_form.id }}
+
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="field-wrapper">
+                                                <label for="{{ reward_form.title.id_for_label }}">Reward Title</label>
+                                                {{ reward_form.title }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="field-wrapper">
+                                                <label for="{{ reward_form.amount.id_for_label }}">Minimum Amount ($)</label>
+                                                {{ reward_form.amount }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="field-wrapper">
+                                        <label for="{{ reward_form.description.id_for_label }}">Description</label>
+                                        {{ reward_form.description }}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <button type="button" id="add-reward-btn" class="btn btn-outline-success w-100 mt-2" style="border-radius: 10px; border-style: dashed;">
+                                <i class="fas fa-plus me-2"></i>Add Another Reward
+                            </button>
+                        </div>
+
+                        <!-- Step 4: The Story -->
+                        <div class="form-step" id="step-4">
                             <h3 class="step-title"><i class="fas fa-book-open me-2" style="color: var(--teal-primary);"></i>Tell Your Story</h3>
                             <p class="step-subtitle">Share your vision and add compelling media</p>
 
@@ -819,6 +916,12 @@ document.addEventListener('DOMContentLoaded', function() {
             'Choose the right funding type for your needs'
         ],
         3: [
+            'Offer rewards at various price points',
+            'Make rewards unique and project-related',
+            'Include clear descriptions of each reward',
+            'Consider adding limited early-bird rewards'
+        ],
+        4: [
             'Tell a compelling story with emotions',
             'Use high-quality images',
             'Add a video to increase engagement',
@@ -1036,6 +1139,58 @@ document.addEventListener('DOMContentLoaded', function() {
             newCategoryInput.value = '';
             categoryError.classList.add('d-none');
             categorySuccess.classList.add('d-none');
+        });
+    }
+
+    // Add Another Reward functionality
+    const addRewardBtn = document.getElementById('add-reward-btn');
+    const rewardsContainer = document.getElementById('rewards-container');
+    const totalFormsInput = document.querySelector('[name="rewards-TOTAL_FORMS"]');
+
+    if (addRewardBtn && rewardsContainer && totalFormsInput) {
+        addRewardBtn.addEventListener('click', function() {
+            const currentFormCount = parseInt(totalFormsInput.value);
+            const newFormIndex = currentFormCount;
+
+            // Clone the template from the first empty form or create new HTML
+            const newFormHtml = `
+                <div class="reward-form-item mb-4 p-3" style="background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0" style="color: var(--teal-dark); font-weight: 600;">
+                            <i class="fas fa-star me-2"></i>Reward ${newFormIndex + 1}
+                        </h6>
+                    </div>
+
+                    <input type="hidden" name="rewards-${newFormIndex}-id" id="id_rewards-${newFormIndex}-id">
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="field-wrapper">
+                                <label for="id_rewards-${newFormIndex}-title">Reward Title</label>
+                                <input type="text" name="rewards-${newFormIndex}-title" class="form-control" placeholder="Reward title" maxlength="200" id="id_rewards-${newFormIndex}-title">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="field-wrapper">
+                                <label for="id_rewards-${newFormIndex}-amount">Minimum Amount ($)</label>
+                                <input type="number" name="rewards-${newFormIndex}-amount" class="form-control" placeholder="Minimum pledge amount" min="1" step="0.01" id="id_rewards-${newFormIndex}-amount">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-wrapper">
+                        <label for="id_rewards-${newFormIndex}-description">Description</label>
+                        <textarea name="rewards-${newFormIndex}-description" cols="40" rows="3" class="form-control" placeholder="Describe what backers will receive..." id="id_rewards-${newFormIndex}-description"></textarea>
+                    </div>
+                </div>
+            `;
+
+            rewardsContainer.insertAdjacentHTML('beforeend', newFormHtml);
+            totalFormsInput.value = currentFormCount + 1;
+
+            // Scroll to the new form
+            const newForm = rewardsContainer.lastElementChild;
+            newForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
     }
 });

@@ -10,7 +10,7 @@ import requests
 import uuid
 
 from .models import Project, Category, FundingType, Reward, Update, Donation
-from .forms import ProjectForm, RewardForm, UpdateForm, DonationForm, InvestmentForm
+from .forms import ProjectForm, RewardForm, RewardFormSet, UpdateForm, DonationForm, InvestmentForm
 from apps.funding.models import Investment, InvestmentTerm
 from apps.cms.models import (
     HeroSlider, Testimonial, HomePage, PartnerLogo,
@@ -171,21 +171,30 @@ def create_project(request):
 
     if request.method == 'POST':
         form = ProjectForm(request.POST, request.FILES)
-        if form.is_valid():
+        reward_formset = RewardFormSet(request.POST, prefix='rewards')
+
+        if form.is_valid() and reward_formset.is_valid():
             project = form.save(commit=False)
             project.creator = request.user
             project.status = 'pending'
             project.save()
+
+            # Save rewards
+            reward_formset.instance = project
+            reward_formset.save()
+
             messages.success(request, 'Your project has been submitted for review!')
             return redirect('projects:my_projects')
     else:
         form = ProjectForm()
+        reward_formset = RewardFormSet(prefix='rewards')
 
     # Get all categories for the add category feature
     categories = Category.objects.all().order_by('name')
 
     context = {
         'form': form,
+        'reward_formset': reward_formset,
         'title': 'Create Project',
         'categories': categories,
     }
@@ -202,18 +211,23 @@ def edit_project(request, project_id):
 
     if request.method == 'POST':
         form = ProjectForm(request.POST, request.FILES, instance=project)
-        if form.is_valid():
+        reward_formset = RewardFormSet(request.POST, instance=project, prefix='rewards')
+
+        if form.is_valid() and reward_formset.is_valid():
             form.save()
+            reward_formset.save()
             messages.success(request, 'Project updated successfully!')
             return redirect('projects:project_detail', project_id=project.id)
     else:
         form = ProjectForm(instance=project)
+        reward_formset = RewardFormSet(instance=project, prefix='rewards')
 
     # Get all categories for the add category feature
     categories = Category.objects.all().order_by('name')
 
     context = {
         'form': form,
+        'reward_formset': reward_formset,
         'project': project,
         'title': 'Edit Project',
         'categories': categories,

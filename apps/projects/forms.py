@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import inlineformset_factory
 from ckeditor.widgets import CKEditorWidget
 from .models import Project, Reward, Update, Donation
 from apps.funding.models import Investment, InvestmentTerm
@@ -85,9 +86,22 @@ class RewardForm(forms.ModelForm):
             }),
             'amount': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Minimum pledge amount'
+                'placeholder': 'Minimum pledge amount',
+                'min': '1'
             }),
         }
+
+
+# Formset for managing multiple rewards during project creation/editing
+RewardFormSet = inlineformset_factory(
+    Project,
+    Reward,
+    form=RewardForm,
+    extra=3,  # Show 3 empty reward forms by default
+    can_delete=True,
+    min_num=0,
+    validate_min=False,
+)
 
 
 class UpdateForm(forms.ModelForm):
