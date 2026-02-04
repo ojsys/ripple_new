@@ -466,6 +466,48 @@
             font-size: 0.9rem;
         }
     }
+
+    /* Add Category Button */
+    .btn-outline-primary {
+        border-color: var(--teal-primary);
+        color: var(--teal-primary);
+        padding: 10px 14px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--teal-primary);
+        border-color: var(--teal-primary);
+        color: white;
+    }
+
+    /* Modal styling */
+    #addCategoryModal .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    #addCategoryModal .modal-header {
+        border-radius: 12px 12px 0 0;
+    }
+
+    #addCategoryModal .form-control {
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px 16px;
+    }
+
+    #addCategoryModal .form-control:focus {
+        border-color: var(--teal-primary);
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    }
+
+    #addCategoryModal .btn-primary:hover {
+        background: var(--teal-dark) !important;
+        border-color: var(--teal-dark) !important;
+    }
 </style>
 {% endblock %}
 
@@ -526,7 +568,15 @@
                                 <div class="col-md-6">
                                     <div class="field-wrapper">
                                         <label for="{{ form.category.id_for_label }}">Category <span class="text-danger">*</span></label>
-                                        {{ form.category }}
+                                        <div class="d-flex gap-2">
+                                            <div class="flex-grow-1">
+                                                {{ form.category }}
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Add new category">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-text">Can't find your category? Click + to add a new one</div>
                                         {% if form.category.errors %}
                                         <ul class="errorlist">{% for error in form.category.errors %}<li>{{ error }}</li>{% endfor %}</ul>
                                         {% endif %}
@@ -675,6 +725,35 @@
                     <li>Write a compelling short description</li>
                     <li>Be specific about your location</li>
                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--teal-50); border-bottom: 1px solid var(--teal-100);">
+                <h5 class="modal-title" id="addCategoryModalLabel" style="color: var(--teal-dark);">
+                    <i class="fas fa-folder-plus me-2"></i>Add New Category
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="newCategoryName" class="form-label fw-semibold">Category Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="newCategoryName" placeholder="e.g., Real Estate, Manufacturing, Logistics..." maxlength="100">
+                    <div class="form-text">Enter a descriptive name for your category (max 100 characters)</div>
+                </div>
+                <div id="categoryError" class="alert alert-danger d-none" role="alert"></div>
+                <div id="categorySuccess" class="alert alert-success d-none" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCategoryBtn" style="background: var(--teal-primary); border-color: var(--teal-primary);">
+                    <i class="fas fa-plus me-2"></i>Add Category
+                </button>
             </div>
         </div>
     </div>
@@ -850,6 +929,115 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize
     updateFormSteps();
+
+    // Add Category functionality
+    const saveCategoryBtn = document.getElementById('saveCategoryBtn');
+    const newCategoryInput = document.getElementById('newCategoryName');
+    const categoryError = document.getElementById('categoryError');
+    const categorySuccess = document.getElementById('categorySuccess');
+    const categorySelect = document.getElementById('id_category');
+    const addCategoryModal = document.getElementById('addCategoryModal');
+
+    if (saveCategoryBtn && newCategoryInput) {
+        saveCategoryBtn.addEventListener('click', function() {
+            const categoryName = newCategoryInput.value.trim();
+
+            // Reset alerts
+            categoryError.classList.add('d-none');
+            categorySuccess.classList.add('d-none');
+
+            if (!categoryName) {
+                categoryError.textContent = 'Please enter a category name';
+                categoryError.classList.remove('d-none');
+                return;
+            }
+
+            // Disable button and show loading
+            saveCategoryBtn.disabled = true;
+            saveCategoryBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // Make AJAX request
+            fetch('{% url "projects:create_category" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ name: categoryName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Add the new category to the dropdown
+                    const newOption = document.createElement('option');
+                    newOption.value = data.category.id;
+                    newOption.textContent = data.category.name;
+
+                    // Check if the option already exists
+                    let optionExists = false;
+                    for (let i = 0; i < categorySelect.options.length; i++) {
+                        if (categorySelect.options[i].value == data.category.id) {
+                            optionExists = true;
+                            categorySelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (!optionExists) {
+                        categorySelect.appendChild(newOption);
+                        categorySelect.value = data.category.id;
+                    }
+
+                    // Show success message
+                    categorySuccess.textContent = data.message || 'Category added successfully!';
+                    categorySuccess.classList.remove('d-none');
+
+                    // Clear input
+                    newCategoryInput.value = '';
+
+                    // Close modal after a short delay
+                    setTimeout(() => {
+                        const modalInstance = bootstrap.Modal.getInstance(addCategoryModal);
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        }
+                        categorySuccess.classList.add('d-none');
+                    }, 1500);
+                } else {
+                    categoryError.textContent = data.error || 'Failed to create category';
+                    categoryError.classList.remove('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                categoryError.textContent = 'An error occurred. Please try again.';
+                categoryError.classList.remove('d-none');
+            })
+            .finally(() => {
+                // Re-enable button
+                saveCategoryBtn.disabled = false;
+                saveCategoryBtn.innerHTML = '<i class="fas fa-plus me-2"></i>Add Category';
+            });
+        });
+
+        // Allow pressing Enter to submit
+        newCategoryInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveCategoryBtn.click();
+            }
+        });
+
+        // Clear alerts when modal is opened
+        addCategoryModal.addEventListener('show.bs.modal', function() {
+            newCategoryInput.value = '';
+            categoryError.classList.add('d-none');
+            categorySuccess.classList.add('d-none');
+        });
+    }
 });
 </script>
 {% endblock %}

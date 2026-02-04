@@ -13,6 +13,7 @@ urlpatterns = [
 
     # Project management (founders)
     path('projects/create/', views.create_project, name='create_project'),
+    path('api/categories/create/', views.create_category, name='create_category'),
     path('projects/<int:project_id>/edit/', views.edit_project, name='edit_project'),
     path('projects/<int:project_id>/delete/', views.delete_project, name='delete_project'),
     path('my-projects/', views.my_projects, name='my_projects'),

@@ -166,6 +166,9 @@ def create_project(request):
         messages.error(request, 'Only founders can create projects.')
         return redirect('projects:project_list')
 
+    # Ensure funding types exist
+    ensure_funding_types_exist()
+
     if request.method == 'POST':
         form = ProjectForm(request.POST, request.FILES)
         if form.is_valid():
@@ -178,9 +181,13 @@ def create_project(request):
     else:
         form = ProjectForm()
 
+    # Get all categories for the add category feature
+    categories = Category.objects.all().order_by('name')
+
     context = {
         'form': form,
         'title': 'Create Project',
+        'categories': categories,
     }
     return render(request, 'projects/project_form.html', context)
 
@@ -189,6 +196,9 @@ def create_project(request):
 def edit_project(request, project_id):
     """Edit an existing project."""
     project = get_object_or_404(Project, id=project_id, creator=request.user)
+
+    # Ensure funding types exist
+    ensure_funding_types_exist()
 
     if request.method == 'POST':
         form = ProjectForm(request.POST, request.FILES, instance=project)
@@ -199,10 +209,14 @@ def edit_project(request, project_id):
     else:
         form = ProjectForm(instance=project)
 
+    # Get all categories for the add category feature
+    categories = Category.objects.all().order_by('name')
+
     context = {
         'form': form,
         'project': project,
         'title': 'Edit Project',
+        'categories': categories,
     }
     return render(request, 'projects/project_form.html', context)
 
@@ -498,3 +512,56 @@ def my_investments(request):
 def about_page(request):
     """About page - redirect to CMS about page."""
     return redirect('cms:about_page')
+
+
+@login_required
+def create_category(request):
+    """Create a new category via AJAX (for founders)."""
+    if request.method == 'POST' and request.user.user_type == 'founder':
+        import json
+        try:
+            data = json.loads(request.body)
+            name = data.get('name', '').strip()
+
+            if not name:
+                return JsonResponse({'success': False, 'error': 'Category name is required'})
+
+            if len(name) > 100:
+                return JsonResponse({'success': False, 'error': 'Category name must be 100 characters or less'})
+
+            # Check if category already exists (case-insensitive)
+            existing = Category.objects.filter(name__iexact=name).first()
+            if existing:
+                return JsonResponse({
+                    'success': True,
+                    'category': {'id': existing.id, 'name': existing.name},
+                    'message': 'Category already exists'
+                })
+
+            # Create new category
+            category = Category.objects.create(name=name)
+            return JsonResponse({
+                'success': True,
+                'category': {'id': category.id, 'name': category.name},
+                'message': 'Category created successfully'
+            })
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid request data'})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+
+def ensure_funding_types_exist():
+    """Ensure default funding types exist in the database."""
+    default_funding_types = [
+        {'name': 'Donation', 'description': 'Charitable donations with no equity'},
+        {'name': 'Equity', 'description': 'Investment in exchange for company shares'},
+        {'name': 'Reward', 'description': 'Contribution in exchange for rewards/perks'},
+        {'name': 'Debt', 'description': 'Loan-based funding with interest'},
+    ]
+
+    for ft_data in default_funding_types:
+        FundingType.objects.get_or_create(
+            name=ft_data['name'],
+            defaults={'description': ft_data['description']}
+        )
