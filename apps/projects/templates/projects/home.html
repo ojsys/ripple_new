@@ -13,7 +13,7 @@
         <div class="carousel-inner">
             {% for slide in sliders %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <img src="{{ slide.image.url }}" class="d-block w-100" style="height: 60vh; object-fit: cover;" alt="{{ slide.title }}">
+                <img src="{{ slide.image.url }}" class="d-block w-100" style="height: 60vh; object-fit: contain; background: #1a1a1a;" alt="{{ slide.title }}">
                 <div class="carousel-caption d-flex flex-column align-items-center justify-content-center h-100">
                     <h2 class="fw-bold animate__animated animate__fadeInDown">{{ slide.title }}</h2>
                     <p class="lead fs-8 animate__animated animate__fadeInUp" style="color:yellow;">{{ slide.subtitle }}</p>
@@ -54,9 +54,9 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm hover-lift">
                     <div class="position-relative">
-                        <img src="{{ project.image.url }}" 
-                             class="card-img-top object-fit-cover" 
-                             style="height: 240px;"
+                        <img src="{{ project.image.url }}"
+                             class="card-img-top"
+                             style="height: 240px; object-fit: contain; background: #f8f9fa;"
                              alt="{{ project.title }}">
                         <div class="position-absolute top-0 end-0 m-3">
                             <span class="badge bg-light text-dark rounded-pill px-3 py-2">

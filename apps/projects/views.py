@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.conf import settings
+from django.urls import reverse
 import requests
 import uuid
 
@@ -391,7 +392,7 @@ def make_pledge(request, project_id):
                 'email': request.user.email,
                 'amount': amount_ngn * 100,  # Paystack uses kobo
                 'reference': reference,
-                'callback_url': request.build_absolute_uri('/projects/donation/callback/'),
+                'callback_url': request.build_absolute_uri(reverse('projects:donation_callback')),
                 'metadata': {
                     'payment_attempt_id': payment_attempt.id,
                     'project_id': project.id,

@@ -127,7 +127,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Authentication Settings
-LOGIN_URL = '/login/'
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
 

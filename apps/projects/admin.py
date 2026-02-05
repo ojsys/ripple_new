@@ -157,6 +157,28 @@ class PaymentAttemptAdmin(admin.ModelAdmin):
         return format_html('<span style="color: gray;">No</span>')
     has_donation.short_description = 'Donation Created'
 
+    def save_model(self, request, obj, form, change):
+        """Auto-create Donation when PaymentAttempt status is changed to 'success'."""
+        if change and 'status' in form.changed_data:
+            if obj.status == 'success' and obj.donation is None:
+                # Create the Donation record
+                donation = Donation.objects.create(
+                    project=obj.project,
+                    donor=obj.user,
+                    amount=obj.amount,
+                    amount_ngn=obj.amount_ngn,
+                    reward=obj.reward,
+                    message=obj.message,
+                    is_anonymous=obj.is_anonymous,
+                    paystack_reference=obj.paystack_reference,
+                    status='completed'
+                )
+                obj.donation = donation
+                # Recalculate project funding
+                obj.project.recalculate_funding()
+                self.message_user(request, f"Donation record created and project funding updated.", level='success')
+        super().save_model(request, obj, form, change)
+
     actions = ['verify_and_resolve_pending']
 
     def verify_and_resolve_pending(self, request, queryset):

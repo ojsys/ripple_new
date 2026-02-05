@@ -44,7 +44,7 @@
             <div class="card shadow-sm">
                 {% if project.image %}
                 <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}"
-                     style="height: 150px; object-fit: cover;">
+                     style="height: 150px; object-fit: contain; background: #f8f9fa;">
                 {% endif %}
                 <div class="card-body">
                     <h6 class="card-title">{{ project.title }}</h6>

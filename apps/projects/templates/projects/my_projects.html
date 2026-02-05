@@ -24,7 +24,7 @@
             <div class="card h-100 shadow-sm">
                 {% if project.image %}
                 <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}"
-                     style="height: 180px; object-fit: cover;">
+                     style="height: 180px; object-fit: contain; background: #f8f9fa;">
                 {% endif %}
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">

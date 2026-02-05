@@ -25,9 +25,9 @@
 
         <div class="col-md-6">
             {% if project.image %}
-                <img src="{{ project.image.url }}" alt="{{ project.title }}" class="img-fluid rounded shadow mb-3" style="max-height: 400px; object-fit: cover;">
+                <img src="{{ project.image.url }}" alt="{{ project.title }}" class="img-fluid rounded shadow mb-3" style="max-height: 400px; object-fit: contain; background: #f8f9fa;">
             {% else %}
-                <img src="/static/images/default-project.png" alt="Default Project Image" class="img-fluid rounded shadow mb-3" style="max-height: 400px; object-fit: cover;">
+                <img src="/static/images/default-project.png" alt="Default Project Image" class="img-fluid rounded shadow mb-3" style="max-height: 400px; object-fit: contain; background: #f8f9fa;">
                 <p class="text-muted">No image uploaded for this project.</p>
             {% endif %}
         </div>
