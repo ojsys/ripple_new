@@ -301,8 +301,8 @@
 
     .project-card-md .card-img-top {
         height: 200px;
-        object-fit: contain;
-        background: #f8f9fa;
+        object-fit: cover;
+        object-position: top;
     }
 
     .project-card-md .card-body {
@@ -897,10 +897,10 @@
                         <div class="mb-3">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="fw-semibold" style="color: #0d9488;">${{ project.amount_raised|intcomma }}</span>
-                                <span class="text-muted small">{{ project.get_percent_funded|floatformat:0 }}% funded</span>
+                                <span class="text-muted small">{{ project.get_percent_funded|floatformat:2 }}% funded</span>
                             </div>
                             <div class="progress-md">
-                                <div class="progress-bar" style="width: {{ project.get_percent_funded|floatformat:0 }}%"></div>
+                                <div class="progress-bar" style="width: {{ project.get_percent_funded|floatformat:2 }}%"></div>
                             </div>
                         </div>
 

@@ -94,8 +94,8 @@
 
     .summary-card .card-img-top {
         height: 160px;
-        object-fit: contain;
-        background: #f8f9fa;
+        object-fit: cover;
+        object-position: top;
     }
 
     .summary-card .card-body {
@@ -243,10 +243,10 @@
                             <span class="text-muted">of ${{ project.funding_goal|intcomma }}</span>
                         </div>
                         <div class="progress" style="height: 8px; border-radius: 4px; background: #e5e7eb;">
-                            <div class="progress-bar progress-bar-teal" style="width: {{ project.get_percent_funded|floatformat:0 }}%; border-radius: 4px;"></div>
+                            <div class="progress-bar progress-bar-teal" style="width: {{ project.get_percent_funded|floatformat:2 }}%; border-radius: 4px;"></div>
                         </div>
                         <div class="small text-muted mt-2">
-                            <strong style="color: var(--teal-primary);">{{ project.get_percent_funded|floatformat:0 }}%</strong> funded
+                            <strong style="color: var(--teal-primary);">{{ project.get_percent_funded|floatformat:2 }}%</strong> funded
                         </div>
                     </div>
 

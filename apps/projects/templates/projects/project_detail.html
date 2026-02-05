@@ -509,12 +509,12 @@
                     <div class="funding-goal">raised of ${{ project.funding_goal|intcomma }} goal</div>
 
                     <div class="progress-bar-md">
-                        <div class="fill" style="width: {{ percent_funded|floatformat:0 }}%"></div>
+                        <div class="fill" style="width: {{ percent_funded|floatformat:2 }}%"></div>
                     </div>
 
                     <div class="funding-stats">
                         <div class="funding-stat">
-                            <div class="funding-stat-value">{{ percent_funded|floatformat:0 }}%</div>
+                            <div class="funding-stat-value">{{ percent_funded|floatformat:2 }}%</div>
                             <div class="funding-stat-label">Funded</div>
                         </div>
                         <div class="funding-stat">

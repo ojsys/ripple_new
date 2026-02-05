@@ -24,7 +24,7 @@
             <div class="card h-100 shadow-sm">
                 {% if project.image %}
                 <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}"
-                     style="height: 180px; object-fit: contain; background: #f8f9fa;">
+                     style="height: 180px; object-fit: cover; object-position: top;">
                 {% endif %}
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
@@ -45,10 +45,10 @@
                             <span class="text-muted">of ${{ project.funding_goal|intcomma }}</span>
                         </div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-success" style="width: {{ project.get_percent_funded|floatformat:0 }}%"></div>
+                            <div class="progress-bar bg-success" style="width: {{ project.get_percent_funded|floatformat:2 }}%"></div>
                         </div>
                         <div class="small text-muted mt-1">
-                            {{ project.get_percent_funded|floatformat:0 }}% funded
+                            {{ project.get_percent_funded|floatformat:2 }}% funded
                         </div>
                     </div>
 
