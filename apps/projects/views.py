@@ -32,8 +32,10 @@ def home(request):
         end_date__gte=timezone.now()
     )
 
-    # Featured projects
+    # Featured projects (sync funding amounts)
     featured_projects = Project.objects.filter(status='approved').order_by('-created_at')[:6]
+    for project in featured_projects:
+        project.recalculate_funding()
 
     # Testimonials
     testimonials = Testimonial.objects.filter(is_active=True)[:6]
@@ -117,6 +119,10 @@ def project_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Sync funding amounts for projects on this page
+    for project in page_obj:
+        project.recalculate_funding()
+
     context = {
         'page_obj': page_obj,
         'projects': page_obj,
@@ -134,7 +140,10 @@ def project_detail(request, project_id):
     """Display project details."""
     project = get_object_or_404(Project, id=project_id)
 
-    # Calculate percent funded
+    # Sync amount_raised from actual completed donations
+    project.recalculate_funding()
+
+    # Calculate percent funded (now uses the accurate amount_raised)
     percent_funded = project.get_percent_funded()
 
     # Initialize forms based on funding type
@@ -254,7 +263,11 @@ def delete_project(request, project_id):
 @login_required
 def my_projects(request):
     """List user's own projects."""
-    projects = Project.objects.filter(creator=request.user).order_by('-created_at')
+    projects = list(Project.objects.filter(creator=request.user).order_by('-created_at'))
+
+    # Sync funding amounts
+    for project in projects:
+        project.recalculate_funding()
 
     context = {
         'projects': projects,
