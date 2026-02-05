@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 from django.utils import timezone
 from django.urls import reverse
 from django.conf import settings
@@ -128,6 +129,15 @@ class Project(models.Model):
             return 0
         return (self.amount_raised / self.funding_goal) * 100
 
+    def recalculate_funding(self):
+        """Recalculate amount_raised from all completed donations."""
+        total = self.donations.filter(status='completed').aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+        self.amount_raised = total
+        self.save(update_fields=['amount_raised'])
+        return total
+
     def get_absolute_url(self):
         return reverse('project_detail', kwargs={'project_id': self.id})
 
@@ -225,6 +235,39 @@ class Donation(models.Model):
     def __str__(self):
         name = self.donor_name or (self.donor.get_full_name() if self.donor else 'Anonymous')
         return f"{name} donated ${self.amount} to {self.project.title}"
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class PaymentAttempt(models.Model):
+    """Track all payment attempts (pending, failed, abandoned).
+    Successful payments are promoted to Donation records."""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('success', 'Success'),
+        ('failed', 'Failed'),
+        ('abandoned', 'Abandoned'),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='payment_attempts')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='payment_attempts')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount_ngn = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    reward = models.ForeignKey(Reward, on_delete=models.SET_NULL, null=True, blank=True)
+    message = models.TextField(blank=True, null=True)
+    is_anonymous = models.BooleanField(default=False)
+    paystack_reference = models.CharField(max_length=100, unique=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    donation = models.OneToOneField(Donation, on_delete=models.SET_NULL, null=True, blank=True, related_name='payment_attempt',
+                                     help_text="Linked donation (only set when payment succeeds)")
+    error_message = models.TextField(blank=True, null=True, help_text="Error details if payment failed")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        user_name = self.user.get_full_name() if self.user else 'Unknown'
+        return f"{user_name} - ${self.amount} - {self.status} ({self.paystack_reference})"
 
     class Meta:
         ordering = ['-created_at']

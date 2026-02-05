@@ -9,7 +9,7 @@ from django.conf import settings
 import requests
 import uuid
 
-from .models import Project, Category, FundingType, Reward, Update, Donation
+from .models import Project, Category, FundingType, Reward, Update, Donation, PaymentAttempt
 from .forms import ProjectForm, RewardForm, RewardFormSet, UpdateForm, DonationForm, InvestmentForm
 from apps.funding.models import Investment, InvestmentTerm
 from apps.cms.models import (
@@ -341,19 +341,15 @@ def make_pledge(request, project_id):
 
     if request.method == 'POST':
         form = DonationForm(request.POST, project=project)
-        print(f"DEBUG: Form data: {request.POST}")
-        print(f"DEBUG: Form is valid: {form.is_valid()}")
-        if not form.is_valid():
-            print(f"DEBUG: Form errors: {form.errors}")
         if form.is_valid():
             amount = form.cleaned_data['amount']
             amount_ngn = int(float(amount) * 1600)  # Convert to NGN
             reference = f"DON-{uuid.uuid4().hex[:16].upper()}"
 
-            # Create pending donation
-            donation = Donation.objects.create(
+            # Create a payment attempt (NOT a donation yet)
+            payment_attempt = PaymentAttempt.objects.create(
                 project=project,
-                donor=request.user,
+                user=request.user,
                 amount=amount,
                 amount_ngn=amount_ngn,
                 reward=form.cleaned_data.get('reward'),
@@ -369,7 +365,9 @@ def make_pledge(request, project_id):
             # Check if Paystack key is configured
             if not paystack_secret:
                 messages.error(request, 'Payment system is not configured. Please contact support.')
-                donation.delete()
+                payment_attempt.status = 'failed'
+                payment_attempt.error_message = 'Paystack secret key not configured'
+                payment_attempt.save()
                 return redirect('projects:make_pledge', project_id=project.id)
 
             headers = {
@@ -382,15 +380,12 @@ def make_pledge(request, project_id):
                 'reference': reference,
                 'callback_url': request.build_absolute_uri('/projects/donation/callback/'),
                 'metadata': {
-                    'donation_id': donation.id,
+                    'payment_attempt_id': payment_attempt.id,
                     'project_id': project.id,
                 }
             }
 
             try:
-                print(f"DEBUG: Initializing Paystack payment for {request.user.email}")
-                print(f"DEBUG: Amount (kobo): {data['amount']}, Reference: {reference}")
-
                 response = requests.post(
                     'https://api.paystack.co/transaction/initialize',
                     json=data,
@@ -398,27 +393,33 @@ def make_pledge(request, project_id):
                     timeout=30
                 )
 
-                print(f"DEBUG: Paystack response status: {response.status_code}")
-                print(f"DEBUG: Paystack response: {response.text}")
-
                 if response.status_code == 200:
                     result = response.json()
                     if result.get('status'):
                         return redirect(result['data']['authorization_url'])
                     else:
+                        payment_attempt.status = 'failed'
+                        payment_attempt.error_message = result.get('message', 'Unknown error')
+                        payment_attempt.save()
                         messages.error(request, f'Payment error: {result.get("message", "Unknown error")}')
                 else:
                     result = response.json() if response.text else {}
                     error_msg = result.get('message', f'Status {response.status_code}')
+                    payment_attempt.status = 'failed'
+                    payment_attempt.error_message = error_msg
+                    payment_attempt.save()
                     messages.error(request, f'Payment service error: {error_msg}')
 
             except requests.exceptions.Timeout:
+                payment_attempt.status = 'failed'
+                payment_attempt.error_message = 'Payment service timed out'
+                payment_attempt.save()
                 messages.error(request, 'Payment service timed out. Please try again.')
             except requests.exceptions.RequestException as e:
-                print(f"DEBUG: Request exception: {str(e)}")
-                messages.error(request, f'Connection error: {str(e)}')
-
-            donation.delete()
+                payment_attempt.status = 'failed'
+                payment_attempt.error_message = str(e)
+                payment_attempt.save()
+                messages.error(request, f'Connection error. Please try again.')
     else:
         form = DonationForm(project=project, initial=initial_data)
 
@@ -447,34 +448,73 @@ def donation_callback(request):
         messages.error(request, 'Invalid payment reference.')
         return redirect('projects:project_list')
 
+    # Find the payment attempt
+    try:
+        payment_attempt = PaymentAttempt.objects.get(paystack_reference=reference)
+    except PaymentAttempt.DoesNotExist:
+        # Fallback: check if there's a legacy Donation record
+        try:
+            donation = Donation.objects.get(paystack_reference=reference)
+            if donation.status == 'completed':
+                messages.success(request, 'This donation was already processed.')
+                return redirect('projects:project_detail', project_id=donation.project.id)
+        except Donation.DoesNotExist:
+            pass
+        messages.error(request, 'Payment reference not found.')
+        return redirect('projects:project_list')
+
     # Verify payment with Paystack
     paystack_secret = getattr(settings, 'PAYSTACK_SECRET_KEY', '')
     headers = {'Authorization': f'Bearer {paystack_secret}'}
-    response = requests.get(
-        f'https://api.paystack.co/transaction/verify/{reference}',
-        headers=headers
-    )
+
+    try:
+        response = requests.get(
+            f'https://api.paystack.co/transaction/verify/{reference}',
+            headers=headers,
+            timeout=30
+        )
+    except requests.exceptions.RequestException:
+        # Network error during verification - keep as pending so it can be retried
+        messages.error(request, 'Could not verify payment. If you were charged, please contact support.')
+        return redirect('projects:project_detail', project_id=payment_attempt.project.id)
 
     if response.status_code == 200:
         result = response.json()
         if result.get('status') and result['data']['status'] == 'success':
-            try:
-                donation = Donation.objects.get(paystack_reference=reference)
-                donation.status = 'completed'
-                donation.save()
+            # Payment was successful - create the actual Donation record
+            if payment_attempt.status != 'success':
+                donation = Donation.objects.create(
+                    project=payment_attempt.project,
+                    donor=payment_attempt.user,
+                    amount=payment_attempt.amount,
+                    amount_ngn=payment_attempt.amount_ngn,
+                    reward=payment_attempt.reward,
+                    message=payment_attempt.message,
+                    is_anonymous=payment_attempt.is_anonymous,
+                    paystack_reference=reference,
+                    status='completed'
+                )
 
-                # Update project amount raised
-                project = donation.project
-                project.amount_raised += donation.amount
-                project.save()
+                # Link the payment attempt to the donation
+                payment_attempt.status = 'success'
+                payment_attempt.donation = donation
+                payment_attempt.save()
 
-                messages.success(request, 'Thank you for your donation!')
-                return redirect('projects:project_detail', project_id=project.id)
-            except Donation.DoesNotExist:
-                pass
+                # Recalculate project funding from all completed donations
+                payment_attempt.project.recalculate_funding()
 
-    messages.error(request, 'Payment verification failed.')
-    return redirect('projects:project_list')
+            messages.success(request, 'Thank you for your donation!')
+            return redirect('projects:project_detail', project_id=payment_attempt.project.id)
+        else:
+            # Payment failed at Paystack
+            payment_attempt.status = 'failed'
+            payment_attempt.error_message = result['data'].get('gateway_response', 'Payment was not successful')
+            payment_attempt.save()
+            messages.error(request, 'Payment was not successful. No charges have been applied.')
+            return redirect('projects:project_detail', project_id=payment_attempt.project.id)
+
+    messages.error(request, 'Payment verification failed. If you were charged, please contact support.')
+    return redirect('projects:project_detail', project_id=payment_attempt.project.id)
 
 
 @login_required
@@ -513,8 +553,8 @@ def investment_proposal(request, project_id):
 
 @login_required
 def my_donations(request):
-    """View user's donations."""
-    donations = Donation.objects.filter(donor=request.user).order_by('-created_at')
+    """View user's completed donations."""
+    donations = Donation.objects.filter(donor=request.user, status='completed').order_by('-created_at')
 
     context = {
         'donations': donations,
