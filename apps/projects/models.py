@@ -138,6 +138,31 @@ class Project(models.Model):
         self.save(update_fields=['amount_raised'])
         return total
 
+    def get_backers_count(self):
+        """Count unique backers for this project.
+        - Logged-in users are counted uniquely by user ID
+        - Anonymous donations (is_anonymous=True or no donor) each count as 1 backer
+        """
+        completed_donations = self.donations.filter(status='completed')
+
+        # Count unique logged-in donors (non-anonymous with a user)
+        unique_users = completed_donations.filter(
+            donor__isnull=False,
+            is_anonymous=False
+        ).values('donor').distinct().count()
+
+        # Count anonymous donations (each counts as a separate backer)
+        anonymous_count = completed_donations.filter(
+            models.Q(is_anonymous=True) | models.Q(donor__isnull=True)
+        ).count()
+
+        return unique_users + anonymous_count
+
+    @property
+    def backers_count(self):
+        """Property to access backers count directly from templates."""
+        return self.get_backers_count()
+
     def get_absolute_url(self):
         return reverse('project_detail', kwargs={'project_id': self.id})
 

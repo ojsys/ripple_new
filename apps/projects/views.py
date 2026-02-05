@@ -156,8 +156,8 @@ def project_detail(request, project_id):
     elif project.funding_type and project.funding_type.name == 'Equity':
         investment_form = InvestmentForm(project=project)
 
-    # Get backers count
-    backers_count = project.donations.filter(status='completed').count()
+    # Get unique backers count
+    backers_count = project.get_backers_count()
 
     context = {
         'project': project,
