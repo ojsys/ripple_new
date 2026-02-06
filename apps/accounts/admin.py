@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
 from .models import (
     CustomUser, FounderProfile, InvestorProfile, PartnerProfile,
-    RegistrationPayment, PendingRegistration
+    DonorProfile, RegistrationPayment, PendingRegistration
 )
 
 
@@ -83,6 +83,32 @@ class InvestorProfileAdmin(admin.ModelAdmin):
             return obj.investment_focus[:100] + '...' if len(obj.investment_focus) > 100 else obj.investment_focus
         return '-'
     investment_focus_preview.short_description = 'Investment Focus'
+
+
+@admin.register(DonorProfile)
+class DonorProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'total_donated', 'projects_supported', 'is_anonymous_by_default', 'created_at']
+    list_filter = ['is_anonymous_by_default', 'created_at']
+    search_fields = ['user__email', 'user__first_name', 'user__last_name']
+    readonly_fields = ['total_donated', 'projects_supported', 'created_at', 'updated_at']
+    raw_id_fields = ['user']
+
+    fieldsets = (
+        ('Donor Info', {
+            'fields': ('user', 'image', 'bio')
+        }),
+        ('Preferences', {
+            'fields': ('is_anonymous_by_default',)
+        }),
+        ('Statistics', {
+            'fields': ('total_donated', 'projects_supported'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 @admin.register(PartnerProfile)

@@ -27,7 +27,7 @@ import requests
 
 from .models import (
     CustomUser, FounderProfile, InvestorProfile, PartnerProfile,
-    RegistrationPayment, PendingRegistration
+    DonorProfile, RegistrationPayment, PendingRegistration
 )
 from apps.accounts.forms import (
     SignUpForm, EditProfileForm, BaseProfileForm,
@@ -78,14 +78,14 @@ def signup(request):
                 cleaned_data = form.cleaned_data
                 cleaned_data['user_type'] = user_type
 
-                # SRT Partners don't need to pay - create account directly
-                if user_type == 'partner':
-                    logger.info(f"Creating SRT Partner account directly for: {cleaned_data['email']}")
+                # SRT Partners and Donors don't need to pay - create account directly
+                if user_type in ['partner', 'donor']:
+                    logger.info(f"Creating {user_type} account directly for: {cleaned_data['email']}")
                     # Clear registration session data
                     clear_registration_session(request)
                     return create_user_directly(request, cleaned_data)
 
-                # For other user types, create pending registration and go to payment
+                # For Founders and Investors, create pending registration and go to payment
                 # Check if email already has a pending registration
                 existing_pending = PendingRegistration.objects.filter(email=cleaned_data['email']).first()
                 if existing_pending:
@@ -155,8 +155,10 @@ def clear_registration_session(request):
 
 
 def create_user_directly(request, cleaned_data):
-    """Create user account directly without payment (for SRT Partners)."""
-    logger.info(f"create_user_directly called for: {cleaned_data.get('email')}")
+    """Create user account directly without payment (for SRT Partners and Donors)."""
+    user_type = cleaned_data['user_type']
+    logger.info(f"create_user_directly called for {user_type}: {cleaned_data.get('email')}")
+
     try:
         # Create the user
         user = CustomUser.objects.create(
@@ -165,35 +167,48 @@ def create_user_directly(request, cleaned_data):
             first_name=cleaned_data['first_name'],
             last_name=cleaned_data['last_name'],
             phone_number=cleaned_data['phone_number'],
-            user_type=cleaned_data['user_type'],
+            user_type=user_type,
             is_active=True,
-            registration_fee_paid=True,  # No fee required for partners
+            registration_fee_paid=True,  # No fee required for partners and donors
         )
         user.set_password(cleaned_data['password'])
         user.save()
 
-        # Create partner profile
-        partner_profile = PartnerProfile.objects.create(
-            user=user,
-            partner_id=f"SRT-{uuid.uuid4().hex[:8].upper()}",
-            accreditation_status='pending',
-        )
+        # Create profile based on user type
+        if user_type == 'partner':
+            # Create partner profile
+            partner_profile = PartnerProfile.objects.create(
+                user=user,
+                partner_id=f"SRT-{uuid.uuid4().hex[:8].upper()}",
+                accreditation_status='pending',
+            )
 
-        # Create capital account
-        PartnerCapitalAccount.objects.create(
-            partner=user,
-            token_balance=0
-        )
+            # Create capital account
+            PartnerCapitalAccount.objects.create(
+                partner=user,
+                token_balance=0
+            )
 
-        # Log the user in
-        login(request, user)
-        logger.info(f"SRT Partner account created and logged in: {user.email}")
+            # Log the user in
+            login(request, user)
+            logger.info(f"SRT Partner account created and logged in: {user.email}")
 
-        messages.success(request, f"Welcome to StartUpRipple, {user.first_name}! Your SRT Partner account has been created.")
-        return redirect('srt:dashboard')
+            messages.success(request, f"Welcome to StartUpRipple, {user.first_name}! Your SRT Partner account has been created.")
+            return redirect('srt:dashboard')
+
+        elif user_type == 'donor':
+            # Create donor profile
+            DonorProfile.objects.create(user=user)
+
+            # Log the user in
+            login(request, user)
+            logger.info(f"Donor account created and logged in: {user.email}")
+
+            messages.success(request, f"Welcome to StartUpRipple, {user.first_name}! Your account has been created. Start exploring projects to support!")
+            return redirect('projects:project_list')
 
     except Exception as e:
-        logger.error(f"Error creating SRT Partner account: {str(e)}", exc_info=True)
+        logger.error(f"Error creating {user_type} account: {str(e)}", exc_info=True)
         messages.error(request, f"Error creating account: {str(e)}")
         return redirect('accounts:signup')
 

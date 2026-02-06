@@ -49,6 +49,20 @@ class SiteSettings(models.Model):
     primary_color = models.CharField(max_length=7, default='#28a745')
     secondary_color = models.CharField(max_length=7, default='#2c3e50')
 
+    # Registration Fee Settings
+    founder_registration_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, default=5.00,
+        help_text="Registration fee for Founders in USD"
+    )
+    investor_registration_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, default=25.00,
+        help_text="Registration fee for Investors in USD"
+    )
+    usd_to_ngn_rate = models.DecimalField(
+        max_digits=10, decimal_places=2, default=1600.00,
+        help_text="Exchange rate: 1 USD = X NGN"
+    )
+
     # Singleton implementation
     def save(self, *args, **kwargs):
         if not self.pk and SiteSettings.objects.exists():

@@ -25,7 +25,32 @@ class AboutPageAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
-    list_display = ['site_name', 'primary_color', 'secondary_color']
+    list_display = ['site_name', 'primary_color', 'founder_fee_display', 'investor_fee_display']
+
+    fieldsets = (
+        ('Site Information', {
+            'fields': ('site_name', 'logo', 'favicon'),
+        }),
+        ('Theme Colors', {
+            'fields': ('primary_color', 'secondary_color'),
+        }),
+        ('Registration Fees', {
+            'fields': (
+                'founder_registration_fee',
+                'investor_registration_fee',
+                'usd_to_ngn_rate',
+            ),
+            'description': 'Set registration fees for different account types. Donors register for free.',
+        }),
+    )
+
+    def founder_fee_display(self, obj):
+        return f"${obj.founder_registration_fee}"
+    founder_fee_display.short_description = "Founder Fee"
+
+    def investor_fee_display(self, obj):
+        return f"${obj.investor_registration_fee}"
+    investor_fee_display.short_description = "Investor Fee"
 
     def has_add_permission(self, request):
         return not SiteSettings.objects.exists()

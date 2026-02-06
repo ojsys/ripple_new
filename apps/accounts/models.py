@@ -44,17 +44,31 @@ class CustomUser(AbstractUser):
         return f"{self.get_full_name()} ({self.get_user_type_display()})"
     
     def get_registration_fee(self):
-        """Get the registration fee amount based on user type"""
-        if self.user_type == 'founder':
-            return 5.00  # $5 USD
-        elif self.user_type in ['donor', 'investor']:
-            return 25.00  # $25 USD
-        return 0.00
-    
+        """Get the registration fee amount based on user type from site settings"""
+        from apps.cms.models import SiteSettings
+        try:
+            settings = SiteSettings.load()
+            if self.user_type == 'founder':
+                return float(settings.founder_registration_fee)
+            elif self.user_type == 'investor':
+                return float(settings.investor_registration_fee)
+        except Exception:
+            # Fallback to defaults if settings not available
+            if self.user_type == 'founder':
+                return 5.00
+            elif self.user_type == 'investor':
+                return 25.00
+        return 0.00  # Donors and Partners don't pay
+
     def get_registration_fee_ngn(self):
-        """Get the registration fee in NGN (using the same conversion rate as other payments)"""
+        """Get the registration fee in NGN using site settings exchange rate"""
+        from apps.cms.models import SiteSettings
         usd_amount = self.get_registration_fee()
-        return int(usd_amount * 1600)  # 1 USD = 1600 NGN
+        try:
+            settings = SiteSettings.load()
+            return int(usd_amount * float(settings.usd_to_ngn_rate))
+        except Exception:
+            return int(usd_amount * 1600)  # Fallback rate
 
 
 class FounderProfile(models.Model):
@@ -75,6 +89,34 @@ class InvestorProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     investment_focus = models.TextField()
     preferred_industries = models.CharField(max_length=200)
+
+
+class DonorProfile(models.Model):
+    """Profile for Donors who support projects through donations."""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='donor_profile')
+    bio = models.TextField(blank=True, null=True, help_text="Short bio about the donor")
+    image = models.ImageField(upload_to='donor_images/', blank=True, null=True)
+    is_anonymous_by_default = models.BooleanField(
+        default=False,
+        help_text="If enabled, donations will be anonymous by default"
+    )
+    total_donated = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0,
+        help_text="Total amount donated across all projects"
+    )
+    projects_supported = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of projects this donor has supported"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.get_full_name()}'s Donor Profile"
+
+    class Meta:
+        verbose_name = "Donor Profile"
+        verbose_name_plural = "Donor Profiles"
 
 class PartnerProfile(models.Model):
     """Extended profile for SRT Partners"""
@@ -192,14 +234,28 @@ class PendingRegistration(models.Model):
         return timezone.now() > self.expires_at
     
     def get_registration_fee(self):
-        """Get the registration fee amount based on user type"""
-        if self.user_type == 'founder':
-            return 5.00  # $5 USD
-        elif self.user_type in ['donor', 'investor']:
-            return 25.00  # $25 USD
-        return 0.00
-    
+        """Get the registration fee amount based on user type from site settings"""
+        from apps.cms.models import SiteSettings
+        try:
+            settings = SiteSettings.load()
+            if self.user_type == 'founder':
+                return float(settings.founder_registration_fee)
+            elif self.user_type == 'investor':
+                return float(settings.investor_registration_fee)
+        except Exception:
+            # Fallback to defaults if settings not available
+            if self.user_type == 'founder':
+                return 5.00
+            elif self.user_type == 'investor':
+                return 25.00
+        return 0.00  # Donors and Partners don't pay
+
     def get_registration_fee_ngn(self):
-        """Get the registration fee in NGN"""
+        """Get the registration fee in NGN using site settings exchange rate"""
+        from apps.cms.models import SiteSettings
         usd_amount = self.get_registration_fee()
-        return int(usd_amount * 1600)  # 1 USD = 1600 NGN
+        try:
+            settings = SiteSettings.load()
+            return int(usd_amount * float(settings.usd_to_ngn_rate))
+        except Exception:
+            return int(usd_amount * 1600)  # Fallback rate
