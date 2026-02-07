@@ -70,6 +70,29 @@
         color: var(--brand-green-hover);
         text-decoration: underline;
     }
+
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+        z-index: 10;
+        padding: 5px;
+    }
+
+    .password-toggle:hover {
+        color: var(--brand-green);
+    }
+
+    .password-field-wrapper {
+        position: relative;
+    }
+
+    .password-field-wrapper .form-control {
+        padding-right: 45px;
+    }
 </style>
 
 <div class="auth-container">
@@ -100,9 +123,12 @@
                                 <label for="floatingInput">Email Address</label>
                             </div>
                             
-                            <div class="form-floating mb-4">
+                            <div class="form-floating mb-4 password-field-wrapper">
                                 <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Password" required>
                                 <label for="floatingPassword">Password</label>
+                                <span class="password-toggle" onclick="togglePassword('floatingPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </span>
                             </div>
                             
                             <button type="submit" class="btn btn-brand w-100 mb-3">
@@ -128,4 +154,21 @@
         </div>
     </div>
 </div>
+
+<script>
+function togglePassword(inputId, toggleElement) {
+    const input = document.getElementById(inputId);
+    const icon = toggleElement.querySelector('i');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+</script>
 {% endblock %}
