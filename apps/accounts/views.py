@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 
 logger = logging.getLogger(__name__)
 from django.contrib.auth import login, logout
@@ -227,15 +227,41 @@ def initiate_email_verification(request):
     if request.method == 'POST':
         # Re-send verification email logic
         current_site = get_current_site(request)
-        mail_subject = 'Activate Your StartUpRipple Account'
-        message = render_to_string('registration/account_activation_email.html', {
+        mail_subject = 'Verify Your StartUpRipple Email'
+
+        context = {
             'user': user,
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': default_token_generator.make_token(user),
             'protocol': 'https' if request.is_secure() else 'http',
-        })
-        email = EmailMessage(mail_subject, message, to=[user.email])
+        }
+
+        # Render HTML template
+        html_message = render_to_string('registration/account_activation_email.html', context)
+
+        # Plain text fallback
+        verify_url = f"{context['protocol']}://{context['domain']}{reverse('accounts:verify_email', kwargs={'uidb64': context['uid'], 'token': context['token']})}"
+        text_message = f"""
+Hi {user.first_name or user.username},
+
+Please verify your email address by visiting this link:
+{verify_url}
+
+This link will expire in 24 hours.
+
+Thanks,
+The StartUpRipple Team
+        """
+
+        email = EmailMultiAlternatives(
+            subject=mail_subject,
+            body=text_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email]
+        )
+        email.attach_alternative(html_message, "text/html")
+
         if email.send():
             messages.success(request, 'A new verification link has been sent to your email address.')
         else:
