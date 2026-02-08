@@ -6,7 +6,7 @@
 {% block extra_css %}
 <style>
     .project-hero {
-        background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+        background: linear-gradient(135deg, {% if project.is_venture %}#1a1a2e 0%, #16213e{% else %}var(--md-primary) 0%, var(--md-primary-dark){% endif %} 100%);
         padding: 140px 0 60px;
         color: #fff;
         position: relative;
@@ -20,7 +20,7 @@
         right: -25%;
         width: 600px;
         height: 600px;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        background: radial-gradient(circle, {% if project.is_venture %}rgba(37, 99, 235, 0.2){% else %}rgba(255,255,255,0.1){% endif %} 0%, transparent 70%);
         border-radius: 50%;
     }
 
@@ -70,6 +70,24 @@
         font-weight: 500;
     }
 
+    .listing-type-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 100px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .listing-type-badge.venture {
+        background: rgba(37, 99, 235, 0.3);
+        color: #93c5fd;
+    }
+
+    .listing-type-badge.project-type {
+        background: rgba(13, 148, 136, 0.3);
+        color: #99f6e4;
+    }
+
     .project-content {
         padding: 48px 0;
         background: var(--md-background);
@@ -96,7 +114,7 @@
     .main-image-placeholder {
         width: 100%;
         height: 400px;
-        background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+        background: linear-gradient(135deg, {% if project.is_venture %}#1e3a5f 0%, #2563eb{% else %}#0d9488 0%, #14b8a6{% endif %} 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -121,7 +139,7 @@
     .funding-amount {
         font-size: 2.5rem;
         font-weight: 600;
-        color: #0d9488;
+        color: {% if project.is_venture %}#2563eb{% else %}#0d9488{% endif %};
     }
 
     .funding-goal {
@@ -139,7 +157,7 @@
 
     .progress-bar-md .fill {
         height: 100%;
-        background: linear-gradient(90deg, var(--md-primary) 0%, var(--md-secondary) 100%);
+        background: linear-gradient(90deg, {% if project.is_venture %}#2563eb 0%, #7c3aed{% else %}var(--md-primary) 0%, var(--md-secondary){% endif %} 100%);
         border-radius: 4px;
         transition: width 0.5s var(--md-transition);
     }
@@ -170,7 +188,7 @@
     .btn-fund {
         width: 100%;
         padding: 16px 24px;
-        background: var(--md-primary);
+        background: {% if project.is_venture %}#2563eb{% else %}var(--md-primary){% endif %};
         color: #fff;
         border: none;
         border-radius: 100px;
@@ -182,7 +200,7 @@
     }
 
     .btn-fund:hover {
-        background: var(--md-primary-dark);
+        background: {% if project.is_venture %}#1d4ed8{% else %}var(--md-primary-dark){% endif %};
         box-shadow: var(--md-elevation-2);
         transform: translateY(-2px);
         color: #fff;
@@ -256,14 +274,14 @@
         height: 64px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid var(--md-primary);
+        border: 3px solid {% if project.is_venture %}#2563eb{% else %}var(--md-primary){% endif %};
     }
 
     .creator-avatar-placeholder {
         width: 64px;
         height: 64px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+        background: linear-gradient(135deg, {% if project.is_venture %}#2563eb 0%, #1d4ed8{% else %}var(--md-primary) 0%, var(--md-primary-dark){% endif %} 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -294,14 +312,14 @@
     }
 
     .reward-card:hover {
-        border-color: var(--md-primary);
+        border-color: {% if project.is_venture %}#2563eb{% else %}var(--md-primary){% endif %};
         box-shadow: var(--md-elevation-1);
     }
 
     .reward-amount {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #0d9488;
+        color: {% if project.is_venture %}#2563eb{% else %}#0d9488{% endif %};
         margin-bottom: 8px;
     }
 
@@ -316,6 +334,68 @@
         font-size: 0.875rem;
         color: var(--md-outline);
         line-height: 1.6;
+    }
+
+    /* Venture Details Card */
+    .venture-details-card {
+        background: var(--md-surface);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--md-elevation-1);
+        margin-bottom: 24px;
+    }
+
+    .venture-details-card h5 {
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--md-outline);
+        margin-bottom: 16px;
+    }
+
+    .venture-detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .venture-detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .venture-detail-label {
+        font-size: 0.9rem;
+        color: var(--md-outline);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .venture-detail-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--md-on-surface);
+    }
+
+    .financing-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .financing-badge.equity {
+        background: rgba(37, 99, 235, 0.1);
+        color: #2563eb;
+    }
+
+    .financing-badge.debt {
+        background: rgba(217, 119, 6, 0.1);
+        color: #d97706;
     }
 
     /* Updates */
@@ -382,20 +462,18 @@
         color: var(--md-error);
     }
 
-    /* Investment Form */
-    .investment-form-card {
-        background: var(--md-surface);
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: var(--md-elevation-1);
-        margin-bottom: 24px;
+    /* Use of Funds */
+    .use-of-funds {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
     }
 
-    .investment-form-card h5 {
-        font-size: 1.125rem;
-        font-weight: 500;
-        color: var(--md-on-surface);
-        margin-bottom: 20px;
+    .use-of-funds p {
+        color: #475569;
+        line-height: 1.7;
+        margin-bottom: 0;
     }
 
     /* Responsive */
@@ -438,16 +516,37 @@
 <section class="project-hero">
     <div class="container position-relative" style="z-index: 2;">
         <nav class="breadcrumb">
+            {% if project.is_venture %}
+            <a href="{% url 'projects:venture_list' %}">
+                <i class="fas fa-arrow-left me-2"></i>Back to Ventures
+            </a>
+            {% else %}
             <a href="{% url 'projects:project_list' %}">
                 <i class="fas fa-arrow-left me-2"></i>Back to Projects
             </a>
+            {% endif %}
         </nav>
         <h1>{{ project.title }}</h1>
+        {% if project.is_venture and project.company_name %}
+        <p class="mb-3 opacity-75" style="font-size: 1.1rem;">
+            <i class="fas fa-building me-2"></i>{{ project.company_name }}
+        </p>
+        {% endif %}
         <div class="project-meta">
+            {% if project.is_venture %}
+            <span class="listing-type-badge venture"><i class="fas fa-chart-line me-1"></i> Venture</span>
+            {% else %}
+            <span class="listing-type-badge project-type"><i class="fas fa-hand-holding-heart me-1"></i> Project</span>
+            {% endif %}
             {% if project.category %}
             <span class="category-badge">{{ project.category.name }}</span>
             {% endif %}
-            {% if project.funding_type %}
+            {% if project.is_venture and project.financing_type %}
+            <span class="project-meta-item">
+                <i class="fas fa-tag"></i>
+                {% if project.financing_type == 'equity' %}Equity Financing{% else %}Debt Financing{% endif %}
+            </span>
+            {% elif project.funding_type %}
             <span class="project-meta-item">
                 <i class="fas fa-tag"></i>{{ project.funding_type.name }}
             </span>
@@ -473,18 +572,28 @@
                     <img src="{{ project.image.url }}" alt="{{ project.title }}">
                     {% else %}
                     <div class="main-image-placeholder">
-                        <i class="fas fa-rocket"></i>
+                        <i class="fas fa-{% if project.is_venture %}briefcase{% else %}rocket{% endif %}"></i>
                     </div>
                     {% endif %}
                 </div>
 
                 <!-- Description -->
                 <div class="content-card mt-4">
-                    <h2>About This Project</h2>
+                    <h2>{% if project.is_venture %}About This Venture{% else %}About This Project{% endif %}</h2>
                     <div class="description">
                         {{ project.description|safe }}
                     </div>
                 </div>
+
+                <!-- Use of Funds (ventures only) -->
+                {% if project.is_venture and project.use_of_funds %}
+                <div class="content-card">
+                    <h2><i class="fas fa-chart-pie me-2" style="color: #2563eb;"></i>Use of Funds</h2>
+                    <div class="use-of-funds">
+                        <p>{{ project.use_of_funds|linebreaks }}</p>
+                    </div>
+                </div>
+                {% endif %}
 
                 <!-- Updates -->
                 {% if project.updates.all %}
@@ -505,17 +614,19 @@
             <div class="col-lg-4">
                 <!-- Funding Card -->
                 <div class="funding-card">
-                    <div class="funding-amount">${{ project.amount_raised|intcomma }}</div>
-                    <div class="funding-goal">raised of ${{ project.funding_goal|intcomma }} goal</div>
+                    <div class="funding-amount">${{ project.get_total_raised|intcomma }}</div>
+                    <div class="funding-goal">
+                        raised of ${{ project.funding_goal|intcomma }} {% if project.is_venture %}target{% else %}goal{% endif %}
+                    </div>
 
                     <div class="progress-bar-md">
-                        <div class="fill" style="width: {{ percent_funded|floatformat:2 }}%"></div>
+                        <div class="fill" style="width: {% if percent_funded > 100 %}100{% else %}{{ percent_funded|floatformat:2 }}{% endif %}%"></div>
                     </div>
 
                     <div class="funding-stats">
                         <div class="funding-stat">
-                            <div class="funding-stat-value">{{ percent_funded|floatformat:2 }}%</div>
-                            <div class="funding-stat-label">Funded</div>
+                            <div class="funding-stat-value">{{ percent_funded|floatformat:1 }}%</div>
+                            <div class="funding-stat-label">{% if project.is_venture %}Raised{% else %}Funded{% endif %}</div>
                         </div>
                         <div class="funding-stat">
                             <div class="funding-stat-value">{{ project.deadline|timeuntil }}</div>
@@ -523,13 +634,13 @@
                         </div>
                         <div class="funding-stat">
                             <div class="funding-stat-value">{{ backers_count }}</div>
-                            <div class="funding-stat-label">Backers</div>
+                            <div class="funding-stat-label">{% if project.is_venture %}Investors{% else %}Backers{% endif %}</div>
                         </div>
                     </div>
 
-                    {% if project.funding_type.name == 'Equity' %}
+                    {% if project.is_venture %}
                     <a href="{% url 'projects:investment_proposal' project.id %}" class="btn-fund d-block text-center text-decoration-none">
-                        <i class="fas fa-chart-line me-2"></i>Invest in This Project
+                        <i class="fas fa-chart-line me-2"></i>Invest in This Venture
                     </a>
                     {% else %}
                     <a href="{% url 'projects:make_pledge' project.id %}" class="btn-fund d-block text-center text-decoration-none">
@@ -538,9 +649,57 @@
                     {% endif %}
                 </div>
 
+                <!-- Venture Details Card -->
+                {% if project.is_venture %}
+                <div class="venture-details-card mt-4">
+                    <h5><i class="fas fa-briefcase me-2"></i>Investment Details</h5>
+
+                    <div class="venture-detail-item">
+                        <span class="venture-detail-label"><i class="fas fa-tag"></i> Financing Type</span>
+                        <span>
+                            {% if project.financing_type == 'equity' %}
+                            <span class="financing-badge equity">Equity</span>
+                            {% elif project.financing_type == 'debt' %}
+                            <span class="financing-badge debt">Debt</span>
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    {% if project.financing_type == 'equity' %}
+                    <div class="venture-detail-item">
+                        <span class="venture-detail-label"><i class="fas fa-chart-pie"></i> Equity Offered</span>
+                        <span class="venture-detail-value">{{ project.equity_offered }}%</span>
+                    </div>
+                    <div class="venture-detail-item">
+                        <span class="venture-detail-label"><i class="fas fa-dollar-sign"></i> Valuation</span>
+                        <span class="venture-detail-value">${{ project.valuation|intcomma }}</span>
+                    </div>
+                    {% elif project.financing_type == 'debt' %}
+                    <div class="venture-detail-item">
+                        <span class="venture-detail-label"><i class="fas fa-percentage"></i> Interest Rate</span>
+                        <span class="venture-detail-value">{{ project.interest_rate }}% / year</span>
+                    </div>
+                    <div class="venture-detail-item">
+                        <span class="venture-detail-label"><i class="fas fa-calendar-alt"></i> Repayment Period</span>
+                        <span class="venture-detail-value">{{ project.repayment_period_months }} months</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="venture-detail-item">
+                        <span class="venture-detail-label"><i class="fas fa-bullseye"></i> Investment Target</span>
+                        <span class="venture-detail-value">${{ project.funding_goal|intcomma }}</span>
+                    </div>
+
+                    <div class="venture-detail-item">
+                        <span class="venture-detail-label"><i class="fas fa-clock"></i> Deadline</span>
+                        <span class="venture-detail-value">{{ project.deadline|date:"M j, Y" }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Creator Card -->
-                <div class="creator-card mt-4">
-                    <h5>Created By</h5>
+                <div class="creator-card {% if not project.is_venture %}mt-4{% endif %}">
+                    <h5>{% if project.is_venture %}Founded By{% else %}Created By{% endif %}</h5>
                     <div class="creator-info">
                         {% if project.creator.profile.image %}
                         <img src="{{ project.creator.profile.image.url }}" alt="{{ project.creator.username }}" class="creator-avatar">
@@ -552,7 +711,9 @@
                         <div>
                             <div class="creator-name">{{ project.creator.get_full_name|default:project.creator.username }}</div>
                             <div class="creator-meta">
-                                {% if project.creator.profile.company_name %}
+                                {% if project.is_venture and project.company_name %}
+                                {{ project.company_name }} &middot;
+                                {% elif project.creator.profile.company_name %}
                                 {{ project.creator.profile.company_name }} &middot;
                                 {% endif %}
                                 Member since {{ project.creator.date_joined|date:"M Y" }}
@@ -561,8 +722,8 @@
                     </div>
                 </div>
 
-                <!-- Rewards/Investment Terms -->
-                {% if project.funding_type.name == 'Equity' and project.investment_terms.all %}
+                <!-- Investment Terms (for ventures with terms) -->
+                {% if project.is_venture and project.investment_terms.all %}
                 <div class="content-card">
                     <h2>Investment Terms</h2>
                     {% for term in project.investment_terms.all %}
@@ -570,13 +731,17 @@
                         <div class="reward-amount">{{ term.equity_offered }}% Equity</div>
                         <div class="reward-description">
                             <div class="mb-2"><strong>Min. Investment:</strong> ${{ term.minimum_investment|intcomma }}</div>
+                            {% if term.maximum_investment %}
+                            <div class="mb-2"><strong>Max. Investment:</strong> ${{ term.maximum_investment|intcomma }}</div>
+                            {% endif %}
                             <div class="mb-2"><strong>Valuation:</strong> ${{ term.valuation|intcomma }}</div>
                             <div><strong>Deadline:</strong> {{ term.deadline|date:"M j, Y" }}</div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-                {% elif project.rewards.all %}
+                {% elif not project.is_venture and project.rewards.all %}
+                <!-- Rewards (for donation projects) -->
                 <div class="content-card">
                     <h2>Select a Reward</h2>
                     <p class="text-muted small mb-3">Click on a reward to support this project</p>
@@ -604,10 +769,13 @@
                 {% if user == project.creator %}
                 <div class="action-card">
                     <a href="{% url 'projects:edit_project' project.id %}" class="btn-action btn-fund mb-3">
-                        <i class="fas fa-edit"></i>Edit Project
+                        <i class="fas fa-edit"></i>Edit {% if project.is_venture %}Venture{% else %}Project{% endif %}
+                    </a>
+                    <a href="{% url 'projects:add_update' project.id %}" class="btn-action btn-fund mb-3" style="background: {% if project.is_venture %}#1e40af{% else %}#0d9488{% endif %};">
+                        <i class="fas fa-bullhorn"></i>Post Update
                     </a>
                     <a href="{% url 'projects:delete_project' project.id %}" class="btn-action btn-action-outline">
-                        <i class="fas fa-trash-alt"></i>Delete Project
+                        <i class="fas fa-trash-alt"></i>Delete {% if project.is_venture %}Venture{% else %}Project{% endif %}
                     </a>
                 </div>
                 {% endif %}
@@ -618,7 +786,7 @@
 
 <!-- Mobile Fixed Support Button -->
 <div class="d-lg-none fixed-bottom bg-white border-top py-3 px-4 shadow">
-    {% if project.funding_type.name == 'Equity' %}
+    {% if project.is_venture %}
     <a href="{% url 'projects:investment_proposal' project.id %}" class="btn-fund d-block text-center">
         <i class="fas fa-chart-line me-2"></i>Invest Now
     </a>

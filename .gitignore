@@ -4,4 +4,4 @@ __pycache__/
 *.sql
 stderr.log
 tmp/
-db.sqlite3
+db.sqlite3\

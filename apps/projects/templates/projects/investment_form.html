@@ -3,23 +3,120 @@
 
 {% block title %}Invest in {{ project.title }} - StartUpRipple{% endblock %}
 
+{% block extra_css %}
+<style>
+    .invest-hero {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        padding: 120px 0 50px;
+        color: #fff;
+    }
+
+    .invest-hero h1 {
+        font-weight: 400;
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+
+    .invest-card {
+        background: var(--md-surface);
+        border-radius: 16px;
+        box-shadow: var(--md-elevation-2);
+        overflow: hidden;
+    }
+
+    .invest-card-header {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        padding: 24px;
+    }
+
+    .invest-card-header h4 {
+        margin-bottom: 0;
+        font-weight: 500;
+    }
+
+    .invest-card-body {
+        padding: 32px;
+    }
+
+    .summary-card {
+        background: var(--md-surface);
+        border-radius: 16px;
+        box-shadow: var(--md-elevation-1);
+        overflow: hidden;
+    }
+
+    .venture-info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.9rem;
+    }
+
+    .venture-info-item:last-child {
+        border-bottom: none;
+    }
+
+    .venture-info-label {
+        color: var(--md-outline);
+    }
+
+    .venture-info-value {
+        font-weight: 600;
+        color: var(--md-on-surface);
+    }
+
+    .financing-badge-lg {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 100px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .financing-badge-lg.equity {
+        background: rgba(37, 99, 235, 0.1);
+        color: #2563eb;
+    }
+
+    .financing-badge-lg.debt {
+        background: rgba(217, 119, 6, 0.1);
+        color: #d97706;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<!-- Hero -->
+<div class="invest-hero">
+    <div class="container">
+        <a href="{% url 'projects:project_detail' project.id %}" class="text-white text-decoration-none mb-3 d-inline-block" style="opacity: 0.8;">
+            <i class="fas fa-arrow-left me-2"></i>Back to {{ project.title }}
+        </a>
+        <h1><i class="fas fa-chart-line me-2"></i>Invest in {{ project.title }}</h1>
+        {% if project.company_name %}
+        <p class="opacity-75 mb-0"><i class="fas fa-building me-2"></i>{{ project.company_name }}</p>
+        {% endif %}
+    </div>
+</div>
+
 <div class="container py-5">
     <div class="row">
         <div class="col-lg-8">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>Investment Proposal</h4>
+            <div class="invest-card mb-4">
+                <div class="invest-card-header">
+                    <h4><i class="fas fa-file-invoice-dollar me-2"></i>Investment Proposal</h4>
                 </div>
-                <div class="card-body">
-                    <h5 class="mb-3">{{ project.title }}</h5>
-                    <p class="text-muted">
-                        Submit your investment proposal. The project creator will review and respond to your proposal.
+                <div class="invest-card-body">
+                    <p class="text-muted mb-4">
+                        Submit your investment proposal for <strong>{{ project.title }}</strong>.
+                        The venture founder will review and respond to your proposal.
                     </p>
 
-                    <div class="alert alert-info">
+                    <div class="alert alert-info border-0" style="background: rgba(37, 99, 235, 0.08); color: #1e40af;">
                         <i class="fas fa-info-circle me-2"></i>
-                        <strong>Note:</strong> Investment proposals require review and approval by the project creator.
+                        <strong>Note:</strong> Investment proposals require review and approval by the venture founder.
                         You will be notified once your proposal is reviewed.
                     </div>
 
@@ -27,10 +124,10 @@
                         {% csrf_token %}
                         {{ form|crispy }}
                         <div class="d-flex gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                            <button type="submit" class="btn btn-lg text-white" style="background: #2563eb; border-radius: 100px; padding: 12px 32px;">
                                 <i class="fas fa-paper-plane me-2"></i>Submit Proposal
                             </button>
-                            <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-outline-secondary">
+                            <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-outline-secondary" style="border-radius: 100px; padding: 12px 24px;">
                                 Cancel
                             </a>
                         </div>
@@ -40,24 +137,28 @@
         </div>
 
         <div class="col-lg-4">
-            <!-- Project Summary Card -->
-            <div class="card shadow-sm">
+            <!-- Venture Summary Card -->
+            <div class="summary-card mb-4">
                 {% if project.image %}
-                <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}"
+                <img src="{{ project.image.url }}" class="w-100" alt="{{ project.title }}"
                      style="height: 150px; object-fit: cover; object-position: top;">
+                {% else %}
+                <div class="w-100 d-flex align-items-center justify-content-center" style="height: 150px; background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);">
+                    <i class="fas fa-chart-line fa-3x text-white opacity-50"></i>
+                </div>
                 {% endif %}
-                <div class="card-body">
-                    <h6 class="card-title">{{ project.title }}</h6>
+                <div class="p-4">
+                    <h6 class="fw-semibold">{{ project.title }}</h6>
                     <div class="small text-muted mb-3">by {{ project.creator.get_full_name }}</div>
 
                     <!-- Funding Progress -->
                     <div class="mb-3">
                         <div class="d-flex justify-content-between small mb-1">
-                            <span class="text-success fw-bold">${{ project.amount_raised|intcomma }}</span>
-                            <span class="text-muted">of ${{ project.funding_goal|intcomma }}</span>
+                            <span class="fw-bold" style="color: #2563eb;">${{ project.get_total_raised|intcomma }}</span>
+                            <span class="text-muted">of ${{ project.funding_goal|intcomma }} target</span>
                         </div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-primary" style="width: {{ project.get_percent_funded|floatformat:2 }}%"></div>
+                            <div class="progress-bar" style="width: {{ project.get_percent_funded|floatformat:2 }}%; background: linear-gradient(90deg, #2563eb, #7c3aed);"></div>
                         </div>
                     </div>
 
@@ -67,36 +168,77 @@
                 </div>
             </div>
 
+            <!-- Venture Details -->
+            {% if project.is_venture %}
+            <div class="summary-card p-4 mb-4">
+                <h6 class="fw-semibold mb-3"><i class="fas fa-briefcase me-2" style="color: #2563eb;"></i>Venture Details</h6>
+
+                <div class="venture-info-item">
+                    <span class="venture-info-label">Financing</span>
+                    <span>
+                        {% if project.financing_type == 'equity' %}
+                        <span class="financing-badge-lg equity">Equity</span>
+                        {% elif project.financing_type == 'debt' %}
+                        <span class="financing-badge-lg debt">Debt</span>
+                        {% endif %}
+                    </span>
+                </div>
+
+                {% if project.financing_type == 'equity' %}
+                <div class="venture-info-item">
+                    <span class="venture-info-label">Equity Offered</span>
+                    <span class="venture-info-value">{{ project.equity_offered }}%</span>
+                </div>
+                <div class="venture-info-item">
+                    <span class="venture-info-label">Valuation</span>
+                    <span class="venture-info-value">${{ project.valuation|intcomma }}</span>
+                </div>
+                {% elif project.financing_type == 'debt' %}
+                <div class="venture-info-item">
+                    <span class="venture-info-label">Interest Rate</span>
+                    <span class="venture-info-value">{{ project.interest_rate }}% / year</span>
+                </div>
+                <div class="venture-info-item">
+                    <span class="venture-info-label">Repayment</span>
+                    <span class="venture-info-value">{{ project.repayment_period_months }} months</span>
+                </div>
+                {% endif %}
+
+                <div class="venture-info-item">
+                    <span class="venture-info-label">Target</span>
+                    <span class="venture-info-value">${{ project.funding_goal|intcomma }}</span>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Investment Terms -->
             {% if project.investment_terms.all %}
-            <div class="card shadow-sm mt-3">
-                <div class="card-header">
-                    <h6 class="mb-0">Investment Terms</h6>
+            <div class="summary-card overflow-hidden">
+                <div class="p-3" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                    <h6 class="mb-0 fw-semibold">Investment Terms</h6>
                 </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        {% for term in project.investment_terms.all %}
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <strong>{{ term.equity_offered }}% Equity</strong>
+                <div class="list-group list-group-flush">
+                    {% for term in project.investment_terms.all %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong style="color: #2563eb;">{{ term.equity_offered }}% Equity</strong>
+                        </div>
+                        <div class="small">
+                            <div class="mb-1">
+                                <span class="text-muted">Min Investment:</span>
+                                ${{ term.minimum_investment|intcomma }}
                             </div>
-                            <div class="small">
-                                <div class="mb-1">
-                                    <span class="text-muted">Min Investment:</span>
-                                    ${{ term.minimum_investment|intcomma }}
-                                </div>
-                                <div class="mb-1">
-                                    <span class="text-muted">Valuation:</span>
-                                    ${{ term.valuation|intcomma }}
-                                </div>
-                                <div>
-                                    <span class="text-muted">Deadline:</span>
-                                    {{ term.deadline|date:"M d, Y" }}
-                                </div>
+                            <div class="mb-1">
+                                <span class="text-muted">Valuation:</span>
+                                ${{ term.valuation|intcomma }}
+                            </div>
+                            <div>
+                                <span class="text-muted">Deadline:</span>
+                                {{ term.deadline|date:"M d, Y" }}
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
+                    {% endfor %}
                 </div>
             </div>
             {% endif %}

@@ -945,6 +945,95 @@
 </section>
 {% endif %}
 
+<!-- Featured Ventures (Investments) -->
+{% if featured_ventures %}
+<section class="section-material" style="background: #f8fafc;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title-md">Investment Opportunities</h2>
+            <p class="section-subtitle-md">Explore ventures seeking equity or debt financing with real returns</p>
+        </div>
+
+        <div class="row g-4">
+            {% for venture in featured_ventures %}
+            <div class="col-md-6 col-lg-4">
+                <div class="project-card-md" style="border-top: 3px solid #2563eb;">
+                    {% if venture.image %}
+                    <img src="{{ venture.image.url }}" class="card-img-top" alt="{{ venture.title }}">
+                    {% else %}
+                    <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);">
+                        <i class="fas fa-chart-line fa-3x text-white opacity-50"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            {% if venture.category %}
+                            <span class="project-category-chip">{{ venture.category.name }}</span>
+                            {% endif %}
+                            {% if venture.financing_type == 'equity' %}
+                            <span class="project-category-chip" style="background: rgba(37, 99, 235, 0.1); color: #2563eb;">Equity</span>
+                            {% elif venture.financing_type == 'debt' %}
+                            <span class="project-category-chip" style="background: rgba(217, 119, 6, 0.1); color: #d97706;">Debt</span>
+                            {% endif %}
+                        </div>
+                        <h5 class="project-title-md">{{ venture.title }}</h5>
+                        {% if venture.company_name %}
+                        <p class="small text-muted mb-2"><i class="fas fa-building me-1"></i>{{ venture.company_name }}</p>
+                        {% endif %}
+                        <p class="project-desc-md">{{ venture.short_description|default:venture.description|truncatewords:12 }}</p>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-semibold" style="color: #2563eb;">${{ venture.get_total_raised|intcomma }}</span>
+                                <span class="text-muted small">{{ venture.get_percent_funded|floatformat:1 }}% raised</span>
+                            </div>
+                            <div class="progress-md">
+                                <div class="progress-bar" style="width: {% if venture.get_percent_funded > 100 %}100{% else %}{{ venture.get_percent_funded|floatformat:2 }}{% endif %}%; background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);"></div>
+                            </div>
+                        </div>
+
+                        <div class="project-stats-md">
+                            <div class="project-stat-md">
+                                <div class="project-stat-value" style="color: #2563eb;">${{ venture.funding_goal|intcomma }}</div>
+                                <div class="project-stat-label">Target</div>
+                            </div>
+                            {% if venture.financing_type == 'equity' %}
+                            <div class="project-stat-md">
+                                <div class="project-stat-value" style="color: #2563eb;">{{ venture.equity_offered }}%</div>
+                                <div class="project-stat-label">Equity</div>
+                            </div>
+                            {% elif venture.financing_type == 'debt' %}
+                            <div class="project-stat-md">
+                                <div class="project-stat-value" style="color: #d97706;">{{ venture.interest_rate }}%</div>
+                                <div class="project-stat-label">Interest</div>
+                            </div>
+                            {% else %}
+                            <div class="project-stat-md">
+                                <div class="project-stat-value" style="color: #2563eb;">{{ venture.deadline|timeuntil }}</div>
+                                <div class="project-stat-label">Left</div>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <a href="{% url 'projects:project_detail' venture.id %}" class="btn btn-md btn-sm" style="background: rgba(37, 99, 235, 0.1); color: #2563eb; border-radius: 100px;">
+                                    Invest
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="{% url 'projects:venture_list' %}" class="btn btn-md btn-lg" style="background: rgba(37, 99, 235, 0.1); color: #2563eb; border-radius: 100px;">
+                View All Ventures <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <!-- SRT Token Section -->
 {% if homepage.show_srt_section %}
 <section class="section-material srt-section-md">

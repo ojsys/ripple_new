@@ -29,6 +29,16 @@ class Project(models.Model):
         ('rejected', 'Rejected'),
     )
 
+    LISTING_TYPE_CHOICES = [
+        ('project', 'Project (Donations)'),
+        ('venture', 'Venture (Investments)'),
+    ]
+
+    FINANCING_TYPE_CHOICES = [
+        ('equity', 'Equity Financing'),
+        ('debt', 'Debt Financing'),
+    ]
+
     STAGE_CHOICES = [
         ('idea', 'Idea Stage'),
         ('seed', 'Seed Stage'),
@@ -42,6 +52,14 @@ class Project(models.Model):
         ('moderate', 'Moderate Risk'),
         ('high', 'High Risk'),
     ]
+
+    # Listing Type
+    listing_type = models.CharField(
+        max_length=10,
+        choices=LISTING_TYPE_CHOICES,
+        default='project',
+        help_text="Project for donations, Venture for investments"
+    )
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True, null=True)
@@ -60,6 +78,43 @@ class Project(models.Model):
     video_url = models.URLField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     admin_notes = models.TextField(blank=True, null=True, help_text="Notes from admin about approval/rejection")
+
+    # Venture-specific fields (only used when listing_type='venture')
+    company_name = models.CharField(max_length=200, blank=True, null=True, help_text="Business or company name")
+    financing_type = models.CharField(
+        max_length=10,
+        choices=[('equity', 'Equity Financing'), ('debt', 'Debt Financing')],
+        blank=True,
+        null=True,
+        help_text="Type of investment financing"
+    )
+    equity_offered = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Percentage of equity offered to investors"
+    )
+    valuation = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Current company/venture valuation in USD"
+    )
+    interest_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Annual interest rate for debt financing (%)"
+    )
+    repayment_period_months = models.PositiveIntegerField(
+        default=0,
+        help_text="Repayment period in months (for debt financing)"
+    )
+    use_of_funds = models.TextField(
+        blank=True,
+        null=True,
+        help_text="How the investment funds will be used"
+    )
 
     # SRT Investment Fields
     srt_enabled = models.BooleanField(default=False, help_text="Enable SRT token investments for this project")
@@ -117,6 +172,16 @@ class Project(models.Model):
             self.slug = slug
         super().save(*args, **kwargs)
 
+    @property
+    def is_venture(self):
+        """Check if this is a venture (investment) listing."""
+        return self.listing_type == 'venture'
+
+    @property
+    def is_project(self):
+        """Check if this is a project (donation) listing."""
+        return self.listing_type == 'project'
+
     def get_calculated_percent(self):
         """Method to access the annotated value or fallback"""
         if hasattr(self, 'annotated_percent'):
@@ -127,7 +192,16 @@ class Project(models.Model):
         """Calculate funding percentage without using a property"""
         if self.funding_goal == 0:
             return 0
+        if self.is_venture:
+            total = self.amount_raised + self.total_investment_raised
+            return (total / self.funding_goal) * 100
         return (self.amount_raised / self.funding_goal) * 100
+
+    def get_total_raised(self):
+        """Get total amount raised (donations + investments for ventures)."""
+        if self.is_venture:
+            return self.amount_raised + self.total_investment_raised
+        return self.amount_raised
 
     def recalculate_funding(self):
         """Recalculate amount_raised from all completed donations."""

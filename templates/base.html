@@ -559,6 +559,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'projects:project_list' %}">Projects</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'projects:venture_list' %}">Ventures</a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             Programs
@@ -603,6 +606,7 @@
                             {% endif %}
                             {% if user.user_type == 'investor' %}
                             <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'projects:venture_list' %}"><i class="fas fa-briefcase text-info"></i>Browse Ventures</a></li>
                             <li><a class="dropdown-item" href="{% url 'projects:my_investments' %}"><i class="fas fa-chart-line text-success"></i>My Investments</a></li>
                             {% endif %}
                             {% if user.user_type == 'donor' %}
@@ -723,7 +727,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="footer-bottom-links">
-                            <a href="{% url 'cms:privacy_policy' %">Privacy</a>
+                            <a href="{% url 'cms:privacy_policy' %}">Privacy</a>
                             <a href="{% url 'cms:terms_of_service' %}">Terms</a>
                             
                         </div>

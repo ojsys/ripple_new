@@ -33,10 +33,13 @@ def home(request):
         end_date__gte=timezone.now()
     )
 
-    # Featured projects (sync funding amounts)
-    featured_projects = Project.objects.filter(status='approved').order_by('-created_at')[:6]
+    # Featured projects (sync funding amounts) - separate by listing type
+    featured_projects = Project.objects.filter(status='approved', listing_type='project').order_by('-created_at')[:6]
     for project in featured_projects:
         project.recalculate_funding()
+
+    # Featured ventures
+    featured_ventures = Project.objects.filter(status='approved', listing_type='venture').order_by('-created_at')[:6]
 
     # Testimonials
     testimonials = Testimonial.objects.filter(is_active=True)[:6]
@@ -55,6 +58,7 @@ def home(request):
         'site_settings': site_settings,
         'announcements': announcements,
         'featured_projects': featured_projects,
+        'featured_ventures': featured_ventures,
         'testimonials': testimonials,
         'partner_logos': partner_logos,
         'categories': categories,
@@ -80,8 +84,16 @@ def subscribe_newsletter(request):
 
 
 def project_list(request):
-    """List all approved projects with filtering and pagination."""
-    projects = Project.objects.filter(status='approved').order_by('-created_at')
+    """List all approved projects/ventures with filtering and pagination."""
+    # Determine listing type: from URL path or query parameter
+    if request.path.rstrip('/').endswith('ventures'):
+        listing_type = 'venture'
+    else:
+        listing_type = request.GET.get('type', 'project')
+    if listing_type not in ('project', 'venture'):
+        listing_type = 'project'
+
+    projects = Project.objects.filter(status='approved', listing_type=listing_type).order_by('-created_at')
     categories = Category.objects.all()
     funding_types = FundingType.objects.all()
 
@@ -94,6 +106,11 @@ def project_list(request):
     funding_type_id = request.GET.get('funding_type')
     if funding_type_id:
         projects = projects.filter(funding_type_id=funding_type_id)
+
+    # Filter by financing type (ventures only)
+    financing_type = request.GET.get('financing_type')
+    if financing_type and listing_type == 'venture':
+        projects = projects.filter(financing_type=financing_type)
 
     # Search
     search_query = request.GET.get('q')
@@ -131,8 +148,10 @@ def project_list(request):
         'funding_types': funding_types,
         'current_category': category_id,
         'current_funding_type': funding_type_id,
+        'current_financing_type': financing_type,
         'search_query': search_query,
         'sort_by': sort_by,
+        'listing_type': listing_type,
     }
     return render(request, 'projects/project_list.html', context)
 
@@ -147,14 +166,18 @@ def project_detail(request, project_id):
     # Calculate percent funded (now uses the accurate amount_raised)
     percent_funded = project.get_percent_funded()
 
-    # Initialize forms based on funding type
+    # Initialize forms based on listing type and funding type
     pledge_form = None
     investment_form = None
 
-    if project.funding_type and project.funding_type.name == 'Donation':
-        pledge_form = DonationForm(project=project)
+    if project.is_venture:
+        # Ventures always show investment form
+        investment_form = InvestmentForm(project=project)
     elif project.funding_type and project.funding_type.name == 'Equity':
         investment_form = InvestmentForm(project=project)
+    else:
+        # Projects default to donation form
+        pledge_form = DonationForm(project=project)
 
     # Get unique backers count
     backers_count = project.get_backers_count()
@@ -263,15 +286,21 @@ def delete_project(request, project_id):
 
 @login_required
 def my_projects(request):
-    """List user's own projects."""
-    projects = list(Project.objects.filter(creator=request.user).order_by('-created_at'))
+    """List user's own projects and ventures."""
+    all_listings = list(Project.objects.filter(creator=request.user).order_by('-created_at'))
 
     # Sync funding amounts
-    for project in projects:
+    for project in all_listings:
         project.recalculate_funding()
+
+    # Separate into projects and ventures
+    projects = [p for p in all_listings if p.listing_type == 'project']
+    ventures = [p for p in all_listings if p.listing_type == 'venture']
 
     context = {
         'projects': projects,
+        'ventures': ventures,
+        'all_listings': all_listings,
     }
     return render(request, 'projects/my_projects.html', context)
 

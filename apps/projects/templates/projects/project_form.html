@@ -186,6 +186,69 @@
         color: #9ca3af;
     }
 
+    /* Listing Type Selector */
+    .listing-type-selector {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .listing-type-option {
+        flex: 1;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .listing-type-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .listing-type-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 24px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .listing-type-option input[type="radio"]:checked + .listing-type-card {
+        border-color: var(--teal-primary);
+        background: var(--teal-50);
+        box-shadow: 0 4px 15px rgba(13, 148, 136, 0.2);
+    }
+
+    .listing-type-card:hover {
+        border-color: var(--teal-light);
+        transform: translateY(-2px);
+    }
+
+    .listing-type-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .listing-type-card .type-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .listing-type-card .type-desc {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .listing-type-option input[type="radio"]:checked + .listing-type-card .type-title {
+        color: var(--teal-dark);
+    }
+
     /* Summernote styles */
     .note-editor {
         border: 2px solid #e5e7eb !important;
@@ -409,6 +472,16 @@
         color: var(--teal-dark);
     }
 
+    /* Financing type toggle */
+    .financing-fields {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .financing-fields.visible {
+        display: block;
+    }
+
     @media (max-width: 768px) {
         .project-form-hero {
             padding: 60px 0 80px;
@@ -448,6 +521,11 @@
 
         .btn-prev, .btn-next, .btn-submit {
             padding: 10px 20px;
+        }
+
+        .listing-type-selector {
+            flex-direction: column;
+            gap: 12px;
         }
     }
 
@@ -542,8 +620,8 @@
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
-                <h1>{% if project %}<i class="fas fa-edit me-2"></i>Edit Your Project{% else %}<i class="fas fa-rocket me-2"></i>Start Your Project{% endif %}</h1>
-                <p>{% if project %}Update your project details and keep your backers informed{% else %}Share your vision with the world and find the support you need{% endif %}</p>
+                <h1 id="hero-title">{% if project %}<i class="fas fa-edit me-2"></i>Edit Your {% if project.is_venture %}Venture{% else %}Project{% endif %}{% else %}<i class="fas fa-rocket me-2"></i>Start Your Listing{% endif %}</h1>
+                <p id="hero-subtitle">{% if project %}Update your details and keep your supporters informed{% else %}Share your vision with the world and find the support you need{% endif %}</p>
             </div>
         </div>
     </div>
@@ -555,21 +633,25 @@
             <div class="form-card">
                 <!-- Progress Steps -->
                 <div class="progress-container">
-                    <div class="step-indicators">
+                    <div class="step-indicators" id="step-indicators">
                         <div class="step-indicator active" data-step="1">
                             <div class="step-number">1</div>
-                            <span class="step-label">Basics</span>
+                            <span class="step-label">Type</span>
                         </div>
                         <div class="step-indicator" data-step="2">
                             <div class="step-number">2</div>
-                            <span class="step-label">Funding</span>
+                            <span class="step-label">Basics</span>
                         </div>
                         <div class="step-indicator" data-step="3">
                             <div class="step-number">3</div>
-                            <span class="step-label">Rewards</span>
+                            <span class="step-label">Funding</span>
                         </div>
                         <div class="step-indicator" data-step="4">
                             <div class="step-number">4</div>
+                            <span class="step-label" id="step4-label">Rewards</span>
+                        </div>
+                        <div class="step-indicator" data-step="5">
+                            <div class="step-number">5</div>
                             <span class="step-label">Story & Media</span>
                         </div>
                     </div>
@@ -580,16 +662,54 @@
                     <form id="project-form" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
 
-                        <!-- Step 1: The Basics -->
+                        <!-- Step 1: Choose Listing Type -->
                         <div class="form-step active" id="step-1">
-                            <h3 class="step-title"><i class="fas fa-lightbulb me-2" style="color: var(--teal-primary);"></i>Project Basics</h3>
-                            <p class="step-subtitle">Start with the essential details about your project</p>
+                            <h3 class="step-title"><i class="fas fa-th-large me-2" style="color: var(--teal-primary);"></i>What are you creating?</h3>
+                            <p class="step-subtitle">Choose whether you're creating a project for donations or a venture for investments</p>
+
+                            <div class="listing-type-selector">
+                                <label class="listing-type-option">
+                                    <input type="radio" name="listing_type" value="project" {% if not project or project.listing_type == 'project' %}checked{% endif %}>
+                                    <div class="listing-type-card">
+                                        <span class="icon"><i class="fas fa-hand-holding-heart" style="color: var(--teal-primary);"></i></span>
+                                        <div class="type-title">Project (Donations)</div>
+                                        <p class="type-desc">Raise funds through donations from supporters. Great for social causes, creative projects, and community initiatives.</p>
+                                    </div>
+                                </label>
+                                <label class="listing-type-option">
+                                    <input type="radio" name="listing_type" value="venture" {% if project and project.listing_type == 'venture' %}checked{% endif %}>
+                                    <div class="listing-type-card">
+                                        <span class="icon"><i class="fas fa-chart-line" style="color: #2563eb;"></i></span>
+                                        <div class="type-title">Venture (Investments)</div>
+                                        <p class="type-desc">Attract investors with equity or debt financing. Ideal for startups, businesses, and scalable ventures.</p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            {% if form.listing_type.errors %}
+                            <ul class="errorlist">{% for error in form.listing_type.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+
+                        <!-- Step 2: The Basics -->
+                        <div class="form-step" id="step-2">
+                            <h3 class="step-title"><i class="fas fa-lightbulb me-2" style="color: var(--teal-primary);"></i><span id="basics-title">Basics</span></h3>
+                            <p class="step-subtitle" id="basics-subtitle">Start with the essential details</p>
 
                             <div class="field-wrapper">
-                                <label for="{{ form.title.id_for_label }}">Project Title <span class="text-danger">*</span></label>
+                                <label for="{{ form.title.id_for_label }}"><span id="title-label">Title</span> <span class="text-danger">*</span></label>
                                 {{ form.title }}
                                 {% if form.title.errors %}
                                 <ul class="errorlist">{% for error in form.title.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                {% endif %}
+                            </div>
+
+                            <!-- Company Name (venture only) -->
+                            <div class="field-wrapper venture-only-field" style="display: none;">
+                                <label for="{{ form.company_name.id_for_label }}">Company / Business Name <span class="text-danger">*</span></label>
+                                {{ form.company_name }}
+                                {% if form.company_name.errors %}
+                                <ul class="errorlist">{% for error in form.company_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
                                 {% endif %}
                             </div>
 
@@ -622,19 +742,19 @@
                             <div class="field-wrapper">
                                 <label for="{{ form.short_description.id_for_label }}">Short Description <span class="text-danger">*</span></label>
                                 {{ form.short_description }}
-                                <div class="form-text">This appears on project cards and search results (max 255 characters)</div>
+                                <div class="form-text">This appears on cards and search results (max 255 characters)</div>
                                 {% if form.short_description.errors %}
                                 <ul class="errorlist">{% for error in form.short_description.errors %}<li>{{ error }}</li>{% endfor %}</ul>
                                 {% endif %}
                             </div>
                         </div>
 
-                        <!-- Step 2: Funding Details -->
-                        <div class="form-step" id="step-2">
+                        <!-- Step 3: Funding Details -->
+                        <div class="form-step" id="step-3">
                             <h3 class="step-title"><i class="fas fa-coins me-2" style="color: var(--teal-primary);"></i>Funding Details</h3>
-                            <p class="step-subtitle">Set your funding type, goal and timeline</p>
+                            <p class="step-subtitle">Set your funding goal and timeline</p>
 
-                            <div class="field-wrapper">
+                            <div class="field-wrapper project-only-field">
                                 <label for="{{ form.funding_type.id_for_label }}">Funding Type <span class="text-danger">*</span></label>
                                 {{ form.funding_type }}
                                 {% if form.funding_type.errors %}
@@ -645,7 +765,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="field-wrapper">
-                                        <label for="{{ form.funding_goal.id_for_label }}">Funding Goal (USD) <span class="text-danger">*</span></label>
+                                        <label for="{{ form.funding_goal.id_for_label }}"><span id="goal-label">Funding Goal</span> (USD) <span class="text-danger">*</span></label>
                                         {{ form.funding_goal }}
                                         {% if form.funding_goal.errors %}
                                         <ul class="errorlist">{% for error in form.funding_goal.errors %}<li>{{ error }}</li>{% endfor %}</ul>
@@ -663,96 +783,211 @@
                                 </div>
                             </div>
 
-                            <div class="info-box">
+                            <!-- Info box changes based on listing type -->
+                            <div class="info-box" id="funding-info-project">
                                 <div class="d-flex">
                                     <i class="fas fa-info-circle me-3 mt-1"></i>
                                     <div>
                                         <strong>Funding Types Explained</strong>
                                         <ul class="mb-0 mt-2 small" style="color: #4b5563;">
                                             <li><strong>Donation:</strong> Supporters donate without expecting returns</li>
-                                            <li><strong>Investment:</strong> Backers invest for equity or profit sharing</li>
-                                            <li><strong>Hybrid:</strong> Combination of donations and investments</li>
+                                            <li><strong>Reward:</strong> Backers contribute for rewards/perks</li>
                                         </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="info-box" id="funding-info-venture" style="display: none;">
+                                <div class="d-flex">
+                                    <i class="fas fa-info-circle me-3 mt-1"></i>
+                                    <div>
+                                        <strong>Investment Goal</strong>
+                                        <p class="mb-0 mt-2 small" style="color: #4b5563;">
+                                            Set the total amount you're seeking from investors. This will be displayed as your investment target.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Step 3: Rewards -->
-                        <div class="form-step" id="step-3">
-                            <h3 class="step-title"><i class="fas fa-gift me-2" style="color: var(--teal-primary);"></i>Backer Rewards</h3>
-                            <p class="step-subtitle">Create rewards to incentivize backers (optional but recommended)</p>
+                        <!-- Step 4: Rewards (Projects) / Investment Details (Ventures) -->
+                        <div class="form-step" id="step-4">
+                            <!-- PROJECT: Rewards -->
+                            <div id="rewards-section">
+                                <h3 class="step-title"><i class="fas fa-gift me-2" style="color: var(--teal-primary);"></i>Backer Rewards</h3>
+                                <p class="step-subtitle">Create rewards to incentivize backers (optional but recommended)</p>
 
-                            <div class="info-box mb-4">
-                                <div class="d-flex">
-                                    <i class="fas fa-lightbulb me-3 mt-1"></i>
-                                    <div>
-                                        <strong>Tips for Great Rewards</strong>
-                                        <ul class="mb-0 mt-2 small" style="color: #4b5563;">
-                                            <li>Offer a variety of price points to appeal to different backers</li>
-                                            <li>Make rewards unique and related to your project</li>
-                                            <li>Include estimated delivery dates in descriptions</li>
-                                        </ul>
+                                <div class="info-box mb-4">
+                                    <div class="d-flex">
+                                        <i class="fas fa-lightbulb me-3 mt-1"></i>
+                                        <div>
+                                            <strong>Tips for Great Rewards</strong>
+                                            <ul class="mb-0 mt-2 small" style="color: #4b5563;">
+                                                <li>Offer a variety of price points to appeal to different backers</li>
+                                                <li>Make rewards unique and related to your project</li>
+                                                <li>Include estimated delivery dates in descriptions</li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
+
+                                {{ reward_formset.management_form }}
+
+                                <div id="rewards-container">
+                                    {% for reward_form in reward_formset %}
+                                    <div class="reward-form-item mb-4 p-3" style="background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0" style="color: var(--teal-dark); font-weight: 600;">
+                                                <i class="fas fa-star me-2"></i>Reward {{ forloop.counter }}
+                                            </h6>
+                                            {% if reward_form.instance.pk %}
+                                            <div class="form-check">
+                                                {{ reward_form.DELETE }}
+                                                <label class="form-check-label text-danger small" for="{{ reward_form.DELETE.id_for_label }}">
+                                                    <i class="fas fa-trash-alt me-1"></i>Delete
+                                                </label>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+
+                                        {{ reward_form.id }}
+
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="field-wrapper">
+                                                    <label for="{{ reward_form.title.id_for_label }}">Reward Title</label>
+                                                    {{ reward_form.title }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="field-wrapper">
+                                                    <label for="{{ reward_form.amount.id_for_label }}">Minimum Amount ($)</label>
+                                                    {{ reward_form.amount }}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="field-wrapper">
+                                            <label for="{{ reward_form.description.id_for_label }}">Description</label>
+                                            {{ reward_form.description }}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                                <button type="button" id="add-reward-btn" class="btn btn-outline-success w-100 mt-2" style="border-radius: 10px; border-style: dashed;">
+                                    <i class="fas fa-plus me-2"></i>Add Another Reward
+                                </button>
                             </div>
 
-                            {{ reward_formset.management_form }}
+                            <!-- VENTURE: Investment Details -->
+                            <div id="investment-details-section" style="display: none;">
+                                <h3 class="step-title"><i class="fas fa-briefcase me-2" style="color: #2563eb;"></i>Investment Details</h3>
+                                <p class="step-subtitle">Define your financing structure for investors</p>
 
-                            <div id="rewards-container">
-                                {% for reward_form in reward_formset %}
-                                <div class="reward-form-item mb-4 p-3" style="background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="mb-0" style="color: var(--teal-dark); font-weight: 600;">
-                                            <i class="fas fa-star me-2"></i>Reward {{ forloop.counter }}
-                                        </h6>
-                                        {% if reward_form.instance.pk %}
-                                        <div class="form-check">
-                                            {{ reward_form.DELETE }}
-                                            <label class="form-check-label text-danger small" for="{{ reward_form.DELETE.id_for_label }}">
-                                                <i class="fas fa-trash-alt me-1"></i>Delete
-                                            </label>
+                                <div class="field-wrapper">
+                                    <label for="{{ form.financing_type.id_for_label }}">Financing Type <span class="text-danger">*</span></label>
+                                    {{ form.financing_type }}
+                                    <div class="form-text">Choose between equity (shares) or debt (loan) financing</div>
+                                    {% if form.financing_type.errors %}
+                                    <ul class="errorlist">{% for error in form.financing_type.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Equity Fields -->
+                                <div id="equity-fields" class="financing-fields">
+                                    <div class="info-box mb-4">
+                                        <div class="d-flex">
+                                            <i class="fas fa-chart-pie me-3 mt-1"></i>
+                                            <div>
+                                                <strong>Equity Financing</strong>
+                                                <p class="mb-0 mt-1 small" style="color: #4b5563;">
+                                                    Investors receive ownership shares in your venture in exchange for their investment.
+                                                </p>
+                                            </div>
                                         </div>
-                                        {% endif %}
                                     </div>
-
-                                    {{ reward_form.id }}
 
                                     <div class="row">
-                                        <div class="col-md-8">
+                                        <div class="col-md-6">
                                             <div class="field-wrapper">
-                                                <label for="{{ reward_form.title.id_for_label }}">Reward Title</label>
-                                                {{ reward_form.title }}
+                                                <label for="{{ form.equity_offered.id_for_label }}">Equity Offered (%) <span class="text-danger">*</span></label>
+                                                {{ form.equity_offered }}
+                                                <div class="form-text">Total percentage of ownership offered to investors</div>
+                                                {% if form.equity_offered.errors %}
+                                                <ul class="errorlist">{% for error in form.equity_offered.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                                {% endif %}
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-6">
                                             <div class="field-wrapper">
-                                                <label for="{{ reward_form.amount.id_for_label }}">Minimum Amount ($)</label>
-                                                {{ reward_form.amount }}
+                                                <label for="{{ form.valuation.id_for_label }}">Company Valuation (USD) <span class="text-danger">*</span></label>
+                                                {{ form.valuation }}
+                                                <div class="form-text">Current estimated valuation of your company</div>
+                                                {% if form.valuation.errors %}
+                                                <ul class="errorlist">{% for error in form.valuation.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                                {% endif %}
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <div class="field-wrapper">
-                                        <label for="{{ reward_form.description.id_for_label }}">Description</label>
-                                        {{ reward_form.description }}
                                     </div>
                                 </div>
-                                {% endfor %}
-                            </div>
 
-                            <button type="button" id="add-reward-btn" class="btn btn-outline-success w-100 mt-2" style="border-radius: 10px; border-style: dashed;">
-                                <i class="fas fa-plus me-2"></i>Add Another Reward
-                            </button>
+                                <!-- Debt Fields -->
+                                <div id="debt-fields" class="financing-fields">
+                                    <div class="info-box mb-4">
+                                        <div class="d-flex">
+                                            <i class="fas fa-file-invoice-dollar me-3 mt-1"></i>
+                                            <div>
+                                                <strong>Debt Financing</strong>
+                                                <p class="mb-0 mt-1 small" style="color: #4b5563;">
+                                                    Investors lend money to your venture and receive repayment with interest over a defined period.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.interest_rate.id_for_label }}">Annual Interest Rate (%) <span class="text-danger">*</span></label>
+                                                {{ form.interest_rate }}
+                                                <div class="form-text">Interest rate offered to investors</div>
+                                                {% if form.interest_rate.errors %}
+                                                <ul class="errorlist">{% for error in form.interest_rate.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.repayment_period_months.id_for_label }}">Repayment Period (months) <span class="text-danger">*</span></label>
+                                                {{ form.repayment_period_months }}
+                                                <div class="form-text">Duration for full repayment</div>
+                                                {% if form.repayment_period_months.errors %}
+                                                <ul class="errorlist">{% for error in form.repayment_period_months.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Use of Funds (both financing types) -->
+                                <div class="field-wrapper">
+                                    <label for="{{ form.use_of_funds.id_for_label }}">Use of Funds</label>
+                                    {{ form.use_of_funds }}
+                                    <div class="form-text">Explain how the investment will be allocated (helps build investor confidence)</div>
+                                    {% if form.use_of_funds.errors %}
+                                    <ul class="errorlist">{% for error in form.use_of_funds.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Step 4: The Story -->
-                        <div class="form-step" id="step-4">
+                        <!-- Step 5: The Story -->
+                        <div class="form-step" id="step-5">
                             <h3 class="step-title"><i class="fas fa-book-open me-2" style="color: var(--teal-primary);"></i>Tell Your Story</h3>
                             <p class="step-subtitle">Share your vision and add compelling media</p>
 
                             <div class="field-wrapper">
-                                <label for="{{ form.description.id_for_label }}">Project Description <span class="text-danger">*</span></label>
+                                <label for="{{ form.description.id_for_label }}">Full Description <span class="text-danger">*</span></label>
                                 {{ form.description }}
                                 {% if form.description.errors %}
                                 <ul class="errorlist">{% for error in form.description.errors %}<li>{{ error }}</li>{% endfor %}</ul>
@@ -762,7 +997,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="field-wrapper">
-                                        <label for="{{ form.image.id_for_label }}">Project Image</label>
+                                        <label for="{{ form.image.id_for_label }}">Cover Image</label>
                                         <div class="file-upload-wrapper">
                                             <i class="fas fa-cloud-upload-alt file-upload-icon"></i>
                                             <p class="file-upload-text mb-0"><span>Click to upload</span> or drag and drop</p>
@@ -803,7 +1038,7 @@
                                     Next<i class="fas fa-arrow-right ms-2"></i>
                                 </button>
                                 <button type="submit" id="submit-btn" class="btn btn-submit" style="display: none;">
-                                    <i class="fas fa-check me-2"></i>{% if project %}Update Project{% else %}Create Project{% endif %}
+                                    <i class="fas fa-check me-2"></i><span id="submit-text">{% if project %}Update{% else %}Submit{% endif %}</span>
                                 </button>
                             </div>
                         </div>
@@ -817,10 +1052,10 @@
             <div class="tips-card" style="position: sticky; top: 120px;">
                 <h5><i class="fas fa-lightbulb me-2"></i>Tips for Success</h5>
                 <ul id="tips-list">
-                    <li>Choose a clear, memorable project title</li>
-                    <li>Select the most relevant category</li>
-                    <li>Write a compelling short description</li>
-                    <li>Be specific about your location</li>
+                    <li>Choose the right listing type for your goals</li>
+                    <li>Projects are for donations and social causes</li>
+                    <li>Ventures attract investors seeking returns</li>
+                    <li>You can always edit details after creation</li>
                 </ul>
             </div>
         </div>
@@ -891,6 +1126,97 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Listing type handling
+    const listingTypeRadios = document.querySelectorAll('input[name="listing_type"]');
+    const ventureOnlyFields = document.querySelectorAll('.venture-only-field');
+    const projectOnlyFields = document.querySelectorAll('.project-only-field');
+    const rewardsSection = document.getElementById('rewards-section');
+    const investmentSection = document.getElementById('investment-details-section');
+    const step4Label = document.getElementById('step4-label');
+    const fundingInfoProject = document.getElementById('funding-info-project');
+    const fundingInfoVenture = document.getElementById('funding-info-venture');
+    const financingTypeSelect = document.getElementById('id_financing_type');
+
+    function getListingType() {
+        const checked = document.querySelector('input[name="listing_type"]:checked');
+        return checked ? checked.value : 'project';
+    }
+
+    function updateListingTypeUI() {
+        const type = getListingType();
+        const isVenture = type === 'venture';
+
+        // Toggle venture/project specific fields
+        ventureOnlyFields.forEach(f => f.style.display = isVenture ? 'block' : 'none');
+        projectOnlyFields.forEach(f => f.style.display = isVenture ? 'none' : 'block');
+
+        // Toggle Step 4 content
+        if (rewardsSection) rewardsSection.style.display = isVenture ? 'none' : 'block';
+        if (investmentSection) investmentSection.style.display = isVenture ? 'block' : 'none';
+
+        // Update step 4 label
+        if (step4Label) step4Label.textContent = isVenture ? 'Investment' : 'Rewards';
+
+        // Update funding info boxes
+        if (fundingInfoProject) fundingInfoProject.style.display = isVenture ? 'none' : 'block';
+        if (fundingInfoVenture) fundingInfoVenture.style.display = isVenture ? 'block' : 'none';
+
+        // Update labels
+        const goalLabel = document.getElementById('goal-label');
+        if (goalLabel) goalLabel.textContent = isVenture ? 'Investment Goal' : 'Funding Goal';
+
+        const titleLabel = document.getElementById('title-label');
+        if (titleLabel) titleLabel.textContent = isVenture ? 'Venture Title' : 'Project Title';
+
+        const basicsTitle = document.getElementById('basics-title');
+        if (basicsTitle) basicsTitle.textContent = isVenture ? 'Venture Basics' : 'Project Basics';
+
+        const basicsSubtitle = document.getElementById('basics-subtitle');
+        if (basicsSubtitle) basicsSubtitle.textContent = isVenture
+            ? 'Start with the essential details about your venture'
+            : 'Start with the essential details about your project';
+
+        const submitText = document.getElementById('submit-text');
+        if (submitText) {
+            const isEdit = submitText.textContent.includes('Update');
+            if (!isEdit) {
+                submitText.textContent = isVenture ? 'Submit Venture' : 'Submit Project';
+            }
+        }
+
+        // Update financing type visibility
+        updateFinancingFields();
+    }
+
+    function updateFinancingFields() {
+        if (!financingTypeSelect) return;
+        const val = financingTypeSelect.value;
+        const equityFields = document.getElementById('equity-fields');
+        const debtFields = document.getElementById('debt-fields');
+
+        if (equityFields) {
+            equityFields.classList.toggle('visible', val === 'equity');
+            equityFields.style.display = val === 'equity' ? 'block' : 'none';
+        }
+        if (debtFields) {
+            debtFields.classList.toggle('visible', val === 'debt');
+            debtFields.style.display = val === 'debt' ? 'block' : 'none';
+        }
+    }
+
+    // Listen for listing type changes
+    listingTypeRadios.forEach(radio => {
+        radio.addEventListener('change', updateListingTypeUI);
+    });
+
+    // Listen for financing type changes
+    if (financingTypeSelect) {
+        financingTypeSelect.addEventListener('change', updateFinancingFields);
+    }
+
+    // Initialize UI state
+    updateListingTypeUI();
+
     // Form step navigation
     const formSteps = document.querySelectorAll('.form-step');
     const stepIndicators = document.querySelectorAll('.step-indicator');
@@ -902,32 +1228,75 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentStep = 1;
     const totalSteps = formSteps.length;
 
-    const stepTips = {
+    const projectTips = {
         1: [
+            'Choose the right listing type for your goals',
+            'Projects are for donations and social causes',
+            'Ventures attract investors seeking returns',
+            'You can always edit details after creation'
+        ],
+        2: [
             'Choose a clear, memorable project title',
             'Select the most relevant category',
             'Write a compelling short description',
             'Be specific about your location'
         ],
-        2: [
+        3: [
             'Set a realistic funding goal',
             'Consider your minimum viable budget',
             'Allow enough time for your campaign',
             'Choose the right funding type for your needs'
         ],
-        3: [
+        4: [
             'Offer rewards at various price points',
             'Make rewards unique and project-related',
             'Include clear descriptions of each reward',
             'Consider adding limited early-bird rewards'
         ],
-        4: [
+        5: [
             'Tell a compelling story with emotions',
             'Use high-quality images',
             'Add a video to increase engagement',
             'Break text into readable sections'
         ]
     };
+
+    const ventureTips = {
+        1: [
+            'Choose the right listing type for your goals',
+            'Projects are for donations and social causes',
+            'Ventures attract investors seeking returns',
+            'You can always edit details after creation'
+        ],
+        2: [
+            'Choose a professional venture title',
+            'Include your company name for credibility',
+            'Write a compelling elevator pitch',
+            'Your location helps local investors find you'
+        ],
+        3: [
+            'Set a realistic investment target',
+            'Consider your business growth needs',
+            'Allow enough time for fundraising',
+            'Be transparent about your financial needs'
+        ],
+        4: [
+            'Choose equity if you want to share ownership',
+            'Choose debt if you prefer loan-based funding',
+            'Be realistic about valuation and returns',
+            'Explain clearly how funds will be used'
+        ],
+        5: [
+            'Highlight your business model and traction',
+            'Use professional images and branding',
+            'Add a pitch video to increase trust',
+            'Include team credentials and achievements'
+        ]
+    };
+
+    function getStepTips() {
+        return getListingType() === 'venture' ? ventureTips : projectTips;
+    }
 
     function updateFormSteps() {
         // Update step content visibility
@@ -954,8 +1323,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (submitBtn) submitBtn.style.display = currentStep === totalSteps ? 'inline-block' : 'none';
 
         // Update tips
-        if (tipsList && stepTips[currentStep]) {
-            tipsList.innerHTML = stepTips[currentStep].map(tip => `<li>${tip}</li>`).join('');
+        const tips = getStepTips();
+        if (tipsList && tips[currentStep]) {
+            tipsList.innerHTML = tips[currentStep].map(tip => `<li>${tip}</li>`).join('');
         }
     }
 
@@ -969,6 +1339,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (input.tagName === 'TEXTAREA' && input.style.display === 'none') {
                 return;
             }
+            // Skip hidden fields (venture/project only)
+            if (input.closest('.venture-only-field') && getListingType() !== 'venture') return;
+            if (input.closest('.project-only-field') && getListingType() !== 'project') return;
+
             if (!input.value || !input.value.trim()) {
                 isValid = false;
                 input.classList.add('is-invalid');
@@ -1152,7 +1526,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const currentFormCount = parseInt(totalFormsInput.value);
             const newFormIndex = currentFormCount;
 
-            // Clone the template from the first empty form or create new HTML
             const newFormHtml = `
                 <div class="reward-form-item mb-4 p-3" style="background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
                     <div class="d-flex justify-content-between align-items-center mb-3">

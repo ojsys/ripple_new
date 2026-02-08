@@ -20,10 +20,16 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = [
-            'title', 'short_description', 'description', 'category', 'funding_type',
-            'funding_goal', 'deadline', 'image', 'location', 'video_url'
+            'listing_type', 'title', 'short_description', 'description', 'category',
+            'funding_type', 'funding_goal', 'deadline', 'image', 'location', 'video_url',
+            # Venture-specific fields
+            'company_name', 'financing_type', 'equity_offered', 'valuation',
+            'interest_rate', 'repayment_period_months', 'use_of_funds',
         ]
         widgets = {
+            'listing_type': forms.RadioSelect(attrs={
+                'class': 'form-check-input listing-type-radio',
+            }),
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Give your project a compelling title'
@@ -60,12 +66,84 @@ class ProjectForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'https://youtube.com/watch?v=...'
             }),
+            # Venture-specific widgets
+            'company_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Your company or business name'
+            }),
+            'financing_type': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'equity_offered': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '10.00',
+                'step': '0.01',
+                'min': '0',
+                'max': '100'
+            }),
+            'valuation': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '100000',
+                'step': '0.01'
+            }),
+            'interest_rate': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '8.00',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'repayment_period_months': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '24',
+                'min': '1'
+            }),
+            'use_of_funds': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Explain how the investment funds will be allocated...'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['category'].empty_label = "Select Category"
         self.fields['funding_type'].empty_label = "Select Funding Type"
+        # Venture fields are optional at the form level; validated in clean()
+        venture_fields = [
+            'company_name', 'financing_type', 'equity_offered', 'valuation',
+            'interest_rate', 'repayment_period_months', 'use_of_funds'
+        ]
+        for field_name in venture_fields:
+            self.fields[field_name].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        listing_type = cleaned_data.get('listing_type')
+
+        if listing_type == 'venture':
+            # Validate required venture fields
+            if not cleaned_data.get('company_name'):
+                self.add_error('company_name', 'Company name is required for ventures.')
+            if not cleaned_data.get('financing_type'):
+                self.add_error('financing_type', 'Please select a financing type.')
+
+            financing_type = cleaned_data.get('financing_type')
+            if financing_type == 'equity':
+                equity = cleaned_data.get('equity_offered')
+                if not equity or equity <= 0:
+                    self.add_error('equity_offered', 'Equity percentage is required for equity financing.')
+                valuation = cleaned_data.get('valuation')
+                if not valuation or valuation <= 0:
+                    self.add_error('valuation', 'Company valuation is required for equity financing.')
+            elif financing_type == 'debt':
+                rate = cleaned_data.get('interest_rate')
+                if not rate or rate <= 0:
+                    self.add_error('interest_rate', 'Interest rate is required for debt financing.')
+                period = cleaned_data.get('repayment_period_months')
+                if not period or period <= 0:
+                    self.add_error('repayment_period_months', 'Repayment period is required for debt financing.')
+
+        return cleaned_data
 
 
 class RewardForm(forms.ModelForm):

@@ -356,16 +356,25 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1>Discover Projects</h1>
-                <p>Support innovative startups transforming Africa</p>
+                <h1>{% if listing_type == 'venture' %}Discover Ventures{% else %}Discover Projects{% endif %}</h1>
+                <p>{% if listing_type == 'venture' %}Invest in innovative ventures with real returns{% else %}Support innovative startups transforming Africa{% endif %}</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 {% if request.user.is_authenticated and request.user.user_type == 'founder' %}
                 <a href="{% url 'projects:create_project' %}" class="btn btn-md-filled" style="background: #fff; color: var(--md-primary);">
-                    <i class="fas fa-plus me-2"></i>Create Project
+                    <i class="fas fa-plus me-2"></i>Create Listing
                 </a>
                 {% endif %}
             </div>
+        </div>
+        <!-- Listing Type Tabs -->
+        <div class="mt-4">
+            <a href="{% url 'projects:project_list' %}" class="btn {% if listing_type == 'project' %}btn-light{% else %}btn-outline-light{% endif %} rounded-pill me-2">
+                <i class="fas fa-hand-holding-heart me-1"></i> Projects (Donations)
+            </a>
+            <a href="{% url 'projects:venture_list' %}" class="btn {% if listing_type == 'venture' %}btn-light{% else %}btn-outline-light{% endif %} rounded-pill">
+                <i class="fas fa-chart-line me-1"></i> Ventures (Investments)
+            </a>
         </div>
     </div>
 </div>
@@ -392,6 +401,16 @@
                     {% endfor %}
                 </select>
             </div>
+            {% if listing_type == 'venture' %}
+            <div class="col-6 col-md-2">
+                <label class="filter-label">Financing Type</label>
+                <select name="financing_type" class="filter-select">
+                    <option value="">All</option>
+                    <option value="equity" {% if current_financing_type == 'equity' %}selected{% endif %}>Equity</option>
+                    <option value="debt" {% if current_financing_type == 'debt' %}selected{% endif %}>Debt</option>
+                </select>
+            </div>
+            {% else %}
             <div class="col-6 col-md-2">
                 <label class="filter-label">Funding Type</label>
                 <select name="funding_type" class="filter-select">
@@ -403,6 +422,7 @@
                     {% endfor %}
                 </select>
             </div>
+            {% endif %}
             <div class="col-6 col-md-2">
                 <label class="filter-label">Sort By</label>
                 <select name="sort" class="filter-select">
@@ -441,34 +461,55 @@
                             {% if project.category %}
                             <span class="project-category">{{ project.category.name }}</span>
                             {% endif %}
-                            {% if project.funding_type %}
+                            {% if project.is_venture %}
+                                {% if project.financing_type == 'equity' %}
+                                <span class="project-funding-type" style="background: rgba(37, 99, 235, 0.1); color: #2563eb;">Equity</span>
+                                {% elif project.financing_type == 'debt' %}
+                                <span class="project-funding-type" style="background: rgba(217, 119, 6, 0.1); color: #d97706;">Debt</span>
+                                {% endif %}
+                            {% elif project.funding_type %}
                             <span class="project-funding-type">{{ project.funding_type.name }}</span>
                             {% endif %}
                         </div>
                         <h3 class="project-title">{{ project.title }}</h3>
+                        {% if project.is_venture and project.company_name %}
+                        <p class="small text-muted mb-1"><i class="fas fa-building me-1"></i>{{ project.company_name }}</p>
+                        {% endif %}
                         <p class="project-description">
                             {{ project.short_description|default:project.description|truncatewords:15 }}
                         </p>
 
                         <div class="project-progress">
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="fw-semibold" style="color: #0d9488;">${{ project.amount_raised|intcomma }}</span>
-                                <span class="text-muted small">{{ project.get_percent_funded|floatformat:2 }}% funded</span>
+                                <span class="fw-semibold" style="color: #0d9488;">${{ project.get_total_raised|intcomma }}</span>
+                                <span class="text-muted small">{{ project.get_percent_funded|floatformat:2 }}% {% if project.is_venture %}raised{% else %}funded{% endif %}</span>
                             </div>
                             <div class="progress-bar-md">
-                                <div class="fill" style="width: {{ project.get_percent_funded|floatformat:2 }}%"></div>
+                                <div class="fill" style="width: {% widthratio project.get_percent_funded 1 1 %}%"></div>
                             </div>
                         </div>
 
                         <div class="project-stats">
                             <div class="project-stat">
                                 <div class="project-stat-value">${{ project.funding_goal|intcomma }}</div>
-                                <div class="project-stat-label">Goal</div>
+                                <div class="project-stat-label">{% if project.is_venture %}Target{% else %}Goal{% endif %}</div>
                             </div>
+                            {% if project.is_venture and project.financing_type == 'equity' %}
+                            <div class="project-stat">
+                                <div class="project-stat-value">{{ project.equity_offered }}%</div>
+                                <div class="project-stat-label">Equity</div>
+                            </div>
+                            {% elif project.is_venture and project.financing_type == 'debt' %}
+                            <div class="project-stat">
+                                <div class="project-stat-value">{{ project.interest_rate }}%</div>
+                                <div class="project-stat-label">Interest</div>
+                            </div>
+                            {% else %}
                             <div class="project-stat">
                                 <div class="project-stat-value">{{ project.deadline|timeuntil }}</div>
                                 <div class="project-stat-label">Left</div>
                             </div>
+                            {% endif %}
                             <div>
                                 <a href="{% url 'projects:project_detail' project.id %}" class="btn-view-project">
                                     View
@@ -511,9 +552,9 @@
         {% else %}
         <!-- Empty State -->
         <div class="empty-state">
-            <i class="fas fa-rocket"></i>
-            <h3>No projects found</h3>
-            <p>Try adjusting your filters or search terms, or be the first to create a project!</p>
+            <i class="fas fa-{% if listing_type == 'venture' %}chart-line{% else %}rocket{% endif %}"></i>
+            <h3>No {% if listing_type == 'venture' %}ventures{% else %}projects{% endif %} found</h3>
+            <p>Try adjusting your filters or search terms, or be the first to create a {% if listing_type == 'venture' %}venture{% else %}project{% endif %}!</p>
             {% if request.user.is_authenticated and request.user.user_type == 'founder' %}
             <a href="{% url 'projects:create_project' %}" class="btn btn-md-filled">
                 <i class="fas fa-plus me-2"></i>Create Project
