@@ -279,15 +279,16 @@ class Project(models.Model):
     def can_invest_srt(self, amount):
         """Check if an SRT investment amount is valid"""
         if self.status != 'approved':
-            return False, "This project is not approved for investment"
-        if not self.srt_enabled:
-            return False, "SRT investments are not enabled for this project"
+            return False, "This venture is not approved for investment"
+        if self.listing_type != 'venture':
+            return False, "SRT investments are only available for ventures"
         if amount < self.minimum_investment:
             return False, f"Minimum investment is {self.minimum_investment} SRT"
         if self.maximum_investment and amount > self.maximum_investment:
             return False, f"Maximum investment is {self.maximum_investment} SRT"
-        if amount > self.srt_remaining_amount:
-            return False, f"Only {self.srt_remaining_amount} SRT remaining"
+        # Only check remaining cap if a funding goal is set
+        if self.srt_funding_goal > 0 and amount > self.srt_remaining_amount:
+            return False, f"Only {self.srt_remaining_amount} SRT remaining in this venture"
         return True, "OK"
 
 class Reward(models.Model):

@@ -650,7 +650,7 @@
                 </div>
 
                 <!-- SRT Investment Section -->
-                {% if project.srt_enabled %}
+                {% if project.is_venture %}
                 <div class="content-card mt-4" style="border: 2px solid #2563eb; border-radius: 12px;">
                     <div class="d-flex align-items-center mb-3">
                         <i class="fas fa-coins fa-lg me-2" style="color: #2563eb;"></i>
@@ -710,13 +710,13 @@
                         </form>
                         {% else %}
                         <!-- Authenticated non-partner user -->
-                        <p class="text-muted small mb-3">This project accepts SRT token investments.</p>
+                        <p class="text-muted small mb-3">This venture accepts SRT token investments.</p>
                         <a href="{% url 'srt:become_partner' %}" class="btn btn-sm btn-outline-primary w-100">
                             <i class="fas fa-star me-2"></i>Become an SRT Partner to Invest
                         </a>
                         {% endif %}
                     {% else %}
-                    <p class="text-muted small mb-3">This project accepts SRT token investments from SRT partners.</p>
+                    <p class="text-muted small mb-3">This venture accepts SRT token investments from SRT partners.</p>
                     <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline-primary w-100">
                         <i class="fas fa-sign-in-alt me-2"></i>Login to Invest with SRT
                     </a>

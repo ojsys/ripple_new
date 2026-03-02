@@ -182,9 +182,9 @@ def project_detail(request, project_id):
     # Get unique backers count
     backers_count = project.get_backers_count()
 
-    # SRT account for partners viewing an srt_enabled project
+    # SRT account for partners viewing any venture
     srt_account = None
-    if request.user.is_authenticated and project.srt_enabled:
+    if request.user.is_authenticated and project.is_venture:
         is_partner = request.user.user_type == 'partner' or getattr(request.user, 'is_srt_partner', False)
         if is_partner:
             from apps.srt.views import get_or_create_capital_account

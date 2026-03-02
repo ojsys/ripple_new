@@ -1,7 +1,7 @@
 {% extends 'srt/base_partner.html' %}
 {% load humanize %}
 
-{% block title %}SRT Investment Opportunities - StartUpRipple{% endblock %}
+{% block title %}Ventures - StartUpRipple{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
@@ -80,8 +80,8 @@
     <div class="container">
         <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
             <div>
-                <h1><i class="fas fa-coins me-2"></i>SRT Investment Opportunities</h1>
-                <p class="mb-0" style="opacity: 0.9;">Invest your SRT tokens in approved ventures and projects</p>
+                <h1><i class="fas fa-chart-line me-2"></i>Ventures</h1>
+                <p class="mb-0" style="opacity: 0.9;">Invest your SRT tokens in any venture on the platform</p>
             </div>
             {% if account %}
             <div class="balance-pill text-white">
@@ -155,8 +155,8 @@
         <div style="font-size: 0.88rem;">
             <strong>SRT Exchange Rate:</strong>
             1 SRT = <strong>₦2,000 NGN</strong> = <strong>$1.25 USD</strong>
-            &nbsp;·&nbsp; Returns are paid in SRT tokens at maturity
-            &nbsp;·&nbsp; 4% withdrawal fee applies when converting to NGN
+            &nbsp;·&nbsp; All platform ventures accept SRT token investments
+            &nbsp;·&nbsp; Returns paid in SRT at maturity &nbsp;·&nbsp; 4% withdrawal fee when converting to NGN
         </div>
     </div>
 
@@ -304,8 +304,8 @@
             <i class="fas fa-times me-2"></i>Clear Filters
         </a>
         {% else %}
-        <h4 class="text-muted">No Investment Opportunities Yet</h4>
-        <p class="text-muted">There are no SRT-enabled projects available right now. Check back soon.</p>
+        <h4 class="text-muted">No Ventures Yet</h4>
+        <p class="text-muted">There are no approved ventures on the platform right now. Check back soon.</p>
         <a href="{% url 'srt:dashboard' %}" class="btn" style="background: #2563eb; color: white;">
             <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
         </a>

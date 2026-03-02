@@ -129,17 +129,17 @@ def partner_dashboard(request):
         is_featured=True
     )[:3]
 
-    # Featured SRT-enabled Projects (Project model)
+    # All ventures on the platform (all listing_type='venture' are SRT investable)
     from apps.projects.models import Project as ProjectModel
     featured_srt_projects = ProjectModel.objects.filter(
-        srt_enabled=True,
+        listing_type='venture',
         status='approved',
         is_featured=True,
     ).order_by('-created_at')[:4]
     # If no featured ones, show the 4 most recent
     if not featured_srt_projects.exists():
         featured_srt_projects = ProjectModel.objects.filter(
-            srt_enabled=True,
+            listing_type='venture',
             status='approved',
         ).order_by('-created_at')[:4]
 
@@ -374,12 +374,12 @@ def token_purchase_callback(request):
 @login_required
 @partner_required
 def srt_project_list(request):
-    """List all Projects with srt_enabled=True open for SRT investment"""
+    """List all ventures on the platform open for SRT investment"""
     from apps.projects.models import Project, Category
     account = get_or_create_capital_account(request.user)
 
     projects = Project.objects.filter(
-        srt_enabled=True,
+        listing_type='venture',
         status='approved',
     ).order_by('-is_featured', '-created_at')
 
@@ -402,7 +402,7 @@ def srt_project_list(request):
         )
 
     categories = Category.objects.filter(
-        project__srt_enabled=True, project__status='approved'
+        project__listing_type='venture', project__status='approved'
     ).distinct()
 
     # Get the current user's existing investments in these projects
@@ -941,9 +941,9 @@ def modify_investment(request, reference):
 @partner_required
 @require_POST
 def invest_in_project(request, project_id):
-    """Process SRT token investment in a project/venture with srt_enabled=True"""
+    """Process SRT token investment in a venture"""
     from apps.projects.models import Project
-    project = get_object_or_404(Project, id=project_id, srt_enabled=True)
+    project = get_object_or_404(Project, id=project_id, listing_type='venture', status='approved')
     account = get_or_create_capital_account(request.user)
 
     if request.user == project.creator:
@@ -1010,7 +1010,7 @@ def invest_in_project(request, project_id):
 def venture_withdraw_tokens(request, project_id):
     """Venture founder requests withdrawal of raised SRT tokens"""
     from apps.projects.models import Project
-    project = get_object_or_404(Project, id=project_id, creator=request.user, srt_enabled=True)
+    project = get_object_or_404(Project, id=project_id, creator=request.user, listing_type='venture', status='approved')
     available_tokens = VentureTokenWithdrawal.get_available_tokens(project)
 
     pending_withdrawals = VentureTokenWithdrawal.objects.filter(

@@ -205,11 +205,11 @@
     <!-- Main Column -->
     <div class="col-lg-8">
 
-        <!-- SRT Investment Opportunities (Projects) -->
+        <!-- Ventures (all platform ventures are SRT investable) -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);">
                 <h5 class="mb-0 text-white">
-                    <i class="fas fa-briefcase me-2"></i>Open for SRT Investment
+                    <i class="fas fa-chart-line me-2"></i>Ventures
                 </h5>
                 <a href="{% url 'srt:srt_project_list' %}" class="btn btn-sm btn-light" style="font-size: 0.8rem;">
                     View All <i class="fas fa-arrow-right ms-1"></i>
@@ -277,14 +277,14 @@
                 </div>
                 <div class="text-center mt-3">
                     <a href="{% url 'srt:srt_project_list' %}" class="btn btn-outline-teal">
-                        Browse All SRT Projects <i class="fas fa-arrow-right ms-2"></i>
+                        Browse All Ventures <i class="fas fa-arrow-right ms-2"></i>
                     </a>
                 </div>
                 {% else %}
                 <div class="empty-state">
-                    <i class="fas fa-briefcase"></i>
-                    <p class="text-muted">No SRT investment opportunities available yet.</p>
-                    <a href="{% url 'srt:srt_project_list' %}" class="btn btn-teal">Browse Projects</a>
+                    <i class="fas fa-chart-line"></i>
+                    <p class="text-muted">No ventures available yet.</p>
+                    <a href="{% url 'srt:srt_project_list' %}" class="btn btn-teal">Browse Ventures</a>
                 </div>
                 {% endif %}
             </div>
