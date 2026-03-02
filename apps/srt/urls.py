@@ -53,4 +53,7 @@ urlpatterns = [
     path('venture-withdrawals/', views.my_venture_withdrawals, name='my_venture_withdrawals'),
     path('venture-withdrawal/<str:reference>/', views.venture_withdrawal_detail, name='venture_withdrawal_detail'),
     path('venture-withdrawal/<str:reference>/cancel/', views.cancel_venture_withdrawal, name='cancel_venture_withdrawal'),
+
+    # Paystack Transfer Webhook (no auth — verified by HMAC signature)
+    path('webhooks/paystack/transfer/', views.paystack_transfer_webhook, name='paystack_transfer_webhook'),
 ]

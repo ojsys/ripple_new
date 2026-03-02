@@ -21,6 +21,7 @@ from .email_utils import (
     send_venture_withdrawal_completed_to_founder,
     send_venture_withdrawal_rejected_to_founder,
 )
+from .paystack_utils import initiate_withdrawal_transfer
 
 
 @admin.register(TokenPackage)
@@ -394,14 +395,37 @@ class TokenWithdrawalAdmin(admin.ModelAdmin):
     actions = ['approve_withdrawals', 'reject_withdrawals', 'mark_completed', 'export_to_excel', 'export_to_csv']
 
     def approve_withdrawals(self, request, queryset):
-        count = 0
+        approved = 0
+        transferred = 0
+        failed_transfer = []
+
         for withdrawal in queryset.filter(status='pending'):
-            if withdrawal.approve(request.user):
-                count += 1
-                # Send email notification to user
-                send_withdrawal_approved_to_user(withdrawal)
-        self.message_user(request, f"Approved {count} withdrawal requests and sent email notifications")
-    approve_withdrawals.short_description = "Approve selected withdrawals"
+            if not withdrawal.approve(request.user):
+                continue
+            approved += 1
+            send_withdrawal_approved_to_user(withdrawal)
+
+            # Attempt automatic bank transfer via Paystack
+            success, transfer_code, error = initiate_withdrawal_transfer(withdrawal)
+            if success:
+                withdrawal.status = 'processing'
+                withdrawal.payment_reference = transfer_code
+                withdrawal.save(update_fields=['status', 'payment_reference'])
+                transferred += 1
+            else:
+                note = f"[Auto-transfer failed] {error}"
+                withdrawal.admin_notes = (withdrawal.admin_notes + '\n' + note).strip()
+                withdrawal.save(update_fields=['admin_notes'])
+                failed_transfer.append(f"{withdrawal.reference}: {error}")
+
+        msg = f"Approved {approved} withdrawal(s). {transferred} transfer(s) initiated automatically."
+        if failed_transfer:
+            failures = '; '.join(failed_transfer)
+            msg += f" {len(failed_transfer)} transfer(s) need manual processing: {failures}"
+            self.message_user(request, msg, level='warning')
+        else:
+            self.message_user(request, msg)
+    approve_withdrawals.short_description = "Approve selected withdrawals (auto-transfer)"
 
     def reject_withdrawals(self, request, queryset):
         count = 0
@@ -562,13 +586,38 @@ class VentureTokenWithdrawalAdmin(admin.ModelAdmin):
     actions = ['approve_withdrawals', 'reject_withdrawals', 'mark_completed']
 
     def approve_withdrawals(self, request, queryset):
-        count = 0
+        approved = 0
+        transferred = 0
+        failed_transfer = []
+
         for withdrawal in queryset.filter(status='pending'):
-            if withdrawal.approve(request.user):
-                count += 1
-                send_venture_withdrawal_approved_to_founder(withdrawal)
-        self.message_user(request, f"Approved {count} venture withdrawal requests.")
-    approve_withdrawals.short_description = "Approve selected venture withdrawals"
+            if not withdrawal.approve(request.user):
+                continue
+            approved += 1
+            send_venture_withdrawal_approved_to_founder(withdrawal)
+
+            # Attempt automatic bank transfer via Paystack
+            success, transfer_code, error = initiate_withdrawal_transfer(withdrawal)
+            if success:
+                withdrawal.status = 'processing'
+                withdrawal.payment_reference = transfer_code
+                withdrawal.save(update_fields=['status', 'payment_reference'])
+                transferred += 1
+            else:
+                # Keep as 'approved'; admin must process manually or retry
+                note = f"[Auto-transfer failed] {error}"
+                withdrawal.admin_notes = (withdrawal.admin_notes + '\n' + note).strip()
+                withdrawal.save(update_fields=['admin_notes'])
+                failed_transfer.append(f"{withdrawal.reference}: {error}")
+
+        msg = f"Approved {approved} withdrawal(s). {transferred} transfer(s) initiated automatically."
+        if failed_transfer:
+            failures = '; '.join(failed_transfer)
+            msg += f" {len(failed_transfer)} transfer(s) need manual processing: {failures}"
+            self.message_user(request, msg, level='warning')
+        else:
+            self.message_user(request, msg)
+    approve_withdrawals.short_description = "Approve selected venture withdrawals (auto-transfer)"
 
     def reject_withdrawals(self, request, queryset):
         count = 0

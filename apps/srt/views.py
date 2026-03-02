@@ -21,8 +21,12 @@ from .email_utils import (
     send_token_purchase_notification_to_admin,
     send_withdrawal_request_to_user,
     send_withdrawal_request_to_admin,
+    send_withdrawal_completed_to_user,
+    send_withdrawal_rejected_to_user,
     send_venture_withdrawal_request_to_founder,
     send_venture_withdrawal_request_to_admin,
+    send_venture_withdrawal_completed_to_founder,
+    send_venture_withdrawal_rejected_to_founder,
 )
 
 from .models import (
@@ -1319,3 +1323,92 @@ def export_my_withdrawals_csv(request):
         ])
 
     return response
+
+
+# ---------------------------------------------------------------------------
+# Paystack Transfer Webhook
+# ---------------------------------------------------------------------------
+import hashlib
+import hmac as _hmac
+import json as _json
+
+from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
+def paystack_transfer_webhook(request):
+    """
+    Receives Paystack transfer event webhooks.
+
+    Events handled:
+      transfer.success  → mark matching withdrawal as completed, send email
+      transfer.failed   → revert to 'approved' so admin can investigate and retry
+
+    Paystack signs each request with HMAC-SHA512 using PAYSTACK_SECRET_KEY.
+    The signature is in the 'x-paystack-signature' request header.
+    """
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    # Verify Paystack signature
+    signature = request.headers.get('x-paystack-signature', '')
+    computed = _hmac.new(
+        settings.PAYSTACK_SECRET_KEY.encode(),
+        request.body,
+        hashlib.sha512,
+    ).hexdigest()
+    if not _hmac.compare_digest(signature, computed):
+        return HttpResponse(status=400)
+
+    try:
+        payload = _json.loads(request.body)
+    except Exception:
+        return HttpResponse(status=400)
+
+    event = payload.get('event', '')
+    data = payload.get('data', {})
+    reference = data.get('reference', '')
+    transfer_code = data.get('transfer_code', '')
+
+    if not reference:
+        return HttpResponse(status=200)
+
+    # Locate the withdrawal by reference — check VentureTokenWithdrawal first
+    withdrawal = None
+    withdrawal_type = None
+
+    try:
+        withdrawal = VentureTokenWithdrawal.objects.get(reference=reference)
+        withdrawal_type = 'venture'
+    except VentureTokenWithdrawal.DoesNotExist:
+        pass
+
+    if withdrawal is None:
+        try:
+            withdrawal = TokenWithdrawal.objects.get(reference=reference)
+            withdrawal_type = 'token'
+        except TokenWithdrawal.DoesNotExist:
+            pass
+
+    if withdrawal is None:
+        # Unknown reference — acknowledge so Paystack stops retrying
+        return HttpResponse(status=200)
+
+    if event == 'transfer.success':
+        if withdrawal.status in ('processing', 'approved'):
+            withdrawal.complete(payment_ref=transfer_code or reference)
+            if withdrawal_type == 'venture':
+                send_venture_withdrawal_completed_to_founder(withdrawal)
+            else:
+                send_withdrawal_completed_to_user(withdrawal)
+
+    elif event == 'transfer.failed':
+        if withdrawal.status == 'processing':
+            failure_reason = data.get('failures') or [{}]
+            reason_msg = failure_reason[0].get('reason', 'Unknown reason') if failure_reason else 'Unknown reason'
+            note = f"[Transfer failed – {reason_msg}] Paystack ref: {transfer_code}"
+            withdrawal.status = 'approved'
+            withdrawal.admin_notes = (withdrawal.admin_notes + '\n' + note).strip()
+            withdrawal.save(update_fields=['status', 'admin_notes'])
+
+    return HttpResponse(status=200)
