@@ -182,12 +182,21 @@ def project_detail(request, project_id):
     # Get unique backers count
     backers_count = project.get_backers_count()
 
+    # SRT account for partners viewing an srt_enabled project
+    srt_account = None
+    if request.user.is_authenticated and project.srt_enabled:
+        is_partner = request.user.user_type == 'partner' or getattr(request.user, 'is_srt_partner', False)
+        if is_partner:
+            from apps.srt.views import get_or_create_capital_account
+            srt_account = get_or_create_capital_account(request.user)
+
     context = {
         'project': project,
         'percent_funded': percent_funded,
         'pledge_form': pledge_form,
         'investment_form': investment_form,
         'backers_count': backers_count,
+        'srt_account': srt_account,
     }
     return render(request, 'projects/project_detail.html', context)
 

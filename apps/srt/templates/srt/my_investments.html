@@ -106,18 +106,24 @@
                     <tr>
                         <td>
                             <div class="d-flex align-items-center">
-                                {% if investment.venture.image %}
-                                <img src="{{ investment.venture.image.url }}" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;" alt="{{ investment.venture.title }}">
+                                {% with target=investment.investment_target %}
+                                {% if target and target.image %}
+                                <img src="{{ target.image.url }}" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;" alt="{{ target.title }}">
                                 {% else %}
                                 <div class="bg-success bg-opacity-10 rounded me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                    <i class="fas fa-rocket text-success"></i>
+                                    <i class="fas fa-{% if investment.project %}briefcase{% else %}rocket{% endif %} text-success"></i>
                                 </div>
                                 {% endif %}
                                 <div>
-                                    <strong>{{ investment.venture.title|truncatechars:25 }}</strong>
+                                    <strong>{{ target.title|truncatechars:25 }}</strong>
                                     <br>
-                                    <small class="text-muted">{{ investment.venture.industry }}</small>
+                                    {% if investment.project %}
+                                    <small class="text-muted badge" style="background: #eff6ff; color: #2563eb;">Project</small>
+                                    {% else %}
+                                    <small class="text-muted">{{ target.industry }}</small>
+                                    {% endif %}
                                 </div>
+                                {% endwith %}
                             </div>
                         </td>
                         <td>
@@ -128,7 +134,7 @@
                         <td>
                             <strong>{{ investment.expected_return|floatformat:2|intcomma }}</strong>
                             <br>
-                            <small class="text-success">+{{ investment.venture.expected_return_rate }}%</small>
+                            <small class="text-success">+{{ investment.investment_target.expected_return_rate }}%</small>
                         </td>
                         <td>
                             {% if investment.maturity_date %}

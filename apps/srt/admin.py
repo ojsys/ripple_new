@@ -10,12 +10,16 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 from .models import (
     TokenPackage, PartnerCapitalAccount, Venture,
-    VentureInvestment, SRTTransaction, TokenPurchase, TokenWithdrawal
+    VentureInvestment, SRTTransaction, TokenPurchase, TokenWithdrawal,
+    VentureTokenWithdrawal,
 )
 from .email_utils import (
     send_withdrawal_approved_to_user,
     send_withdrawal_completed_to_user,
     send_withdrawal_rejected_to_user,
+    send_venture_withdrawal_approved_to_founder,
+    send_venture_withdrawal_completed_to_founder,
+    send_venture_withdrawal_rejected_to_founder,
 )
 
 
@@ -518,3 +522,68 @@ class TokenWithdrawalAdmin(admin.ModelAdmin):
 
         return response
     export_to_csv.short_description = "Export selected to CSV"
+
+
+@admin.register(VentureTokenWithdrawal)
+class VentureTokenWithdrawalAdmin(admin.ModelAdmin):
+    list_display = ['reference', 'founder_name', 'project', 'tokens', 'amount_ngn',
+                    'bank_name', 'status', 'created_at']
+    list_filter = ['status', 'bank_name', 'created_at']
+    search_fields = ['reference', 'founder__email', 'founder__first_name',
+                     'founder__last_name', 'project__title', 'account_number', 'account_name']
+    readonly_fields = ['founder', 'project', 'tokens', 'amount_ngn', 'fee',
+                       'bank_name', 'account_number', 'account_name',
+                       'reference', 'created_at', 'processed_at', 'completed_at']
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Withdrawal Request', {
+            'fields': ('reference', 'founder', 'project', 'status')
+        }),
+        ('Token Details', {
+            'fields': ('tokens', 'fee', 'amount_ngn')
+        }),
+        ('Bank Details', {
+            'fields': ('bank_name', 'account_number', 'account_name')
+        }),
+        ('Processing', {
+            'fields': ('admin_notes', 'processed_by', 'payment_reference')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'processed_at', 'completed_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def founder_name(self, obj):
+        return obj.founder.get_full_name() or obj.founder.email
+    founder_name.short_description = "Founder"
+
+    actions = ['approve_withdrawals', 'reject_withdrawals', 'mark_completed']
+
+    def approve_withdrawals(self, request, queryset):
+        count = 0
+        for withdrawal in queryset.filter(status='pending'):
+            if withdrawal.approve(request.user):
+                count += 1
+                send_venture_withdrawal_approved_to_founder(withdrawal)
+        self.message_user(request, f"Approved {count} venture withdrawal requests.")
+    approve_withdrawals.short_description = "Approve selected venture withdrawals"
+
+    def reject_withdrawals(self, request, queryset):
+        count = 0
+        for withdrawal in queryset.filter(status='pending'):
+            if withdrawal.reject(request.user, "Rejected by admin"):
+                count += 1
+                send_venture_withdrawal_rejected_to_founder(withdrawal)
+        self.message_user(request, f"Rejected {count} venture withdrawal requests.")
+    reject_withdrawals.short_description = "Reject selected venture withdrawals"
+
+    def mark_completed(self, request, queryset):
+        count = 0
+        for withdrawal in queryset.filter(status__in=['approved', 'processing']):
+            if withdrawal.complete():
+                count += 1
+                send_venture_withdrawal_completed_to_founder(withdrawal)
+        self.message_user(request, f"Marked {count} venture withdrawals as completed.")
+    mark_completed.short_description = "Mark selected as completed"

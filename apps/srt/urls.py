@@ -41,4 +41,13 @@ urlpatterns = [
 
     # Profile
     path('profile/', views.partner_profile, name='partner_profile'),
+
+    # Project SRT Investment
+    path('projects/<int:project_id>/invest/', views.invest_in_project, name='invest_in_project'),
+
+    # Venture Founder Token Withdrawals
+    path('projects/<int:project_id>/venture-withdraw/', views.venture_withdraw_tokens, name='venture_withdraw_tokens'),
+    path('venture-withdrawals/', views.my_venture_withdrawals, name='my_venture_withdrawals'),
+    path('venture-withdrawal/<str:reference>/', views.venture_withdrawal_detail, name='venture_withdrawal_detail'),
+    path('venture-withdrawal/<str:reference>/cancel/', views.cancel_venture_withdrawal, name='cancel_venture_withdrawal'),
 ]

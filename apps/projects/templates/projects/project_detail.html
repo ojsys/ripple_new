@@ -649,6 +649,81 @@
                     {% endif %}
                 </div>
 
+                <!-- SRT Investment Section -->
+                {% if project.srt_enabled %}
+                <div class="content-card mt-4" style="border: 2px solid #2563eb; border-radius: 12px;">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-coins fa-lg me-2" style="color: #2563eb;"></i>
+                        <h5 class="mb-0" style="color: #2563eb;">SRT Token Investment</h5>
+                    </div>
+
+                    {% if user.is_authenticated %}
+                        {% if user == project.creator %}
+                        <!-- Founder sees withdrawal link -->
+                        <p class="text-muted small mb-3">
+                            <strong>{{ project.srt_amount_raised|floatformat:2 }} SRT</strong> raised from SRT partners.
+                        </p>
+                        {% if project.srt_amount_raised > 0 %}
+                        <a href="{% url 'srt:venture_withdraw_tokens' project.id %}" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="fas fa-wallet me-2"></i>Withdraw Raised SRT Tokens
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'srt:my_venture_withdrawals' %}" class="btn btn-sm btn-link w-100 mt-1">
+                            View Withdrawal History
+                        </a>
+                        {% elif srt_account %}
+                        <!-- Partner sees investment form -->
+                        <div class="mb-3 p-3 rounded" style="background: #eff6ff;">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">Your Available SRT</small>
+                                <strong style="color: #2563eb;">{{ srt_account.available_tokens|floatformat:2 }} SRT</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">Project Raised</small>
+                                <span>{{ project.srt_amount_raised|floatformat:2 }} / {{ project.srt_funding_goal|floatformat:2 }} SRT</span>
+                            </div>
+                            {% if project.srt_funding_goal > 0 %}
+                            <div class="progress mt-2" style="height: 6px;">
+                                <div class="progress-bar" style="width: {% if project.srt_percent_funded > 100 %}100{% else %}{{ project.srt_percent_funded|floatformat:0 }}{% endif %}%; background: #2563eb;"></div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-2 small text-muted">
+                            Min: {{ project.minimum_investment|floatformat:2 }} SRT
+                            {% if project.maximum_investment %} &middot; Max: {{ project.maximum_investment|floatformat:2 }} SRT{% endif %}
+                            &middot; Return: {{ project.expected_return_rate }}% / year
+                        </div>
+                        <form method="post" action="{% url 'srt:invest_in_project' project.id %}">
+                            {% csrf_token %}
+                            <div class="input-group mb-2">
+                                <input type="number" name="amount"
+                                       class="form-control"
+                                       placeholder="Amount in SRT"
+                                       min="{{ project.minimum_investment }}"
+                                       {% if project.maximum_investment %}max="{{ project.maximum_investment }}"{% endif %}
+                                       step="0.01"
+                                       required>
+                                <button type="submit" class="btn btn-primary" style="background: #2563eb; border-color: #2563eb;">
+                                    <i class="fas fa-coins me-1"></i>Invest
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <!-- Authenticated non-partner user -->
+                        <p class="text-muted small mb-3">This project accepts SRT token investments.</p>
+                        <a href="{% url 'srt:become_partner' %}" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="fas fa-star me-2"></i>Become an SRT Partner to Invest
+                        </a>
+                        {% endif %}
+                    {% else %}
+                    <p class="text-muted small mb-3">This project accepts SRT token investments from SRT partners.</p>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login to Invest with SRT
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <!-- Venture Details Card -->
                 {% if project.is_venture %}
                 <div class="venture-details-card mt-4">

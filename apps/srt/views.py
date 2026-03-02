@@ -21,13 +21,16 @@ from .email_utils import (
     send_token_purchase_notification_to_admin,
     send_withdrawal_request_to_user,
     send_withdrawal_request_to_admin,
+    send_venture_withdrawal_request_to_founder,
+    send_venture_withdrawal_request_to_admin,
 )
 
 from .models import (
     TokenPackage, PartnerCapitalAccount, Venture,
-    VentureInvestment, SRTTransaction, TokenPurchase, TokenWithdrawal
+    VentureInvestment, SRTTransaction, TokenPurchase, TokenWithdrawal,
+    VentureTokenWithdrawal,
 )
-from .forms import WithdrawalForm, InvestmentModifyForm
+from .forms import WithdrawalForm, InvestmentModifyForm, SRTProjectInvestmentForm, VentureWithdrawalForm
 
 
 def partner_required(view_func):
@@ -498,7 +501,7 @@ def my_investments(request):
 
     investments = VentureInvestment.objects.filter(
         partner=request.user
-    ).select_related('venture')
+    ).select_related('venture', 'project')
 
     if status_filter:
         investments = investments.filter(status=status_filter)
@@ -540,11 +543,13 @@ def investment_detail(request, reference):
     )
     account = get_or_create_capital_account(request.user)
 
-    # Related transactions
-    transactions = SRTTransaction.objects.filter(
-        account=account,
-        venture=investment.venture
-    ).order_by('-created_at')
+    # Related transactions — handle both venture and project investments
+    tx_filter = Q(account=account)
+    if investment.venture:
+        tx_filter &= Q(venture=investment.venture)
+    elif investment.project:
+        tx_filter &= Q(project=investment.project)
+    transactions = SRTTransaction.objects.filter(tx_filter).order_by('-created_at')
 
     context = {
         'investment': investment,
@@ -846,6 +851,182 @@ def modify_investment(request, reference):
         'potential_return': potential_return,
     }
     return render(request, 'srt/modify_investment.html', context)
+
+
+# ============================================
+# PROJECT SRT INVESTMENT
+# ============================================
+
+@login_required
+@partner_required
+@require_POST
+def invest_in_project(request, project_id):
+    """Process SRT token investment in a project/venture with srt_enabled=True"""
+    from apps.projects.models import Project
+    project = get_object_or_404(Project, id=project_id, srt_enabled=True)
+    account = get_or_create_capital_account(request.user)
+
+    if request.user == project.creator:
+        messages.error(request, "You cannot invest in your own project.")
+        return redirect('projects:project_detail', project_id=project_id)
+
+    try:
+        amount = Decimal(request.POST.get('amount', '0'))
+    except Exception:
+        messages.error(request, "Invalid investment amount.")
+        return redirect('projects:project_detail', project_id=project_id)
+
+    form = SRTProjectInvestmentForm(request.POST, project=project, account=account)
+    if not form.is_valid():
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                messages.error(request, error)
+        return redirect('projects:project_detail', project_id=project_id)
+
+    amount = form.cleaned_data['amount']
+
+    # Check no existing active investment in this project
+    existing = VentureInvestment.objects.filter(
+        partner=request.user,
+        project=project,
+        status__in=['pending', 'active']
+    ).exists()
+    if existing:
+        messages.warning(request, "You already have an active investment in this project.")
+        return redirect('projects:project_detail', project_id=project_id)
+
+    # Create investment
+    VentureInvestment.objects.create(
+        partner=request.user,
+        project=project,
+        account=account,
+        tokens_invested=amount,
+        status='active',
+    )
+
+    # Lock tokens in account
+    account.invest_tokens(
+        amount,
+        project=project,
+        description=f"Investment in {project.title}"
+    )
+
+    # Update project srt_amount_raised
+    project.srt_amount_raised += amount
+    project.save(update_fields=['srt_amount_raised'])
+
+    messages.success(
+        request,
+        f"Investment successful! You've invested {amount:.2f} SRT in {project.title}."
+    )
+    return redirect('srt:my_investments')
+
+
+# ============================================
+# VENTURE FOUNDER TOKEN WITHDRAWALS
+# ============================================
+
+@login_required
+def venture_withdraw_tokens(request, project_id):
+    """Venture founder requests withdrawal of raised SRT tokens"""
+    from apps.projects.models import Project
+    project = get_object_or_404(Project, id=project_id, creator=request.user, srt_enabled=True)
+    available_tokens = VentureTokenWithdrawal.get_available_tokens(project)
+
+    pending_withdrawals = VentureTokenWithdrawal.objects.filter(
+        project=project,
+        status__in=['pending', 'approved', 'processing']
+    )
+
+    if request.method == 'POST':
+        form = VentureWithdrawalForm(request.POST, project=project)
+        if form.is_valid():
+            withdrawal = form.save(commit=False)
+            withdrawal.project = project
+            withdrawal.founder = request.user
+            withdrawal.save()
+
+            send_venture_withdrawal_request_to_founder(withdrawal)
+            send_venture_withdrawal_request_to_admin(withdrawal)
+
+            messages.success(
+                request,
+                f'Withdrawal request for {withdrawal.tokens:.2f} SRT submitted! '
+                f'You will receive ₦{withdrawal.amount_ngn:,.2f} after the 4% fee.'
+            )
+            return redirect('srt:venture_withdrawal_detail', reference=withdrawal.reference)
+    else:
+        form = VentureWithdrawalForm(project=project)
+
+    context = {
+        'project': project,
+        'form': form,
+        'available_tokens': available_tokens,
+        'pending_withdrawals': pending_withdrawals,
+    }
+    return render(request, 'srt/venture_withdraw_tokens.html', context)
+
+
+@login_required
+def venture_withdrawal_detail(request, reference):
+    """View details of a venture token withdrawal"""
+    withdrawal = get_object_or_404(
+        VentureTokenWithdrawal,
+        reference=reference,
+        founder=request.user
+    )
+    context = {'withdrawal': withdrawal}
+    return render(request, 'srt/venture_withdrawal_detail.html', context)
+
+
+@login_required
+def my_venture_withdrawals(request):
+    """List all venture token withdrawals for the current founder"""
+    status_filter = request.GET.get('status', '')
+    withdrawals = VentureTokenWithdrawal.objects.filter(founder=request.user)
+
+    if status_filter:
+        withdrawals = withdrawals.filter(status=status_filter)
+
+    stats = {
+        'total_withdrawn': VentureTokenWithdrawal.objects.filter(
+            founder=request.user, status='completed'
+        ).aggregate(total=Sum('tokens'))['total'] or 0,
+        'pending_count': VentureTokenWithdrawal.objects.filter(
+            founder=request.user, status='pending'
+        ).count(),
+        'completed_count': VentureTokenWithdrawal.objects.filter(
+            founder=request.user, status='completed'
+        ).count(),
+    }
+
+    paginator = Paginator(withdrawals, 10)
+    page = request.GET.get('page', 1)
+    withdrawals = paginator.get_page(page)
+
+    context = {
+        'withdrawals': withdrawals,
+        'stats': stats,
+        'current_status': status_filter,
+    }
+    return render(request, 'srt/my_venture_withdrawals.html', context)
+
+
+@login_required
+@require_POST
+def cancel_venture_withdrawal(request, reference):
+    """Cancel a pending venture token withdrawal"""
+    withdrawal = get_object_or_404(
+        VentureTokenWithdrawal,
+        reference=reference,
+        founder=request.user,
+        status='pending'
+    )
+    if withdrawal.cancel():
+        messages.success(request, 'Withdrawal request cancelled successfully.')
+    else:
+        messages.error(request, 'Unable to cancel this withdrawal request.')
+    return redirect('srt:venture_withdraw_tokens', project_id=withdrawal.project_id)
 
 
 # ============================================

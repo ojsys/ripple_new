@@ -37,22 +37,27 @@
 
                 <hr>
 
-                <!-- Venture Info -->
+                <!-- Investment Target Info -->
+                {% with target=investment.investment_target %}
                 <div class="d-flex align-items-start mb-4">
-                    {% if investment.venture.image %}
-                    <img src="{{ investment.venture.image.url }}" class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;" alt="{{ investment.venture.title }}">
+                    {% if target and target.image %}
+                    <img src="{{ target.image.url }}" class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;" alt="{{ target.title }}">
                     {% else %}
                     <div class="bg-success bg-opacity-10 rounded me-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                        <i class="fas fa-rocket fa-2x text-success"></i>
+                        <i class="fas fa-{% if investment.project %}briefcase{% else %}rocket{% endif %} fa-2x text-success"></i>
                     </div>
                     {% endif %}
                     <div>
-                        <h4 class="mb-1">{{ investment.venture.title }}</h4>
-                        <span class="badge bg-light text-dark me-2">{{ investment.venture.industry }}</span>
-                        <span class="badge bg-{% if investment.venture.risk_level == 'low' %}success{% elif investment.venture.risk_level == 'moderate' %}warning{% else %}danger{% endif %}">
-                            {{ investment.venture.get_risk_level_display }}
+                        <h4 class="mb-1">{{ target.title }}</h4>
+                        {% if investment.venture %}
+                        <span class="badge bg-light text-dark me-2">{{ target.industry }}</span>
+                        <span class="badge bg-{% if target.risk_level == 'low' %}success{% elif target.risk_level == 'moderate' %}warning{% else %}danger{% endif %}">
+                            {{ target.get_risk_level_display }}
                         </span>
-                        <p class="text-muted mt-2 mb-0">{{ investment.venture.short_description|default:investment.venture.description|truncatechars:150 }}</p>
+                        {% else %}
+                        <span class="badge me-2" style="background: #eff6ff; color: #2563eb;">Project</span>
+                        {% endif %}
+                        <p class="text-muted mt-2 mb-0">{{ target.short_description|default:target.description|truncatechars:150 }}</p>
                     </div>
                 </div>
 
@@ -75,11 +80,12 @@
                     <div class="col-md-4">
                         <div class="border rounded p-3 text-center h-100">
                             <i class="fas fa-percentage fa-2x text-warning mb-2"></i>
-                            <h4 class="mb-1">{{ investment.venture.expected_return_rate }}%</h4>
+                            <h4 class="mb-1">{{ target.expected_return_rate }}%</h4>
                             <small class="text-muted">Return Rate</small>
                         </div>
                     </div>
                 </div>
+                {% endwith %}
             </div>
         </div>
 

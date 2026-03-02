@@ -455,6 +455,11 @@
                                     <a href="{% url 'projects:add_update' venture.id %}" class="btn-icon" title="Post Update">
                                         <i class="fas fa-bullhorn"></i>
                                     </a>
+                                    {% if venture.srt_enabled and venture.srt_amount_raised > 0 %}
+                                    <a href="{% url 'srt:venture_withdraw_tokens' venture.id %}" class="btn-icon" title="Withdraw SRT" style="color: #2563eb; border-color: #2563eb;">
+                                        <i class="fas fa-wallet"></i>
+                                    </a>
+                                    {% endif %}
                                 </div>
                                 <a href="{% url 'projects:delete_project' venture.id %}" class="btn-icon danger" title="Delete">
                                     <i class="fas fa-trash-alt"></i>

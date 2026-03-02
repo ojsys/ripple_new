@@ -826,3 +826,139 @@ class TokenWithdrawal(models.Model):
         self.status = 'cancelled'
         self.save()
         return True
+
+
+class VentureTokenWithdrawal(models.Model):
+    """Track SRT token withdrawal requests by venture founders"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('rejected', 'Rejected'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    project = models.ForeignKey(
+        'projects.Project',
+        on_delete=models.CASCADE,
+        related_name='srt_withdrawals'
+    )
+    founder = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='venture_srt_withdrawals'
+    )
+
+    tokens = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('100.00'))],
+        help_text="Minimum withdrawal: 100 SRT"
+    )
+    amount_ngn = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Net amount in NGN after fee"
+    )
+    fee = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Withdrawal fee in NGN (4%)"
+    )
+
+    # Bank details — reuse the same bank list as TokenWithdrawal
+    bank_name = models.CharField(max_length=50, choices=TokenWithdrawal.ALL_BANK_CHOICES)
+    account_number = models.CharField(max_length=20)
+    account_name = models.CharField(max_length=200)
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    reference = models.CharField(max_length=50, unique=True)
+
+    admin_notes = models.TextField(blank=True)
+    processed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='processed_venture_withdrawals'
+    )
+    payment_reference = models.CharField(max_length=100, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Venture Token Withdrawal"
+        verbose_name_plural = "Venture Token Withdrawals"
+
+    def __str__(self):
+        return f"{self.founder.get_full_name()} - {self.project.title} - {self.tokens} SRT ({self.get_status_display()})"
+
+    def save(self, *args, **kwargs):
+        if not self.reference:
+            self.reference = f"WVR-{uuid.uuid4().hex[:10].upper()}"
+
+        srt_to_ngn_rate = Decimal('2000')
+        fee_percentage = Decimal('0.04')
+        gross_amount = self.tokens * srt_to_ngn_rate
+        self.fee = gross_amount * fee_percentage
+        self.amount_ngn = gross_amount - self.fee
+
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_available_tokens(cls, project):
+        """project.srt_amount_raised minus tokens in pending/approved/processing withdrawals"""
+        from django.db.models import Sum as DbSum
+        locked = cls.objects.filter(
+            project=project,
+            status__in=['pending', 'approved', 'processing']
+        ).aggregate(total=DbSum('tokens'))['total'] or Decimal('0')
+        return max(Decimal('0'), project.srt_amount_raised - locked)
+
+    def approve(self, admin_user):
+        if self.status != 'pending':
+            return False
+        self.status = 'approved'
+        self.processed_by = admin_user
+        self.processed_at = timezone.now()
+        self.save()
+        return True
+
+    def complete(self, payment_ref=None):
+        if self.status not in ['approved', 'processing']:
+            return False
+        self.status = 'completed'
+        self.completed_at = timezone.now()
+        if payment_ref:
+            self.payment_reference = payment_ref
+        self.save()
+        # Deduct from project.srt_amount_raised for bookkeeping
+        self.project.srt_amount_raised = max(
+            Decimal('0'),
+            self.project.srt_amount_raised - self.tokens
+        )
+        self.project.save(update_fields=['srt_amount_raised'])
+        return True
+
+    def reject(self, admin_user, reason=''):
+        if self.status != 'pending':
+            return False
+        self.status = 'rejected'
+        self.processed_by = admin_user
+        self.processed_at = timezone.now()
+        self.admin_notes = reason
+        self.save()
+        return True
+
+    def cancel(self):
+        if self.status != 'pending':
+            return False
+        self.status = 'cancelled'
+        self.save()
+        return True

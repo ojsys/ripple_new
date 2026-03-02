@@ -495,6 +495,331 @@ Thank you for being a StartUpRipple partner!
     return send_email(subject, html_content, text_content, [user.email])
 
 
+def send_venture_withdrawal_request_to_founder(withdrawal):
+    """Send venture withdrawal request confirmation to the founder."""
+    user = withdrawal.founder
+    user_name = user.first_name or user.email
+
+    subject = f"Venture Withdrawal Request Received - {withdrawal.tokens:,.2f} SRT"
+
+    content = f'''
+    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
+        Hi <strong style="color: #1a1a2e;">{user_name}</strong>,
+    </p>
+    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
+        Your venture token withdrawal request has been received and is under review.
+    </p>
+    '''
+
+    content += get_highlight_box("Amount to Receive", f"NGN {withdrawal.amount_ngn:,.2f}", "#2563eb")
+
+    content += get_info_box("Withdrawal Details", [
+        ("Reference", withdrawal.reference),
+        ("Project", withdrawal.project.title),
+        ("Tokens", f"{withdrawal.tokens:,.2f} SRT"),
+        ("Processing Fee (4%)", f"NGN {withdrawal.fee:,.2f}"),
+        ("Amount to Receive", f"NGN {withdrawal.amount_ngn:,.2f}"),
+        ("Status", "Pending Review"),
+        ("Submitted", withdrawal.created_at.strftime('%B %d, %Y at %H:%M')),
+    ], "#2563eb")
+
+    content += get_info_box("Bank Details", [
+        ("Bank", withdrawal.get_bank_name_display()),
+        ("Account Number", withdrawal.account_number),
+        ("Account Name", withdrawal.account_name),
+    ], "#2563eb")
+
+    content += get_warning_box(
+        "<strong>What happens next?</strong> Our team will review your request. "
+        "You'll receive an email once it's approved and payment is sent."
+    )
+
+    html_content = get_base_email_template(
+        title="Venture Withdrawal Request Received",
+        subtitle="Your request is being processed",
+        content=content,
+        button_text="Track Withdrawal",
+        button_url=f"{SITE_URL}/srt/venture-withdrawal/{withdrawal.reference}/",
+        header_color="#2563eb",
+        icon=ICONS['bank'],
+        footer_text="Thank you for using StartUpRipple!"
+    )
+
+    text_content = f"""
+Venture Withdrawal Request Received - StartUpRipple
+
+Hi {user_name},
+
+Your venture token withdrawal request has been received.
+
+Withdrawal Details:
+- Reference: {withdrawal.reference}
+- Project: {withdrawal.project.title}
+- Tokens: {withdrawal.tokens:,.2f} SRT
+- Processing Fee: NGN {withdrawal.fee:,.2f}
+- Amount to Receive: NGN {withdrawal.amount_ngn:,.2f}
+- Status: Pending Review
+
+Bank Details:
+- Bank: {withdrawal.get_bank_name_display()}
+- Account Number: {withdrawal.account_number}
+- Account Name: {withdrawal.account_name}
+
+Track your withdrawal: {SITE_URL}/srt/venture-withdrawal/{withdrawal.reference}/
+    """
+
+    return send_email(subject, html_content, text_content, [user.email])
+
+
+def send_venture_withdrawal_request_to_admin(withdrawal):
+    """Send new venture withdrawal request notification to admin."""
+    user = withdrawal.founder
+
+    subject = f"[ADMIN] New Venture Withdrawal - NGN {withdrawal.amount_ngn:,.2f} by {user.email}"
+
+    content = f'''
+    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
+        A new venture token withdrawal request requires your attention.
+    </p>
+    '''
+
+    content += get_highlight_box("Amount to Pay", f"NGN {withdrawal.amount_ngn:,.2f}", "#dc2626")
+
+    content += get_info_box("Withdrawal Details", [
+        ("Reference", withdrawal.reference),
+        ("Founder", user.get_full_name() or user.email),
+        ("Email", user.email),
+        ("Project", withdrawal.project.title),
+        ("Tokens", f"{withdrawal.tokens:,.2f} SRT"),
+        ("Fee Deducted", f"NGN {withdrawal.fee:,.2f}"),
+        ("Amount to Pay", f"NGN {withdrawal.amount_ngn:,.2f}"),
+        ("Date Requested", withdrawal.created_at.strftime('%B %d, %Y at %H:%M')),
+    ], "#dc2626")
+
+    content += get_info_box("Bank Details for Payment", [
+        ("Bank", withdrawal.get_bank_name_display()),
+        ("Account Number", f"<strong>{withdrawal.account_number}</strong>"),
+        ("Account Name", f"<strong>{withdrawal.account_name}</strong>"),
+    ], "#dc2626")
+
+    content += get_warning_box(
+        "<strong>Action Required:</strong> Please review and process this withdrawal in the admin panel."
+    )
+
+    html_content = get_base_email_template(
+        title="New Venture Withdrawal Request",
+        subtitle="Action Required",
+        content=content,
+        button_text="Process in Admin",
+        button_url=f"{SITE_URL}/admin/srt/venturetokenwithdrawal/",
+        header_color="#dc2626",
+        icon=ICONS['warning'],
+        footer_text="This is an automated admin notification."
+    )
+
+    text_content = f"""
+[ADMIN] New Venture Withdrawal Request - Action Required
+
+- Reference: {withdrawal.reference}
+- Founder: {user.get_full_name() or user.email}
+- Email: {user.email}
+- Project: {withdrawal.project.title}
+- Tokens: {withdrawal.tokens:,.2f} SRT
+- Fee: NGN {withdrawal.fee:,.2f}
+- Amount to Pay: NGN {withdrawal.amount_ngn:,.2f}
+- Date: {withdrawal.created_at.strftime('%B %d, %Y at %H:%M')}
+- Bank: {withdrawal.get_bank_name_display()} / {withdrawal.account_number} / {withdrawal.account_name}
+
+Process in admin: {SITE_URL}/admin/srt/venturetokenwithdrawal/
+    """
+
+    return send_email(subject, html_content, text_content, ADMIN_EMAILS)
+
+
+def send_venture_withdrawal_approved_to_founder(withdrawal):
+    """Send venture withdrawal approved notification to the founder."""
+    user = withdrawal.founder
+    user_name = user.first_name or user.email
+
+    subject = f"Venture Withdrawal Approved - {withdrawal.reference}"
+
+    content = f'''
+    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
+        Hi <strong style="color: #1a1a2e;">{user_name}</strong>,
+    </p>
+    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
+        Great news! Your venture withdrawal request has been approved and is being processed.
+    </p>
+    '''
+
+    content += get_highlight_box("Amount to Receive", f"NGN {withdrawal.amount_ngn:,.2f}", "#059669")
+
+    content += get_info_box("Withdrawal Details", [
+        ("Reference", withdrawal.reference),
+        ("Project", withdrawal.project.title),
+        ("Status", '<span style="color: #059669; font-weight: 600;">Approved</span>'),
+        ("Bank", withdrawal.get_bank_name_display()),
+        ("Account", withdrawal.account_number),
+    ], "#059669")
+
+    content += get_success_box(
+        "<strong>Payment is on the way!</strong> You'll receive another email once the payment has been completed."
+    )
+
+    html_content = get_base_email_template(
+        title="Venture Withdrawal Approved",
+        subtitle="Your payment is being processed",
+        content=content,
+        button_text="Track Withdrawal",
+        button_url=f"{SITE_URL}/srt/venture-withdrawal/{withdrawal.reference}/",
+        header_color="#059669",
+        icon=ICONS['thumbs_up'],
+        footer_text="Thank you for using StartUpRipple!"
+    )
+
+    text_content = f"""
+Venture Withdrawal Approved - StartUpRipple
+
+Hi {user_name},
+
+Your venture withdrawal request ({withdrawal.reference}) has been approved.
+Amount: NGN {withdrawal.amount_ngn:,.2f}
+Bank: {withdrawal.get_bank_name_display()} / {withdrawal.account_number}
+
+Payment is being processed. You'll receive another email once completed.
+    """
+
+    return send_email(subject, html_content, text_content, [user.email])
+
+
+def send_venture_withdrawal_completed_to_founder(withdrawal):
+    """Send venture withdrawal completed notification to the founder."""
+    user = withdrawal.founder
+    user_name = user.first_name or user.email
+
+    subject = f"Venture Withdrawal Completed - NGN {withdrawal.amount_ngn:,.2f} Sent!"
+
+    content = f'''
+    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
+        Hi <strong style="color: #1a1a2e;">{user_name}</strong>,
+    </p>
+    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
+        Your venture withdrawal has been completed! The funds have been sent to your bank account.
+    </p>
+    '''
+
+    content += get_highlight_box("Amount Sent", f"NGN {withdrawal.amount_ngn:,.2f}", "#059669")
+
+    rows = [
+        ("Reference", withdrawal.reference),
+        ("Project", withdrawal.project.title),
+        ("Status", '<span style="color: #059669; font-weight: 600;">Completed</span>'),
+        ("Tokens Withdrawn", f"{withdrawal.tokens:,.2f} SRT"),
+        ("Amount Sent", f"NGN {withdrawal.amount_ngn:,.2f}"),
+        ("Bank", withdrawal.get_bank_name_display()),
+        ("Account", withdrawal.account_number),
+    ]
+    if withdrawal.completed_at:
+        rows.append(("Completed On", withdrawal.completed_at.strftime('%B %d, %Y at %H:%M')))
+    if withdrawal.payment_reference:
+        rows.append(("Payment Reference", withdrawal.payment_reference))
+
+    content += get_info_box("Payment Details", rows, "#059669")
+
+    content += get_success_box(
+        "<strong>Funds sent!</strong> Please allow 1-24 hours for the funds to reflect in your bank account."
+    )
+
+    html_content = get_base_email_template(
+        title="Venture Withdrawal Completed!",
+        subtitle="Payment Successful",
+        content=content,
+        button_text="View Withdrawal",
+        button_url=f"{SITE_URL}/srt/venture-withdrawal/{withdrawal.reference}/",
+        header_color="#059669",
+        icon=ICONS['celebrate'],
+        footer_text="Thank you for using StartUpRipple!"
+    )
+
+    text_content = f"""
+Venture Withdrawal Completed - StartUpRipple
+
+Hi {user_name},
+
+Your venture withdrawal has been completed!
+
+- Reference: {withdrawal.reference}
+- Project: {withdrawal.project.title}
+- Tokens Withdrawn: {withdrawal.tokens:,.2f} SRT
+- Amount Sent: NGN {withdrawal.amount_ngn:,.2f}
+- Completed: {withdrawal.completed_at.strftime('%B %d, %Y at %H:%M') if withdrawal.completed_at else 'N/A'}
+
+Please allow 1-24 hours for the funds to reflect.
+    """
+
+    return send_email(subject, html_content, text_content, [user.email])
+
+
+def send_venture_withdrawal_rejected_to_founder(withdrawal):
+    """Send venture withdrawal rejected notification to the founder."""
+    user = withdrawal.founder
+    user_name = user.first_name or user.email
+
+    subject = f"Venture Withdrawal Request Declined - {withdrawal.reference}"
+
+    content = f'''
+    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
+        Hi <strong style="color: #1a1a2e;">{user_name}</strong>,
+    </p>
+    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
+        We regret to inform you that your venture withdrawal request has been declined.
+    </p>
+    '''
+
+    content += get_info_box("Withdrawal Details", [
+        ("Reference", withdrawal.reference),
+        ("Project", withdrawal.project.title),
+        ("Tokens", f"{withdrawal.tokens:,.2f} SRT"),
+        ("Amount", f"NGN {withdrawal.amount_ngn:,.2f}"),
+        ("Status", '<span style="color: #dc2626; font-weight: 600;">Rejected</span>'),
+    ], "#dc2626")
+
+    if withdrawal.admin_notes:
+        content += get_warning_box(f"<strong>Reason:</strong> {withdrawal.admin_notes}")
+
+    content += f'''
+    <p style="margin: 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
+        Your tokens remain available for a new withdrawal request after addressing any issues.
+    </p>
+    '''
+
+    html_content = get_base_email_template(
+        title="Venture Withdrawal Declined",
+        subtitle="Request Not Approved",
+        content=content,
+        button_text="Submit New Request",
+        button_url=f"{SITE_URL}/srt/projects/{withdrawal.project_id}/venture-withdraw/",
+        header_color="#dc2626",
+        icon=ICONS['warning'],
+        footer_text="If you need assistance, please contact support."
+    )
+
+    text_content = f"""
+Venture Withdrawal Declined - StartUpRipple
+
+Hi {user_name},
+
+Your venture withdrawal request ({withdrawal.reference}) has been declined.
+Project: {withdrawal.project.title}
+Tokens: {withdrawal.tokens:,.2f} SRT
+{'Reason: ' + withdrawal.admin_notes if withdrawal.admin_notes else ''}
+
+Your tokens remain available. You can submit a new request.
+    """
+
+    return send_email(subject, html_content, text_content, [user.email])
+
+
 def send_withdrawal_rejected_to_user(withdrawal):
     """
     Send withdrawal rejected notification to user.

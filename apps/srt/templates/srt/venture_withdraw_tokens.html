@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Withdraw SRT Tokens - {{ project.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .withdraw-hero {
+        background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+        padding: 120px 0 50px;
+        color: #fff;
+    }
+    .withdraw-hero h1 { font-weight: 400; font-size: 2rem; }
+    :root {
+        --blue-primary: #2563eb;
+        --blue-dark: #1d4ed8;
+        --blue-100: #dbeafe;
+        --blue-50: #eff6ff;
+    }
+    .withdraw-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: none;
+        overflow: hidden;
+    }
+    .withdraw-card .card-header {
+        background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-dark) 100%);
+        color: white;
+        padding: 24px;
+        border: none;
+    }
+    .balance-display {
+        background: var(--blue-50);
+        border: 2px solid var(--blue-100);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    .balance-amount {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--blue-primary);
+    }
+    .conversion-info {
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+    #ngn-preview {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--blue-primary);
+    }
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-approved { background: #d1fae5; color: #065f46; }
+    .status-processing { background: #dbeafe; color: #1e40af; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .status-cancelled { background: #f3f4f6; color: #4b5563; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="withdraw-hero">
+    <div class="container">
+        <nav style="margin-bottom: 16px;">
+            <a href="{% url 'projects:project_detail' project.id %}" style="color: rgba(255,255,255,0.8); text-decoration: none;">
+                <i class="fas fa-arrow-left me-2"></i>Back to {{ project.title }}
+            </a>
+        </nav>
+        <h1><i class="fas fa-wallet me-2"></i>Withdraw SRT Tokens</h1>
+        <p style="opacity: 0.9;">Convert your raised SRT tokens to NGN</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Form -->
+        <div class="col-lg-8">
+            {% if pending_withdrawals %}
+            <div class="card mb-4" style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 12px;">
+                <div class="card-header" style="background: transparent; border-bottom: 1px solid #fcd34d;">
+                    <h6 class="mb-0"><i class="fas fa-clock me-2 text-warning"></i>Pending Withdrawals</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3 small">You have pending withdrawal requests. Please wait for them to be processed.</p>
+                    {% for w in pending_withdrawals %}
+                    <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded mb-2">
+                        <div>
+                            <strong>{{ w.tokens|floatformat:2 }} SRT</strong>
+                            <span class="text-muted ms-2">(₦{{ w.amount_ngn|intcomma }})</span>
+                            <br>
+                            <small class="text-muted">{{ w.created_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="status-badge status-{{ w.status }}">{{ w.get_status_display }}</span>
+                            <a href="{% url 'srt:venture_withdrawal_detail' w.reference %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="withdraw-card card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Request Withdrawal</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="balance-display">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <small class="text-muted d-block mb-1">Available for Withdrawal</small>
+                                <div class="balance-amount">{{ available_tokens|floatformat:2|intcomma }} SRT</div>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <small class="text-muted d-block mb-1">Total Raised</small>
+                                <div class="text-muted">{{ project.srt_amount_raised|floatformat:2|intcomma }} SRT</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="conversion-info">
+                        <i class="fas fa-info-circle text-warning me-2"></i>
+                        <strong>Conversion Rate:</strong> 1 SRT = ₦2,000 &middot; <strong>4% fee</strong> applies &middot; Processed within 24-48 hours
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Amount to Withdraw (SRT)</label>
+                            {{ form.tokens }}
+                            {% if form.tokens.errors %}
+                            <div class="text-danger small mt-1">{{ form.tokens.errors.0 }}</div>
+                            {% endif %}
+                            <div class="mt-2">
+                                <small class="text-muted">You'll receive: </small>
+                                <span id="ngn-preview">₦0</span>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-3"><i class="fas fa-university me-2" style="color: var(--blue-primary);"></i>Bank Details</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Bank Name</label>
+                            {{ form.bank_name }}
+                            {% if form.bank_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.bank_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Account Number</label>
+                            {{ form.account_number }}
+                            {% if form.account_number.errors %}
+                            <div class="text-danger small mt-1">{{ form.account_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Account Holder Name</label>
+                            {{ form.account_name }}
+                            {% if form.account_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.account_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-lg" style="background: var(--blue-primary); color: white; border-radius: 10px; font-weight: 600; padding: 14px;">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Withdrawal Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2" style="color: var(--blue-primary);"></i>Withdrawal Info</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i><strong>Minimum:</strong> 100 SRT</li>
+                        <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i><strong>Rate:</strong> 1 SRT = ₦2,000</li>
+                        <li class="mb-3"><i class="fas fa-check-circle text-success me-2"></i><strong>Fee:</strong> 4% of gross amount</li>
+                        <li class="mb-0"><i class="fas fa-check-circle text-success me-2"></i><strong>Processing:</strong> 24-48 hours</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0"><i class="fas fa-project-diagram me-2" style="color: var(--blue-primary);"></i>Project</h6>
+                </div>
+                <div class="card-body">
+                    <strong>{{ project.title }}</strong>
+                    <div class="mt-2 small text-muted">SRT Raised: {{ project.srt_amount_raised|floatformat:2 }} SRT</div>
+                    <a href="{% url 'srt:my_venture_withdrawals' %}" class="btn btn-outline-secondary btn-sm w-100 mt-3">
+                        <i class="fas fa-history me-2"></i>Withdrawal History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tokensInput = document.querySelector('[name="tokens"]');
+    const ngnPreview = document.getElementById('ngn-preview');
+    if (tokensInput && ngnPreview) {
+        tokensInput.addEventListener('input', function() {
+            const tokens = parseFloat(this.value) || 0;
+            const gross = tokens * 2000;
+            const fee = gross * 0.04;
+            const net = gross - fee;
+            ngnPreview.textContent = new Intl.NumberFormat('en-NG', {
+                style: 'currency', currency: 'NGN', minimumFractionDigits: 0
+            }).format(net) + ' (after 4% fee)';
+        });
+    }
+});
+</script>
+{% endblock %}
