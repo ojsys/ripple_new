@@ -1,0 +1,316 @@
+{% extends 'srt/base_partner.html' %}
+{% load humanize %}
+
+{% block title %}SRT Investment Opportunities - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .page-hero {
+        background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+        padding: 100px 0 40px;
+        color: #fff;
+    }
+
+    .page-hero h1 { font-weight: 400; font-size: 2rem; }
+
+    .filter-bar {
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 12px 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .project-card {
+        border-radius: 14px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid #e9ecef;
+    }
+
+    .project-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(37, 99, 235, 0.12) !important;
+    }
+
+    .risk-low    { background: #dcfce7; color: #166534; }
+    .risk-moderate { background: #fef3c7; color: #92400e; }
+    .risk-high   { background: #fee2e2; color: #991b1b; }
+
+    .stage-badge {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .srt-progress { height: 6px; border-radius: 3px; background: #dbeafe; }
+    .srt-progress .bar { background: #2563eb; border-radius: 3px; }
+
+    .value-box {
+        background: #f0f7ff;
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 0.78rem;
+    }
+
+    .invested-ribbon {
+        background: #059669;
+        color: white;
+        font-size: 0.7rem;
+        padding: 3px 10px;
+        border-radius: 0 0 8px 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .balance-pill {
+        background: rgba(255,255,255,0.15);
+        border-radius: 50px;
+        padding: 6px 16px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="page-hero">
+    <div class="container">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+            <div>
+                <h1><i class="fas fa-coins me-2"></i>SRT Investment Opportunities</h1>
+                <p class="mb-0" style="opacity: 0.9;">Invest your SRT tokens in approved ventures and projects</p>
+            </div>
+            {% if account %}
+            <div class="balance-pill text-white">
+                <i class="fas fa-wallet me-2"></i>
+                <strong>{{ account.available_tokens|floatformat:2|intcomma }} SRT</strong>
+                <span style="opacity: 0.75; font-size: 0.8rem;"> available</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Sticky Filter Bar -->
+<div class="filter-bar">
+    <div class="container">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+
+            <!-- Search -->
+            <div class="input-group" style="max-width: 220px;">
+                <span class="input-group-text border-end-0 bg-white"><i class="fas fa-search text-muted" style="font-size:0.8rem;"></i></span>
+                <input type="text" name="q" value="{{ search }}" class="form-control border-start-0" placeholder="Search…" style="font-size: 0.85rem;">
+            </div>
+
+            <!-- Risk -->
+            <select name="risk" class="form-select form-select-sm" style="max-width: 140px;">
+                <option value="">All Risk Levels</option>
+                <option value="low"      {% if current_risk == 'low' %}selected{% endif %}>Low Risk</option>
+                <option value="moderate" {% if current_risk == 'moderate' %}selected{% endif %}>Moderate Risk</option>
+                <option value="high"     {% if current_risk == 'high' %}selected{% endif %}>High Risk</option>
+            </select>
+
+            <!-- Stage -->
+            <select name="stage" class="form-select form-select-sm" style="max-width: 150px;">
+                <option value="">All Stages</option>
+                <option value="idea"      {% if current_stage == 'idea' %}selected{% endif %}>Idea Stage</option>
+                <option value="seed"      {% if current_stage == 'seed' %}selected{% endif %}>Seed Stage</option>
+                <option value="early"     {% if current_stage == 'early' %}selected{% endif %}>Early Stage</option>
+                <option value="growth"    {% if current_stage == 'growth' %}selected{% endif %}>Growth Stage</option>
+                <option value="expansion" {% if current_stage == 'expansion' %}selected{% endif %}>Expansion Stage</option>
+            </select>
+
+            <!-- Category -->
+            {% if categories %}
+            <select name="category" class="form-select form-select-sm" style="max-width: 160px;">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if current_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+
+            <button type="submit" class="btn btn-sm" style="background: #2563eb; color: white;">
+                <i class="fas fa-filter me-1"></i>Filter
+            </button>
+
+            {% if search or current_risk or current_stage or current_category %}
+            <a href="{% url 'srt:srt_project_list' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-times me-1"></i>Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Results -->
+<div class="container py-5">
+
+    <!-- Rate Info Banner -->
+    <div class="alert mb-4 d-flex align-items-center gap-3" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;">
+        <i class="fas fa-info-circle" style="color: #2563eb; font-size: 1.3rem;"></i>
+        <div style="font-size: 0.88rem;">
+            <strong>SRT Exchange Rate:</strong>
+            1 SRT = <strong>₦2,000 NGN</strong> = <strong>$1.25 USD</strong>
+            &nbsp;·&nbsp; Returns are paid in SRT tokens at maturity
+            &nbsp;·&nbsp; 4% withdrawal fee applies when converting to NGN
+        </div>
+    </div>
+
+    {% if projects %}
+    <div class="row g-4">
+        {% for project in projects %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card project-card h-100 shadow-sm position-relative">
+
+                {% if project.id in invested_project_ids %}
+                <div class="invested-ribbon"><i class="fas fa-check-circle me-1"></i>Invested</div>
+                {% endif %}
+
+                <!-- Image -->
+                {% if project.image %}
+                <img src="{{ project.image.url }}" class="card-img-top" style="height: 160px; object-fit: cover; border-radius: 14px 14px 0 0;" alt="{{ project.title }}">
+                {% else %}
+                <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 160px; background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); border-radius: 14px 14px 0 0;">
+                    <i class="fas fa-{% if project.is_venture %}chart-line{% else %}lightbulb{% endif %} fa-3x text-white" style="opacity: 0.4;"></i>
+                </div>
+                {% endif %}
+
+                <div class="card-body pb-2">
+                    <!-- Badges -->
+                    <div class="d-flex gap-1 mb-2 flex-wrap">
+                        <span class="badge risk-{{ project.risk_level }}" style="font-size: 0.68rem; font-weight: 600;">{{ project.get_risk_level_display }}</span>
+                        <span class="badge stage-badge" style="font-size: 0.68rem;">{{ project.get_stage_display }}</span>
+                        {% if project.is_featured %}
+                        <span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.68rem;"><i class="fas fa-star me-1"></i>Featured</span>
+                        {% endif %}
+                        {% if project.category %}
+                        <span class="badge bg-light text-secondary" style="font-size: 0.68rem;">{{ project.category.name }}</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Title & Description -->
+                    <h6 class="card-title mb-1 fw-semibold">{{ project.title|truncatechars:50 }}</h6>
+                    <p class="text-muted mb-2" style="font-size: 0.8rem; line-height: 1.4;">{{ project.short_description|default:""|truncatechars:90 }}</p>
+
+                    <!-- SRT Progress -->
+                    {% if project.srt_funding_goal > 0 %}
+                    <div class="srt-progress mb-1" style="overflow: hidden;">
+                        <div class="bar" style="width: {% widthratio project.srt_amount_raised project.srt_funding_goal 100 %}%;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2" style="font-size: 0.72rem;">
+                        <span class="text-muted">{{ project.srt_amount_raised|floatformat:0|intcomma }} / {{ project.srt_funding_goal|floatformat:0|intcomma }} SRT</span>
+                        <span style="color: #2563eb; font-weight: 600;">{% widthratio project.srt_amount_raised project.srt_funding_goal 100 %}% funded</span>
+                    </div>
+                    {% else %}
+                    <div class="d-flex justify-content-between mb-2" style="font-size: 0.72rem;">
+                        <span class="text-muted">{{ project.srt_amount_raised|floatformat:0|intcomma }} SRT raised</span>
+                        <span style="color: #2563eb; font-weight: 600;">Open</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Return & Duration -->
+                    <div class="d-flex gap-3 mb-2" style="font-size: 0.78rem;">
+                        <div>
+                            <span class="text-muted">Return:</span>
+                            <strong style="color: #059669;">{{ project.expected_return_rate }}% p.a.</strong>
+                        </div>
+                        <div>
+                            <span class="text-muted">Duration:</span>
+                            <strong>{{ project.investment_duration_months }} mo</strong>
+                        </div>
+                    </div>
+
+                    <!-- Min Investment with NGN/USD equivalents -->
+                    <div class="value-box">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+                            <div>
+                                <span class="text-muted" style="font-size: 0.72rem;">Min Investment</span><br>
+                                <strong>{{ project.minimum_investment|floatformat:0|intcomma }} SRT</strong>
+                            </div>
+                            <div class="text-end" style="font-size: 0.72rem;">
+                                {% widthratio project.minimum_investment 1 2000 as min_ngn %}
+                                <span style="color: #0f766e; font-weight: 600;">₦{{ min_ngn|intcomma }}</span><br>
+                                {% widthratio project.minimum_investment 4 5 as min_usd %}
+                                <span class="text-muted">≈ ${{ min_usd|intcomma }}</span>
+                            </div>
+                        </div>
+                        {% if project.maximum_investment %}
+                        <div class="text-muted mt-1" style="font-size: 0.7rem;">
+                            Max: {{ project.maximum_investment|floatformat:0|intcomma }} SRT
+                            {% widthratio project.maximum_investment 1 2000 as max_ngn %}
+                            (₦{{ max_ngn|intcomma }})
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white border-0 pt-1 pb-3 px-3">
+                    {% if project.id in invested_project_ids %}
+                    <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-sm w-100 btn-outline-success">
+                        <i class="fas fa-eye me-1"></i>View Investment
+                    </a>
+                    {% else %}
+                    <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-sm w-100" style="background: #2563eb; color: white;">
+                        <i class="fas fa-coins me-1"></i>Invest with SRT Tokens
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if projects.has_other_pages %}
+    <nav class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if projects.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ projects.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if current_risk %}&risk={{ current_risk }}{% endif %}{% if current_stage %}&stage={{ current_stage }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for i in projects.paginator.page_range %}
+            <li class="page-item {% if projects.number == i %}active{% endif %}">
+                <a class="page-link" href="?page={{ i }}{% if search %}&q={{ search }}{% endif %}{% if current_risk %}&risk={{ current_risk }}{% endif %}{% if current_stage %}&stage={{ current_stage }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">{{ i }}</a>
+            </li>
+            {% endfor %}
+
+            {% if projects.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ projects.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if current_risk %}&risk={{ current_risk }}{% endif %}{% if current_stage %}&stage={{ current_stage }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        {% if search or current_risk or current_stage or current_category %}
+        <h4 class="text-muted">No projects match your filters</h4>
+        <p class="text-muted">Try adjusting or clearing your filters.</p>
+        <a href="{% url 'srt:srt_project_list' %}" class="btn" style="background: #2563eb; color: white;">
+            <i class="fas fa-times me-2"></i>Clear Filters
+        </a>
+        {% else %}
+        <h4 class="text-muted">No Investment Opportunities Yet</h4>
+        <p class="text-muted">There are no SRT-enabled projects available right now. Check back soon.</p>
+        <a href="{% url 'srt:dashboard' %}" class="btn" style="background: #2563eb; color: white;">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

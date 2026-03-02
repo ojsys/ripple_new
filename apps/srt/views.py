@@ -123,11 +123,25 @@ def partner_dashboard(request):
         status__in=['active', 'pending']
     ).select_related('venture')[:5]
 
-    # Featured ventures
+    # Featured ventures (legacy Venture model)
     featured_ventures = Venture.objects.filter(
         status='open',
         is_featured=True
     )[:3]
+
+    # Featured SRT-enabled Projects (Project model)
+    from apps.projects.models import Project as ProjectModel
+    featured_srt_projects = ProjectModel.objects.filter(
+        srt_enabled=True,
+        status='approved',
+        is_featured=True,
+    ).order_by('-created_at')[:4]
+    # If no featured ones, show the 4 most recent
+    if not featured_srt_projects.exists():
+        featured_srt_projects = ProjectModel.objects.filter(
+            srt_enabled=True,
+            status='approved',
+        ).order_by('-created_at')[:4]
 
     # Stats
     total_invested = VentureInvestment.objects.filter(
@@ -167,6 +181,7 @@ def partner_dashboard(request):
         'recent_transactions': recent_transactions,
         'active_investments': active_investments,
         'featured_ventures': featured_ventures,
+        'featured_srt_projects': featured_srt_projects,
         'total_invested': total_invested,
         'active_investment_count': active_investment_count,
         'expected_returns': expected_returns,
@@ -354,6 +369,71 @@ def token_purchase_callback(request):
         messages.error(request, f"Error verifying payment: {str(e)}")
 
     return redirect('srt:dashboard')
+
+
+@login_required
+@partner_required
+def srt_project_list(request):
+    """List all Projects with srt_enabled=True open for SRT investment"""
+    from apps.projects.models import Project, Category
+    account = get_or_create_capital_account(request.user)
+
+    projects = Project.objects.filter(
+        srt_enabled=True,
+        status='approved',
+    ).order_by('-is_featured', '-created_at')
+
+    # Filters
+    risk_filter = request.GET.get('risk', '')
+    stage_filter = request.GET.get('stage', '')
+    category_filter = request.GET.get('category', '')
+    search = request.GET.get('q', '')
+
+    if risk_filter:
+        projects = projects.filter(risk_level=risk_filter)
+    if stage_filter:
+        projects = projects.filter(stage=stage_filter)
+    if category_filter:
+        projects = projects.filter(category_id=category_filter)
+    if search:
+        projects = projects.filter(
+            Q(title__icontains=search) |
+            Q(short_description__icontains=search)
+        )
+
+    categories = Category.objects.filter(
+        project__srt_enabled=True, project__status='approved'
+    ).distinct()
+
+    # Get the current user's existing investments in these projects
+    invested_project_ids = set(
+        VentureInvestment.objects.filter(
+            partner=request.user,
+            project__in=projects,
+            status__in=['pending', 'active']
+        ).values_list('project_id', flat=True)
+    )
+
+    paginator = Paginator(projects, 12)
+    page = request.GET.get('page', 1)
+    projects = paginator.get_page(page)
+
+    SRT_TO_NGN = Decimal('2000')
+    SRT_TO_USD = Decimal('1.25')  # 2000 / 1600
+
+    context = {
+        'projects': projects,
+        'account': account,
+        'invested_project_ids': invested_project_ids,
+        'categories': categories,
+        'current_risk': risk_filter,
+        'current_stage': stage_filter,
+        'current_category': category_filter,
+        'search': search,
+        'SRT_TO_NGN': SRT_TO_NGN,
+        'SRT_TO_USD': SRT_TO_USD,
+    }
+    return render(request, 'srt/srt_project_list.html', context)
 
 
 @login_required

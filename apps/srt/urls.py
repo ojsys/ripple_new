@@ -24,6 +24,9 @@ urlpatterns = [
     path('withdrawal/<str:reference>/', views.withdrawal_detail, name='withdrawal_detail'),
     path('withdrawal/<str:reference>/cancel/', views.cancel_withdrawal, name='cancel_withdrawal'),
 
+    # SRT-enabled Projects (browsable by partners)
+    path('invest/', views.srt_project_list, name='srt_project_list'),
+
     # Ventures
     path('ventures/', views.venture_list, name='venture_list'),
     path('ventures/<slug:slug>/', views.venture_detail, name='venture_detail'),

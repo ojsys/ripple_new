@@ -462,6 +462,12 @@
                         </a>
                     </li>
                     <li class="srt-nav-item">
+                        <a class="srt-nav-link {% if request.resolver_match.url_name == 'srt_project_list' %}active{% endif %}" href="{% url 'srt:srt_project_list' %}">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Projects</span>
+                        </a>
+                    </li>
+                    <li class="srt-nav-item">
                         <a class="srt-nav-link {% if request.resolver_match.url_name == 'venture_list' or request.resolver_match.url_name == 'venture_detail' %}active{% endif %}" href="{% url 'srt:venture_list' %}">
                             <i class="fas fa-rocket"></i>
                             <span>Ventures</span>
@@ -563,8 +569,8 @@
                 <a href="{% url 'srt:buy_tokens' %}" class="btn btn-sidebar-primary">
                     <i class="fas fa-plus me-2"></i>Buy Tokens
                 </a>
-                <a href="{% url 'srt:venture_list' %}" class="btn btn-sidebar-outline">
-                    <i class="fas fa-search me-2"></i>Find Ventures
+                <a href="{% url 'srt:srt_project_list' %}" class="btn btn-sidebar-outline">
+                    <i class="fas fa-search me-2"></i>Browse Projects
                 </a>
             </div>
         </aside>
