@@ -942,7 +942,6 @@ def modify_investment(request, reference):
 # ============================================
 
 @login_required
-@partner_required
 @require_POST
 def invest_in_project(request, project_id):
     """Process SRT token investment in a venture"""

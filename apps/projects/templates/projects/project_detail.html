@@ -659,9 +659,9 @@
 
                     {% if user.is_authenticated %}
                         {% if user == project.creator %}
-                        <!-- Founder sees withdrawal link -->
+                        <!-- Founder: show SRT raised + withdrawal links -->
                         <p class="text-muted small mb-3">
-                            <strong>{{ project.srt_amount_raised|floatformat:2 }} SRT</strong> raised from SRT partners.
+                            <strong>{{ project.srt_amount_raised|floatformat:2 }} SRT</strong> raised from token investors.
                         </p>
                         {% if project.srt_amount_raised > 0 %}
                         <a href="{% url 'srt:venture_withdraw_tokens' project.id %}" class="btn btn-sm btn-outline-primary w-100">
@@ -672,15 +672,19 @@
                             View Withdrawal History
                         </a>
                         {% elif srt_account %}
-                        <!-- Partner sees investment form -->
+                        <!-- Any authenticated user with an SRT account: show investment form -->
                         <div class="mb-3 p-3 rounded" style="background: #eff6ff;">
                             <div class="d-flex justify-content-between">
                                 <small class="text-muted">Your Available SRT</small>
                                 <strong style="color: #2563eb;">{{ srt_account.available_tokens|floatformat:2 }} SRT</strong>
                             </div>
                             <div class="d-flex justify-content-between mt-1">
-                                <small class="text-muted">Project Raised</small>
-                                <span>{{ project.srt_amount_raised|floatformat:2 }} / {{ project.srt_funding_goal|floatformat:2 }} SRT</span>
+                                <small class="text-muted">Total Raised</small>
+                                {% if project.srt_funding_goal > 0 %}
+                                <span>{{ project.srt_amount_raised|floatformat:0 }} / {{ project.srt_funding_goal|floatformat:0 }} SRT</span>
+                                {% else %}
+                                <span>{{ project.srt_amount_raised|floatformat:0 }} SRT</span>
+                                {% endif %}
                             </div>
                             {% if project.srt_funding_goal > 0 %}
                             <div class="progress mt-2" style="height: 6px;">
@@ -688,10 +692,11 @@
                             </div>
                             {% endif %}
                         </div>
+                        {% if srt_account.available_tokens > 0 %}
                         <div class="mb-2 small text-muted">
-                            Min: {{ project.minimum_investment|floatformat:2 }} SRT
-                            {% if project.maximum_investment %} &middot; Max: {{ project.maximum_investment|floatformat:2 }} SRT{% endif %}
-                            &middot; Return: {{ project.expected_return_rate }}% / year
+                            Min: {{ project.minimum_investment|floatformat:0 }} SRT
+                            &nbsp;·&nbsp; 1 SRT = ₦2,000
+                            {% if project.expected_return_rate > 0 %}&nbsp;·&nbsp; {{ project.expected_return_rate }}% / year return{% endif %}
                         </div>
                         <form method="post" action="{% url 'srt:invest_in_project' project.id %}">
                             {% csrf_token %}
@@ -709,16 +714,16 @@
                             </div>
                         </form>
                         {% else %}
-                        <!-- Authenticated non-partner user -->
-                        <p class="text-muted small mb-3">This venture accepts SRT token investments.</p>
-                        <a href="{% url 'srt:become_partner' %}" class="btn btn-sm btn-outline-primary w-100">
-                            <i class="fas fa-star me-2"></i>Become an SRT Partner to Invest
+                        <p class="text-muted small mb-2">You have no SRT tokens yet. Buy tokens to start investing.</p>
+                        <a href="{% url 'srt:buy_tokens' %}" class="btn btn-sm w-100" style="background: #2563eb; color: white;">
+                            <i class="fas fa-plus me-2"></i>Buy SRT Tokens
                         </a>
                         {% endif %}
+                        {% endif %}
                     {% else %}
-                    <p class="text-muted small mb-3">This venture accepts SRT token investments from SRT partners.</p>
+                    <p class="text-muted small mb-3">This venture accepts SRT token investments.</p>
                     <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline-primary w-100">
-                        <i class="fas fa-sign-in-alt me-2"></i>Login to Invest with SRT
+                        <i class="fas fa-sign-in-alt me-2"></i>Login to Invest with SRT Tokens
                     </a>
                     {% endif %}
                 </div>
