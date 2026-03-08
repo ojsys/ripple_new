@@ -578,9 +578,6 @@ def investment_proposal(request, project_id):
         messages.error(request, 'This project is not yet approved for investment. Please check back later.')
         return redirect('projects:project_detail', project_id=project.id)
 
-    if request.user.user_type != 'investor':
-        messages.error(request, 'Only investors can submit investments.')
-        return redirect('projects:project_detail', project_id=project.id)
 
     if request.method == 'POST':
         form = InvestmentForm(request.POST, project=project)

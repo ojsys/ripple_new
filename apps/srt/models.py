@@ -411,8 +411,8 @@ class VentureInvestment(models.Model):
                 self.maturity_date = timezone.now().date() + relativedelta(months=target.investment_duration_months)
             if not self.expected_return:
                 # Calculate expected return based on target's return rate
-                rate = target.expected_return_rate / 100
-                duration_years = target.investment_duration_months / 12
+                rate = Decimal(str(target.expected_return_rate)) / Decimal('100')
+                duration_years = Decimal(str(target.investment_duration_months)) / Decimal('12')
                 self.expected_return = self.tokens_invested * (1 + rate * duration_years)
         super().save(*args, **kwargs)
 
