@@ -433,7 +433,7 @@
                                         <div class="fill venture-fill" style="width: {% if venture.get_percent_funded > 100 %}100{% else %}{{ venture.get_percent_funded|floatformat:0 }}{% endif %}%"></div>
                                     </div>
                                     <div class="listing-stats">
-                                        <span class="raised venture-raised">${{ venture.get_total_raised|intcomma }}</span>
+                                        <span class="raised venture-raised">${{ venture.get_total_raised|floatformat:2|intcomma }}</span>
                                         <span>of ${{ venture.funding_goal|intcomma }} &middot; {{ venture.get_percent_funded|floatformat:1 }}%</span>
                                     </div>
                                 </div>

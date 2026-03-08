@@ -984,7 +984,7 @@
 
                         <div class="mb-3">
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="fw-semibold" style="color: #2563eb;">${{ venture.get_total_raised|intcomma }}</span>
+                                <span class="fw-semibold" style="color: #2563eb;">${{ venture.get_total_raised|floatformat:2|intcomma }}</span>
                                 <span class="text-muted small">{{ venture.get_percent_funded|floatformat:1 }}% raised</span>
                             </div>
                             <div class="progress-md">

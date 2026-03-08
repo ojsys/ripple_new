@@ -166,7 +166,7 @@
                     <!-- Funding Progress -->
                     <div class="mb-3">
                         <div class="d-flex justify-content-between small mb-1">
-                            <span class="fw-bold" style="color: #2563eb;">${{ project.get_total_raised|intcomma }}</span>
+                            <span class="fw-bold" style="color: #2563eb;">${{ project.get_total_raised|floatformat:2|intcomma }}</span>
                             <span class="text-muted">of ${{ project.funding_goal|intcomma }} target</span>
                         </div>
                         <div class="progress" style="height: 6px;">
