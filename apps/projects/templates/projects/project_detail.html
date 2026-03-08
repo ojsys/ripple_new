@@ -707,17 +707,18 @@
                             &nbsp;·&nbsp; 1 SRT = ₦2,000
                             {% if project.expected_return_rate > 0 %}&nbsp;·&nbsp; {{ project.expected_return_rate }}% / year return{% endif %}
                         </div>
-                        <form method="post" action="{% url 'srt:invest_in_project' project.id %}">
+                        <form id="srt-invest-form" method="post" action="{% url 'srt:invest_in_project' project.id %}">
                             {% csrf_token %}
                             <div class="input-group mb-2">
-                                <input type="number" name="amount"
+                                <input type="number" id="srt-invest-amount" name="amount"
                                        class="form-control"
                                        placeholder="Amount in SRT"
                                        min="{{ project.minimum_investment }}"
                                        {% if project.maximum_investment %}max="{{ project.maximum_investment }}"{% endif %}
                                        step="0.01"
                                        required>
-                                <button type="submit" class="btn btn-primary" style="background: #2563eb; border-color: #2563eb;">
+                                <button type="button" class="btn btn-primary" style="background: #2563eb; border-color: #2563eb;"
+                                        onclick="openSRTConfirm()">
                                     <i class="fas fa-coins me-1"></i>Invest
                                 </button>
                             </div>
@@ -872,6 +873,70 @@
         </div>
     </div>
 </section>
+
+<!-- SRT Investment Confirmation Modal -->
+<div id="srt-confirm-modal" style="display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center;">
+    <div style="position:absolute; inset:0; background:rgba(0,0,0,.5);" onclick="closeSRTConfirm()"></div>
+    <div style="position:relative; background:#fff; border-radius:16px; padding:32px; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,.2);">
+        <div style="text-align:center; margin-bottom:20px;">
+            <div style="width:64px; height:64px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                <i class="fas fa-coins" style="font-size:1.6rem; color:#2563eb;"></i>
+            </div>
+            <h5 style="font-weight:700; color:#111827; margin-bottom:6px;">Confirm SRT Investment</h5>
+            <p style="color:#6b7280; font-size:.95rem; margin-bottom:0;">You are about to invest in <strong>{{ project.title }}</strong>.</p>
+        </div>
+
+        <div style="background:#f8fafc; border-radius:10px; padding:16px; margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:#6b7280; font-size:.9rem;">Amount</span>
+                <strong id="confirm-amount" style="color:#2563eb;">— SRT</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:#6b7280; font-size:.9rem;">NGN Value</span>
+                <strong id="confirm-ngn" style="color:#111827;">—</strong>
+            </div>
+            {% if project.expected_return_rate > 0 %}
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:#6b7280; font-size:.9rem;">Expected Return</span>
+                <strong style="color:#059669;">{{ project.expected_return_rate }}% / year</strong>
+            </div>
+            {% endif %}
+        </div>
+
+        <p style="font-size:.85rem; color:#6b7280; text-align:center; margin-bottom:20px;">
+            <i class="fas fa-lock me-1"></i>Your tokens will be locked until the investment matures or is resolved.
+        </p>
+
+        <div style="display:flex; gap:10px;">
+            <button onclick="closeSRTConfirm()" style="flex:1; padding:12px; border-radius:10px; border:2px solid #e5e7eb; background:#fff; font-weight:600; color:#374151; cursor:pointer;">
+                Cancel
+            </button>
+            <button onclick="submitSRTInvest()" style="flex:1; padding:12px; border-radius:10px; border:none; background:#2563eb; color:#fff; font-weight:600; cursor:pointer;">
+                <i class="fas fa-check me-1"></i>Confirm Investment
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openSRTConfirm() {
+    const input = document.getElementById('srt-invest-amount');
+    if (!input.reportValidity()) return;
+    const amount = parseFloat(input.value) || 0;
+    if (amount <= 0) return;
+    document.getElementById('confirm-amount').textContent = amount.toLocaleString() + ' SRT';
+    document.getElementById('confirm-ngn').textContent = '₦' + (amount * 2000).toLocaleString();
+    const modal = document.getElementById('srt-confirm-modal');
+    modal.style.display = 'flex';
+}
+function closeSRTConfirm() {
+    document.getElementById('srt-confirm-modal').style.display = 'none';
+}
+function submitSRTInvest() {
+    document.getElementById('srt-confirm-modal').style.display = 'none';
+    document.getElementById('srt-invest-form').submit();
+}
+</script>
 
 <!-- Mobile Fixed Support Button -->
 <div class="d-lg-none fixed-bottom bg-white border-top py-3 px-4 shadow">
