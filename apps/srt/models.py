@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 import uuid
+from dateutil.relativedelta import relativedelta
 
 
 class TokenPackage(models.Model):
@@ -407,7 +408,6 @@ class VentureInvestment(models.Model):
         target = self.project or self.venture
         if target:
             if not self.maturity_date and target.investment_duration_months:
-                from dateutil.relativedelta import relativedelta
                 self.maturity_date = timezone.now().date() + relativedelta(months=target.investment_duration_months)
             if not self.expected_return:
                 # Calculate expected return based on target's return rate
