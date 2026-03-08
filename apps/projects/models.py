@@ -188,19 +188,21 @@ class Project(models.Model):
             return self.annotated_percent
         return self.percent_funded
 
+    @property
+    def percent_funded(self):
+        return self.get_percent_funded()
+
     def get_percent_funded(self):
-        """Calculate funding percentage without using a property"""
+        """Calculate funding percentage (fiat + SRT converted to USD)."""
         if self.funding_goal == 0:
             return 0
-        if self.is_venture:
-            total = self.amount_raised + self.total_investment_raised
-            return (total / self.funding_goal) * 100
-        return (self.amount_raised / self.funding_goal) * 100
+        total = self.get_total_raised()
+        return min((total / self.funding_goal) * 100, Decimal('100'))
 
     def get_total_raised(self):
-        """Get total amount raised (donations + investments for ventures)."""
+        """Total raised in USD: fiat donations + fiat investments + SRT tokens converted to USD."""
         if self.is_venture:
-            return self.amount_raised + self.total_investment_raised
+            return self.amount_raised + self.total_investment_raised + self.srt_raised_usd
         return self.amount_raised
 
     def recalculate_funding(self):
