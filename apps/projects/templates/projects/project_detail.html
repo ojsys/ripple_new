@@ -614,7 +614,7 @@
             <div class="col-lg-4">
                 <!-- Funding Card -->
                 <div class="funding-card">
-                    <div class="funding-amount">${{ project.get_total_raised|intcomma }}</div>
+                    <div class="funding-amount">${{ project.get_total_raised|floatformat:2|intcomma }}</div>
                     <div class="funding-goal">
                         raised of ${{ project.funding_goal|intcomma }} {% if project.is_venture %}target{% else %}goal{% endif %}
                     </div>
