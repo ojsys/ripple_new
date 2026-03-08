@@ -93,11 +93,11 @@
                 <!-- Funding Progress -->
                 <div class="mb-3">
                     <div class="d-flex justify-content-between small mb-1">
-                        <span>{{ venture.amount_raised|floatformat:0|intcomma }} SRT raised</span>
-                        <span class="text-success fw-bold">{{ venture.percent_funded|floatformat:0 }}%</span>
+                        <span>${{ venture.get_total_raised|floatformat:2|intcomma }} raised</span>
+                        <span class="text-success fw-bold">{{ venture.get_percent_funded|floatformat:1 }}%</span>
                     </div>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: {{ venture.percent_funded|floatformat:0 }}%"></div>
+                        <div class="progress-bar bg-success" style="width: {{ venture.get_percent_funded|floatformat:2 }}%"></div>
                     </div>
                 </div>
 
