@@ -215,23 +215,36 @@ class Project(models.Model):
         return total
 
     def get_backers_count(self):
-        """Count unique backers for this project.
-        - Logged-in users are counted uniquely by user ID
-        - Anonymous donations (is_anonymous=True or no donor) each count as 1 backer
+        """Count unique investors/backers for this project.
+        For ventures: counts unique fiat investors + unique SRT token investors.
+        For projects: counts unique donors (anonymous each counted separately).
         """
-        completed_donations = self.donations.filter(status='completed')
+        if self.is_venture:
+            from apps.funding.models import Investment
+            from apps.srt.models import VentureInvestment
 
-        # Count unique logged-in donors (non-anonymous with a user)
+            fiat_investors = set(
+                Investment.objects.filter(
+                    project=self,
+                    status__in=('pending_approval', 'approved', 'active', 'completed')
+                ).values_list('investor_id', flat=True)
+            )
+            srt_investors = set(
+                VentureInvestment.objects.filter(
+                    project=self,
+                    status__in=('active', 'completed')
+                ).values_list('partner_id', flat=True)
+            )
+            return len(fiat_investors | srt_investors)
+
+        completed_donations = self.donations.filter(status='completed')
         unique_users = completed_donations.filter(
             donor__isnull=False,
             is_anonymous=False
         ).values('donor').distinct().count()
-
-        # Count anonymous donations (each counts as a separate backer)
         anonymous_count = completed_donations.filter(
             models.Q(is_anonymous=True) | models.Q(donor__isnull=True)
         ).count()
-
         return unique_users + anonymous_count
 
     @property
