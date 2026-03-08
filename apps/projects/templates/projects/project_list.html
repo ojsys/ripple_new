@@ -482,11 +482,22 @@
                         <div class="project-progress">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="fw-semibold" style="color: #0d9488;">${{ project.get_total_raised|intcomma }}</span>
-                                <span class="text-muted small">{{ project.get_percent_funded|floatformat:2 }}% {% if project.is_venture %}raised{% else %}funded{% endif %}</span>
+                                <span class="text-muted small">{{ project.get_percent_funded|floatformat:1 }}% {% if project.is_venture %}raised{% else %}funded{% endif %}</span>
                             </div>
-                            <div class="progress-bar-md">
-                                <div class="fill" style="width: {% widthratio project.get_percent_funded 1 1 %}%"></div>
+                            <div class="progress-bar-md" style="display:flex;">
+                                {% if project.is_venture and project.srt_amount_raised > 0 %}
+                                <div class="fill" style="width: {{ project.fiat_percent_of_goal|floatformat:2 }}%; border-radius: 2px 0 0 2px; flex-shrink:0;"></div>
+                                <div style="height:100%; width: {{ project.srt_percent_of_goal|floatformat:2 }}%; background: #f59e0b; flex-shrink:0;"></div>
+                                {% else %}
+                                <div class="fill" style="width: {% widthratio project.get_percent_funded 1 1 %}%;"></div>
+                                {% endif %}
                             </div>
+                            {% if project.is_venture and project.srt_amount_raised > 0 %}
+                            <div class="d-flex gap-3 mt-1" style="font-size: .78rem;">
+                                <span style="color:#0d9488;"><span style="display:inline-block;width:8px;height:8px;background:#0d9488;border-radius:2px;margin-right:3px;"></span>Fiat: ${{ project.get_total_raised|intcomma }}</span>
+                                <span style="color:#d97706;"><span style="display:inline-block;width:8px;height:8px;background:#f59e0b;border-radius:2px;margin-right:3px;"></span>SRT: {{ project.srt_amount_raised|floatformat:0 }} tokens</span>
+                            </div>
+                            {% endif %}
                         </div>
 
                         <div class="project-stats">

@@ -242,6 +242,27 @@ class Project(models.Model):
 
     # SRT-related properties
     @property
+    def srt_raised_usd(self):
+        """SRT tokens raised converted to USD (1 SRT = ₦2,000 / ₦1,600 per USD = $1.25)"""
+        return self.srt_amount_raised * Decimal('1.25')
+
+    @property
+    def srt_percent_of_goal(self):
+        """SRT raised as a percentage of the USD funding goal, for progress bar display."""
+        if self.funding_goal == 0 or self.srt_amount_raised == 0:
+            return 0
+        return min(float(self.srt_raised_usd / self.funding_goal * 100), 100)
+
+    @property
+    def fiat_percent_of_goal(self):
+        """Fiat (USD + investments) raised as a percentage of goal, capped so fiat+SRT ≤ 100."""
+        if self.funding_goal == 0:
+            return 0
+        fiat = float(self.get_percent_funded())
+        srt = self.srt_percent_of_goal
+        return min(fiat, max(0, 100 - srt))
+
+    @property
     def srt_percent_funded(self):
         """Calculate SRT funding percentage"""
         if self.srt_funding_goal > 0:

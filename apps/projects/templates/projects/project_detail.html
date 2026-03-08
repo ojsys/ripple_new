@@ -619,9 +619,20 @@
                         raised of ${{ project.funding_goal|intcomma }} {% if project.is_venture %}target{% else %}goal{% endif %}
                     </div>
 
-                    <div class="progress-bar-md">
-                        <div class="fill" style="width: {% if percent_funded > 100 %}100{% else %}{{ percent_funded|floatformat:2 }}{% endif %}%"></div>
+                    <div class="progress-bar-md" style="display:flex;">
+                        {% if project.is_venture and project.srt_amount_raised > 0 %}
+                        <div class="fill" style="width: {{ project.fiat_percent_of_goal|floatformat:2 }}%; border-radius:2px 0 0 2px; flex-shrink:0;"></div>
+                        <div style="height:100%; width: {{ project.srt_percent_of_goal|floatformat:2 }}%; background:#f59e0b; flex-shrink:0;" title="{{ project.srt_amount_raised|floatformat:0 }} SRT tokens invested"></div>
+                        {% else %}
+                        <div class="fill" style="width: {% if percent_funded > 100 %}100{% else %}{{ percent_funded|floatformat:2 }}{% endif %}%;"></div>
+                        {% endif %}
                     </div>
+                    {% if project.is_venture and project.srt_amount_raised > 0 %}
+                    <div class="d-flex gap-3 mb-2" style="font-size:.78rem;">
+                        <span style="color:var(--md-primary);"><span style="display:inline-block;width:8px;height:8px;background:var(--md-primary);border-radius:2px;margin-right:3px;"></span>Fiat ${{ project.get_total_raised|intcomma }}</span>
+                        <span style="color:#d97706;"><span style="display:inline-block;width:8px;height:8px;background:#f59e0b;border-radius:2px;margin-right:3px;"></span>{{ project.srt_amount_raised|floatformat:0 }} SRT</span>
+                    </div>
+                    {% endif %}
 
                     <div class="funding-stats">
                         <div class="funding-stat">
