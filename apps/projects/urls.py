@@ -28,5 +28,10 @@ urlpatterns = [
 
     # Investments
     path('projects/<int:project_id>/invest/', views.investment_proposal, name='investment_proposal'),
+    path('investment/callback/', views.investment_payment_callback, name='investment_payment_callback'),
     path('my-investments/', views.my_investments, name='my_investments'),
+    path('my-ventures/pending-investments/', views.pending_investments, name='pending_investments'),
+    path('investments/<int:investment_id>/approve/', views.approve_investment, name='approve_investment'),
+    path('investments/<int:investment_id>/reject/', views.reject_investment, name='reject_investment'),
+    path('investments/<int:investment_id>/refund/', views.request_investment_refund, name='request_investment_refund'),
 ]

@@ -12,7 +12,7 @@ import uuid
 
 from .models import Project, Category, FundingType, Reward, Update, Donation, PaymentAttempt
 from .forms import ProjectForm, RewardForm, RewardFormSet, UpdateForm, DonationForm, InvestmentForm
-from apps.funding.models import Investment, InvestmentTerm
+from apps.funding.models import Investment, InvestmentTerm, InvestorEscrowBalance
 from apps.cms.models import (
     HeroSlider, Testimonial, HomePage, PartnerLogo,
     SiteSettings, Announcement, NewsletterSubscriber
@@ -570,33 +570,269 @@ def donation_callback(request):
 
 @login_required
 def investment_proposal(request, project_id):
-    """Submit an investment for an equity project."""
+    """Collect investment amount and initiate Paystack payment."""
     project = get_object_or_404(Project, id=project_id)
 
-    # Check if project is approved
     if project.status != 'approved':
         messages.error(request, 'This project is not yet approved for investment. Please check back later.')
         return redirect('projects:project_detail', project_id=project.id)
 
+    if request.user == project.creator:
+        messages.error(request, 'You cannot invest in your own venture.')
+        return redirect('projects:project_detail', project_id=project.id)
 
     if request.method == 'POST':
         form = InvestmentForm(request.POST, project=project)
         if form.is_valid():
+            amount = form.cleaned_data['amount']
+            amount_ngn = int(float(amount) * 1600)
+            reference = f"INVEST-{uuid.uuid4().hex[:14].upper()}"
+
             investment = form.save(commit=False)
             investment.project = project
             investment.investor = request.user
-            investment.status = 'pending'
+            investment.status = 'pending_payment'
+            investment.payment_status = 'unpaid'
+            investment.amount_ngn = amount_ngn
+            investment.paystack_reference = reference
             investment.save()
-            messages.success(request, 'Your investment has been submitted!')
-            return redirect('projects:project_detail', project_id=project.id)
+
+            paystack_secret = getattr(settings, 'PAYSTACK_SECRET_KEY', '')
+            if not paystack_secret:
+                messages.error(request, 'Payment system is not configured. Please contact support.')
+                investment.delete()
+                return redirect('projects:investment_proposal', project_id=project.id)
+
+            headers = {
+                'Authorization': f'Bearer {paystack_secret}',
+                'Content-Type': 'application/json',
+            }
+            data = {
+                'email': request.user.email,
+                'amount': amount_ngn * 100,  # Paystack uses kobo
+                'reference': reference,
+                'callback_url': request.build_absolute_uri(reverse('projects:investment_payment_callback')),
+                'metadata': {
+                    'investment_id': investment.id,
+                    'project_id': project.id,
+                    'payment_type': 'investment',
+                },
+            }
+
+            try:
+                response = requests.post(
+                    'https://api.paystack.co/transaction/initialize',
+                    json=data,
+                    headers=headers,
+                    timeout=30,
+                )
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get('status'):
+                        return redirect(result['data']['authorization_url'])
+                    else:
+                        investment.status = 'failed'
+                        investment.save()
+                        messages.error(request, f'Payment error: {result.get("message", "Unknown error")}')
+                else:
+                    investment.status = 'failed'
+                    investment.save()
+                    result = response.json() if response.text else {}
+                    messages.error(request, f'Payment service error: {result.get("message", f"Status {response.status_code}")}')
+            except requests.exceptions.Timeout:
+                investment.status = 'failed'
+                investment.save()
+                messages.error(request, 'Payment service timed out. Please try again.')
+            except requests.exceptions.RequestException as e:
+                investment.status = 'failed'
+                investment.save()
+                messages.error(request, 'Connection error. Please try again.')
     else:
         form = InvestmentForm(project=project)
+
+    escrow = InvestorEscrowBalance.objects.filter(investor=request.user).first()
 
     context = {
         'form': form,
         'project': project,
+        'escrow': escrow,
     }
     return render(request, 'projects/investment_form.html', context)
+
+
+def investment_payment_callback(request):
+    """Handle Paystack callback after investor completes payment."""
+    reference = request.GET.get('reference')
+
+    if not reference:
+        messages.error(request, 'Invalid payment reference.')
+        return redirect('projects:project_list')
+
+    try:
+        investment = Investment.objects.get(paystack_reference=reference)
+    except Investment.DoesNotExist:
+        messages.error(request, 'Investment record not found.')
+        return redirect('projects:project_list')
+
+    # Avoid re-processing
+    if investment.status != 'pending_payment':
+        messages.info(request, 'This payment has already been processed.')
+        return redirect('projects:project_detail', project_id=investment.project.id)
+
+    paystack_secret = getattr(settings, 'PAYSTACK_SECRET_KEY', '')
+    headers = {'Authorization': f'Bearer {paystack_secret}'}
+
+    try:
+        response = requests.get(
+            f'https://api.paystack.co/transaction/verify/{reference}',
+            headers=headers,
+            timeout=30,
+        )
+    except requests.exceptions.RequestException:
+        messages.error(request, 'Could not verify payment. If you were charged, please contact support.')
+        return redirect('projects:project_detail', project_id=investment.project.id)
+
+    if response.status_code == 200:
+        result = response.json()
+        if result.get('status') and result['data']['status'] == 'success':
+            investment.status = 'pending_approval'
+            investment.payment_status = 'paid'
+            investment.save()
+            messages.success(
+                request,
+                'Payment successful! Your investment is now pending approval from the venture founder. '
+                'You will be notified once they respond.'
+            )
+        else:
+            investment.status = 'failed'
+            investment.save()
+            messages.error(request, 'Payment was not successful. No charges have been applied.')
+    else:
+        messages.error(request, 'Payment verification failed. If you were charged, please contact support.')
+
+    return redirect('projects:project_detail', project_id=investment.project.id)
+
+
+@login_required
+def pending_investments(request):
+    """Founder view: list pending investments across all their ventures."""
+    my_ventures = Project.objects.filter(creator=request.user, listing_type='venture')
+    pending = Investment.objects.filter(
+        project__in=my_ventures,
+        status='pending_approval',
+    ).select_related('investor', 'project').order_by('-created_at')
+
+    context = {
+        'pending_investments': pending,
+    }
+    return render(request, 'projects/pending_investments.html', context)
+
+
+@login_required
+def approve_investment(request, investment_id):
+    """Founder approves a pending investment — funds will be released to founder."""
+    investment = get_object_or_404(Investment, id=investment_id)
+
+    if request.user != investment.project.creator:
+        messages.error(request, 'You are not authorized to approve this investment.')
+        return redirect('projects:project_detail', project_id=investment.project.id)
+
+    if investment.status != 'pending_approval':
+        messages.error(request, 'This investment is not pending approval.')
+        return redirect('projects:pending_investments')
+
+    if request.method == 'POST':
+        investment.status = 'approved'
+        investment.is_counted = True
+        investment.save()  # triggers project amount_raised update via model save()
+        messages.success(
+            request,
+            f'Investment of ${investment.amount} approved. Our team will arrange the fund transfer to your account.'
+        )
+
+    return redirect('projects:pending_investments')
+
+
+@login_required
+def reject_investment(request, investment_id):
+    """Founder rejects a pending investment — funds held in investor's pool."""
+    investment = get_object_or_404(Investment, id=investment_id)
+
+    if request.user != investment.project.creator:
+        messages.error(request, 'You are not authorized to reject this investment.')
+        return redirect('projects:project_detail', project_id=investment.project.id)
+
+    if investment.status != 'pending_approval':
+        messages.error(request, 'This investment cannot be rejected.')
+        return redirect('projects:pending_investments')
+
+    if request.method == 'POST':
+        investment.status = 'rejected'
+        investment.save()
+
+        escrow, _ = InvestorEscrowBalance.objects.get_or_create(investor=investment.investor)
+        escrow.credit(investment.amount)
+
+        messages.success(
+            request,
+            f'Investment rejected. ${investment.amount} has been credited to the investor\'s pool for reuse or refund.'
+        )
+
+    return redirect('projects:pending_investments')
+
+
+@login_required
+def request_investment_refund(request, investment_id):
+    """Investor requests a refund of a rejected investment via Paystack."""
+    investment = get_object_or_404(Investment, id=investment_id, investor=request.user)
+
+    if investment.status != 'rejected':
+        messages.error(request, 'Only rejected investments can be refunded.')
+        return redirect('projects:my_investments')
+
+    if request.method == 'POST':
+        paystack_secret = getattr(settings, 'PAYSTACK_SECRET_KEY', '')
+        headers = {
+            'Authorization': f'Bearer {paystack_secret}',
+            'Content-Type': 'application/json',
+        }
+        data = {
+            'transaction': investment.paystack_reference,
+            'amount': investment.amount_ngn * 100,  # kobo
+        }
+
+        try:
+            response = requests.post(
+                'https://api.paystack.co/refund',
+                json=data,
+                headers=headers,
+                timeout=30,
+            )
+            if response.status_code in (200, 201):
+                result = response.json()
+                if result.get('status'):
+                    investment.status = 'refund_requested'
+                    investment.payment_status = 'refund_requested'
+                    investment.save()
+
+                    try:
+                        escrow = InvestorEscrowBalance.objects.get(investor=request.user)
+                        escrow.debit(investment.amount)
+                    except (InvestorEscrowBalance.DoesNotExist, ValueError):
+                        pass
+
+                    messages.success(
+                        request,
+                        'Refund initiated. You should receive your funds within 5–10 business days.'
+                    )
+                else:
+                    messages.error(request, f'Refund error: {result.get("message", "Unknown error")}')
+            else:
+                messages.error(request, 'Could not initiate refund. Please contact support.')
+        except requests.exceptions.RequestException:
+            messages.error(request, 'Connection error. Please contact support to process your refund.')
+
+    return redirect('projects:my_investments')
 
 
 @login_required
@@ -614,9 +850,11 @@ def my_donations(request):
 def my_investments(request):
     """View user's investments."""
     investments = Investment.objects.filter(investor=request.user).order_by('-created_at')
+    escrow = InvestorEscrowBalance.objects.filter(investor=request.user).first()
 
     context = {
         'investments': investments,
+        'escrow': escrow,
     }
     return render(request, 'projects/my_investments.html', context)
 

@@ -291,7 +291,10 @@
                 <h1>My Listings</h1>
                 <p>Manage your projects and ventures</p>
             </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end flex-wrap">
+                <a href="{% url 'projects:pending_investments' %}" class="btn btn-md-filled" style="background: #fef3c7; color: #d97706;">
+                    <i class="fas fa-hourglass-half me-2"></i>Pending Investments
+                </a>
                 <a href="{% url 'projects:create_project' %}" class="btn btn-md-filled" style="background: #fff; color: var(--md-primary);">
                     <i class="fas fa-plus me-2"></i>Create New Listing
                 </a>

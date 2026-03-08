@@ -114,10 +114,22 @@
                         The venture founder will review and respond to your proposal.
                     </p>
 
-                    <div class="alert alert-info border-0" style="background: rgba(37, 99, 235, 0.08); color: #1e40af;">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Note:</strong> Investment proposals require review and approval by the venture founder.
-                        You will be notified once your proposal is reviewed.
+                    {% if escrow and escrow.balance_usd > 0 %}
+                    <div class="alert border-0 mb-3" style="background: #eff6ff; color: #1e40af;">
+                        <i class="fas fa-piggy-bank me-2"></i>
+                        <strong>Pool Balance:</strong> You have <strong>${{ escrow.balance_usd|floatformat:2 }}</strong> in your investment pool from a previously rejected investment. You can use these funds for your next investment — contact support to apply your pool balance before paying.
+                    </div>
+                    {% endif %}
+
+                    <div class="alert border-0" style="background: rgba(37, 99, 235, 0.08); color: #1e40af;">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <strong>How it works:</strong>
+                        <ol class="mb-0 mt-2 ps-3">
+                            <li>Enter your investment amount and click <strong>Proceed to Payment</strong>.</li>
+                            <li>You'll be taken to Paystack to complete the payment securely. Funds are held by StartupRipple.</li>
+                            <li>The venture founder reviews and <strong>approves or rejects</strong> your investment.</li>
+                            <li>If <strong>approved</strong>, funds are released to the founder. If <strong>rejected</strong>, your money stays in your pool — you can reinvest it or request a full refund.</li>
+                        </ol>
                     </div>
 
                     <form method="post">
@@ -125,7 +137,7 @@
                         {{ form|crispy }}
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-lg text-white" style="background: #2563eb; border-radius: 100px; padding: 12px 32px;">
-                                <i class="fas fa-paper-plane me-2"></i>Submit Proposal
+                                <i class="fas fa-lock me-2"></i>Proceed to Payment
                             </button>
                             <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-outline-secondary" style="border-radius: 100px; padding: 12px 24px;">
                                 Cancel

@@ -23,33 +23,55 @@ class InvestmentTerm(models.Model):
 
 class Investment(models.Model):
     STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('pending', 'Pending'),
+        ('pending_payment', 'Awaiting Payment'),
+        ('pending_approval', 'Pending Founder Approval'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('refund_requested', 'Refund Requested'),
+        ('refunded', 'Refunded'),
         ('completed', 'Completed'),
+        # legacy statuses kept for existing records
+        ('pending', 'Pending'),
+        ('active', 'Active'),
         ('failed', 'Failed'),
+    ]
+
+    PAYMENT_STATUS_CHOICES = [
+        ('unpaid', 'Unpaid'),
+        ('paid', 'Paid'),
+        ('refund_requested', 'Refund Requested'),
+        ('refunded', 'Refunded'),
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='investments')
     investor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount_ngn = models.PositiveIntegerField(default=0, help_text="Amount in NGN kobo units (amount * 1600)")
     equity_percentage = models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    actual_return = models.DecimalField(max_digits=5, decimal_places=2, null=True)
-    terms = models.ForeignKey(InvestmentTerm, on_delete=models.SET_NULL, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    actual_return = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    terms = models.ForeignKey(InvestmentTerm, on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_payment')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='unpaid')
+    paystack_reference = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_counted = models.BooleanField(default=False)
 
     def __str__(self):
         return f"${self.amount} investment in {self.project} by {self.investor}"
-    
+
     def status_color(self):
         return {
-            'pending': 'warning',
+            'pending_payment': 'secondary',
+            'pending_approval': 'warning',
             'approved': 'success',
             'rejected': 'danger',
+            'refund_requested': 'info',
+            'refunded': 'info',
             'completed': 'primary',
+            'pending': 'warning',
+            'active': 'success',
+            'failed': 'danger',
         }.get(self.status, 'secondary')
-    
 
     def save(self, *args, **kwargs):
         try:
@@ -63,22 +85,50 @@ class Investment(models.Model):
             if not self.terms and self.project:
                 self.terms = self.project.investment_terms.first()
 
+            counting_statuses = ('active', 'approved')
+
             with transaction.atomic():
                 super().save(*args, **kwargs)
 
-                # Update project's amount based on status
-                if self.status == 'active' and previous_status != 'active':
+                if self.status in counting_statuses and (previous_status not in counting_statuses):
                     Project.objects.filter(pk=self.project.pk).update(
                         amount_raised=F('amount_raised') + self.amount,
                         total_investment_raised=F('total_investment_raised') + self.amount
                     )
-                elif previous_status == 'active' and self.status != 'active':
+                elif previous_status in counting_statuses and self.status not in counting_statuses:
                     Project.objects.filter(pk=self.project.pk).update(
                         amount_raised=F('amount_raised') - self.amount,
                         total_investment_raised=F('total_investment_raised') - self.amount
                     )
         except Exception as e:
             raise ValidationError(f"Error saving investment: {str(e)}")
+
+
+class InvestorEscrowBalance(models.Model):
+    """Tracks pooled/escrowed fiat funds for an investor (from rejected investments)."""
+    investor = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='escrow_balance'
+    )
+    balance_usd = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.investor} — ${self.balance_usd} pool"
+
+    def credit(self, amount):
+        from decimal import Decimal
+        self.balance_usd += Decimal(str(amount))
+        self.save()
+
+    def debit(self, amount):
+        from decimal import Decimal
+        amount = Decimal(str(amount))
+        if amount > self.balance_usd:
+            raise ValueError("Insufficient pool balance")
+        self.balance_usd -= amount
+        self.save()
 
 class Pledge(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='pledges')
