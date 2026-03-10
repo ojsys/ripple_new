@@ -949,10 +949,6 @@ def invest_in_project(request, project_id):
     project = get_object_or_404(Project, id=project_id, listing_type='venture', status='approved')
     account = get_or_create_capital_account(request.user)
 
-    if request.user == project.creator:
-        messages.error(request, "You cannot invest in your own project.")
-        return redirect('projects:project_detail', project_id=project_id)
-
     try:
         amount = Decimal(request.POST.get('amount', '0'))
     except Exception:

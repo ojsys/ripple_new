@@ -674,18 +674,23 @@
                     {% if user.is_authenticated %}
                         {% if user == project.creator %}
                         <!-- Founder: show SRT raised + withdrawal links -->
-                        <p class="text-muted small mb-3">
+                        <p class="text-muted small mb-2">
                             <strong>{{ project.srt_amount_raised|floatformat:2 }} SRT</strong> raised from token investors.
                         </p>
                         {% if project.srt_amount_raised > 0 %}
-                        <a href="{% url 'srt:venture_withdraw_tokens' project.id %}" class="btn btn-sm btn-outline-primary w-100">
+                        <a href="{% url 'srt:venture_withdraw_tokens' project.id %}" class="btn btn-sm btn-outline-primary w-100 mb-1">
                             <i class="fas fa-wallet me-2"></i>Withdraw Raised SRT Tokens
                         </a>
                         {% endif %}
-                        <a href="{% url 'srt:my_venture_withdrawals' %}" class="btn btn-sm btn-link w-100 mt-1">
+                        <a href="{% url 'srt:my_venture_withdrawals' %}" class="btn btn-sm btn-link w-100 mb-2">
                             View Withdrawal History
                         </a>
-                        {% elif srt_account %}
+                        {% if srt_account %}
+                        <hr class="my-2">
+                        <p class="text-muted small mb-2">You can also invest your own SRT tokens into this venture.</p>
+                        {% endif %}
+                        {% endif %}
+                        {% if srt_account %}
                         <!-- Any authenticated user with an SRT account: show investment form -->
                         <div class="mb-3 p-3 rounded" style="background: #eff6ff;">
                             <div class="d-flex justify-content-between">
