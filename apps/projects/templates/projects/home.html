@@ -89,7 +89,7 @@
                                 <span>${{ project.funding_goal|floatformat:2|intcomma }} goal</span>
                             </div>
                             
-                            <a href="{% url 'projects:project_detail' project.id %}" 
+                            <a href="{% url 'projects:project_detail' project.slug %}" 
                                class="btn btn-success w-100">
                                 View Project
                             </a>

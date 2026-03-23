@@ -25,7 +25,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <h5 class="card-title">
-                                <a href="{% url 'project_detail' investment.project.id %}" class="text-decoration-none">
+                                <a href="{% url 'projects:project_detail' investment.project.slug %}" class="text-decoration-none">
                                     {{ investment.project.title }}
                                 </a>
                             </h5>
@@ -171,7 +171,7 @@
                     <i class="fas fa-arrow-left me-1"></i> Back to My Investments
                 </a>
                 <div>
-                    <a href="{% url 'project_detail' investment.project.id %}" class="btn btn-primary">
+                    <a href="{% url 'projects:project_detail' investment.project.slug %}" class="btn btn-primary">
                         <i class="fas fa-eye me-1"></i> View Full Project
                     </a>
                     {% if investment.status == 'pending' and user == investment.project.creator %}

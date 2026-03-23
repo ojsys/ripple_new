@@ -253,7 +253,7 @@ class Project(models.Model):
         return self.get_backers_count()
 
     def get_absolute_url(self):
-        return reverse('project_detail', kwargs={'project_id': self.id})
+        return reverse('projects:project_detail', kwargs={'slug': self.slug})
 
     # SRT-related properties
     @property

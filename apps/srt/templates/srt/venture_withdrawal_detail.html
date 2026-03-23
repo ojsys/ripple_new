@@ -117,7 +117,7 @@
                         <div class="row">
                             <div class="col-4"><span class="info-label">Project</span></div>
                             <div class="col-8">
-                                <a href="{% url 'projects:project_detail' withdrawal.project_id %}" class="info-value" style="color: var(--blue-primary);">
+                                <a href="{% url 'projects:project_detail' withdrawal.project.slug %}" class="info-value" style="color: var(--blue-primary);">
                                     {{ withdrawal.project.title }}
                                 </a>
                             </div>

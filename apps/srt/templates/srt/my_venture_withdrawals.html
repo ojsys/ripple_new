@@ -91,7 +91,7 @@
                         <tr>
                             <td class="font-monospace small">{{ w.reference }}</td>
                             <td>
-                                <a href="{% url 'projects:project_detail' w.project_id %}" style="color: #2563eb;">
+                                <a href="{% url 'projects:project_detail' w.project.slug %}" style="color: #2563eb;">
                                     {{ w.project.title|truncatechars:25 }}
                                 </a>
                             </td>

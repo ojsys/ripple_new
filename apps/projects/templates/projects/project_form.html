@@ -1030,7 +1030,7 @@
                                     <i class="fas fa-arrow-left me-2"></i>Previous
                                 </button>
                             </div>
-                            <a href="{% if project %}{% url 'projects:project_detail' project.id %}{% else %}{% url 'projects:my_projects' %}{% endif %}" class="btn-cancel">
+                            <a href="{% if project %}{% url 'projects:project_detail' project.slug %}{% else %}{% url 'projects:my_projects' %}{% endif %}" class="btn-cancel">
                                 <i class="fas fa-times me-1"></i>Cancel
                             </a>
                             <div>

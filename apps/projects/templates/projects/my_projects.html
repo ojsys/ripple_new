@@ -369,7 +369,7 @@
                             </div>
                             <div class="listing-card-footer">
                                 <div class="d-flex gap-2">
-                                    <a href="{% url 'projects:project_detail' project.id %}" class="btn-icon" title="View">
+                                    <a href="{% url 'projects:project_detail' project.slug %}" class="btn-icon" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{% url 'projects:edit_project' project.id %}" class="btn-icon" title="Edit">
@@ -449,7 +449,7 @@
                             </div>
                             <div class="listing-card-footer">
                                 <div class="d-flex gap-2">
-                                    <a href="{% url 'projects:project_detail' venture.id %}" class="btn-icon" title="View">
+                                    <a href="{% url 'projects:project_detail' venture.slug %}" class="btn-icon" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{% url 'projects:edit_project' venture.id %}" class="btn-icon" title="Edit">

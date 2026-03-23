@@ -765,7 +765,7 @@
                             <td class="text-muted">${{ project.funding_goal|intcomma }}</td>
                             <td>
                                 <div class="d-flex gap-1">
-                                    <a href="{% url 'projects:project_detail' project.id %}" class="action-btn" title="View">
+                                    <a href="{% url 'projects:project_detail' project.slug %}" class="action-btn" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{% url 'projects:edit_project' project.id %}" class="action-btn" title="Edit">
@@ -949,7 +949,7 @@
                 </div>
                 <div class="dashboard-card">
                     {% for project in recommended_projects %}
-                    <a href="{% url 'projects:project_detail' project.id %}" class="recommended-item">
+                    <a href="{% url 'projects:project_detail' project.slug %}" class="recommended-item">
                         {% if project.image %}
                         <img src="{{ project.image.url }}" alt="" class="recommended-thumb">
                         {% else %}

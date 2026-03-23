@@ -914,7 +914,7 @@
                                 <div class="project-stat-label">Left</div>
                             </div>
                             <div>
-                                <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-md btn-md-tonal btn-sm">
+                                <a href="{% url 'projects:project_detail' project.slug %}" class="btn btn-md btn-md-tonal btn-sm">
                                     View
                                 </a>
                             </div>
@@ -1014,7 +1014,7 @@
                             </div>
                             {% endif %}
                             <div>
-                                <a href="{% url 'projects:project_detail' venture.id %}" class="btn btn-md btn-sm" style="background: rgba(37, 99, 235, 0.1); color: #2563eb; border-radius: 100px;">
+                                <a href="{% url 'projects:project_detail' venture.slug %}" class="btn btn-md btn-sm" style="background: rgba(37, 99, 235, 0.1); color: #2563eb; border-radius: 100px;">
                                     Invest
                                 </a>
                             </div>

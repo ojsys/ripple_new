@@ -22,7 +22,7 @@
                             <button type="submit" class="btn btn-danger">
                                 <i class="fas fa-trash me-2"></i>Yes, Delete Project
                             </button>
-                            <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-outline-secondary">
+                            <a href="{% url 'projects:project_detail' project.slug %}" class="btn btn-outline-secondary">
                                 Cancel
                             </a>
                         </div>

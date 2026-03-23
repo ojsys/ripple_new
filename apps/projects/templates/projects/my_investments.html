@@ -628,7 +628,7 @@
                         <i class="fas fa-calendar-alt"></i>{{ investment.created_at|date:"M d, Y" }}
                     </span>
                     <div class="investment-actions">
-                        <a href="{% url 'projects:project_detail' investment.project.id %}" class="btn-action outline">
+                        <a href="{% url 'projects:project_detail' investment.project.slug %}" class="btn-action outline">
                             <i class="fas fa-eye"></i>View
                         </a>
                         {% if investment.status == 'rejected' %}

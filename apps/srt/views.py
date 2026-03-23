@@ -942,26 +942,16 @@ def invest_in_project(request, project_id):
         amount = Decimal(request.POST.get('amount', '0'))
     except Exception:
         messages.error(request, "Invalid investment amount.")
-        return redirect('projects:project_detail', project_id=project_id)
+        return redirect('projects:project_detail', slug=project.slug)
 
     form = SRTProjectInvestmentForm(request.POST, project=project, account=account)
     if not form.is_valid():
         for field_errors in form.errors.values():
             for error in field_errors:
                 messages.error(request, error)
-        return redirect('projects:project_detail', project_id=project_id)
+        return redirect('projects:project_detail', slug=project.slug)
 
     amount = form.cleaned_data['amount']
-
-    # Check no existing active investment in this project
-    existing = VentureInvestment.objects.filter(
-        partner=request.user,
-        project=project,
-        status__in=['pending', 'active']
-    ).exists()
-    if existing:
-        messages.warning(request, "You already have an active investment in this project.")
-        return redirect('projects:project_detail', project_id=project_id)
 
     # Create investment
     VentureInvestment.objects.create(

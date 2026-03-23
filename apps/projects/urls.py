@@ -9,7 +9,8 @@ urlpatterns = [
     path('subscribe-newsletter/', views.subscribe_newsletter, name='subscribe_newsletter'),
     path('projects/', views.project_list, name='project_list'),
     path('ventures/', views.project_list, name='venture_list'),
-    path('projects/<int:project_id>/', views.project_detail, name='project_detail'),
+    path('projects/<slug:slug>/', views.project_detail, name='project_detail'),
+    path('projects/<int:project_id>/', views.project_detail_by_id, name='project_detail_by_id'),
     path('about/', views.about_page, name='about_page'),
 
     # Project management (founders)

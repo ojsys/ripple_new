@@ -91,7 +91,7 @@
 <!-- Hero -->
 <div class="invest-hero">
     <div class="container">
-        <a href="{% url 'projects:project_detail' project.id %}" class="text-white text-decoration-none mb-3 d-inline-block" style="opacity: 0.8;">
+        <a href="{% url 'projects:project_detail' project.slug %}" class="text-white text-decoration-none mb-3 d-inline-block" style="opacity: 0.8;">
             <i class="fas fa-arrow-left me-2"></i>Back to {{ project.title }}
         </a>
         <h1><i class="fas fa-chart-line me-2"></i>Invest in {{ project.title }}</h1>
@@ -139,7 +139,7 @@
                             <button type="submit" class="btn btn-lg text-white" style="background: #2563eb; border-radius: 100px; padding: 12px 32px;">
                                 <i class="fas fa-lock me-2"></i>Proceed to Payment
                             </button>
-                            <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-outline-secondary" style="border-radius: 100px; padding: 12px 24px;">
+                            <a href="{% url 'projects:project_detail' project.slug %}" class="btn btn-outline-secondary" style="border-radius: 100px; padding: 12px 24px;">
                                 Cancel
                             </a>
                         </div>

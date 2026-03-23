@@ -156,9 +156,15 @@ def project_list(request):
     return render(request, 'projects/project_list.html', context)
 
 
-def project_detail(request, project_id):
-    """Display project details."""
+def project_detail_by_id(request, project_id):
+    """Redirect legacy numeric URLs to slug-based URLs."""
     project = get_object_or_404(Project, id=project_id)
+    return redirect('projects:project_detail', slug=project.slug, permanent=True)
+
+
+def project_detail(request, slug):
+    """Display project details."""
+    project = get_object_or_404(Project, slug=slug)
 
     # Sync amount_raised from actual completed donations
     project.recalculate_funding()
@@ -258,7 +264,7 @@ def edit_project(request, project_id):
             form.save()
             reward_formset.save()
             messages.success(request, 'Project updated successfully!')
-            return redirect('projects:project_detail', project_id=project.id)
+            return redirect('projects:project_detail', slug=project.slug)
     else:
         form = ProjectForm(instance=project)
         reward_formset = RewardFormSet(instance=project, prefix='rewards')
@@ -348,7 +354,7 @@ def add_update(request, project_id):
             update.project = project
             update.save()
             messages.success(request, 'Update posted successfully!')
-            return redirect('projects:project_detail', project_id=project.id)
+            return redirect('projects:project_detail', slug=project.slug)
     else:
         form = UpdateForm()
 
@@ -367,11 +373,11 @@ def make_pledge(request, project_id):
     # Check if project is approved
     if project.status != 'approved':
         messages.error(request, 'This project is not yet approved for funding. Please check back later.')
-        return redirect('projects:project_detail', project_id=project.id)
+        return redirect('projects:project_detail', slug=project.slug)
 
     if project.deadline < timezone.now():
         messages.error(request, 'This project has ended.')
-        return redirect('projects:project_detail', project_id=project.id)
+        return redirect('projects:project_detail', slug=project.slug)
 
     # Get pre-populated values from URL parameters
     initial_data = {}
@@ -508,7 +514,7 @@ def donation_callback(request):
             donation = Donation.objects.get(paystack_reference=reference)
             if donation.status == 'completed':
                 messages.success(request, 'This donation was already processed.')
-                return redirect('projects:project_detail', project_id=donation.project.id)
+                return redirect('projects:project_detail', slug=donation.project.slug)
         except Donation.DoesNotExist:
             pass
         messages.error(request, 'Payment reference not found.')
@@ -527,7 +533,7 @@ def donation_callback(request):
     except requests.exceptions.RequestException:
         # Network error during verification - keep as pending so it can be retried
         messages.error(request, 'Could not verify payment. If you were charged, please contact support.')
-        return redirect('projects:project_detail', project_id=payment_attempt.project.id)
+        return redirect('projects:project_detail', slug=payment_attempt.project.slug)
 
     if response.status_code == 200:
         result = response.json()
@@ -555,17 +561,17 @@ def donation_callback(request):
                 payment_attempt.project.recalculate_funding()
 
             messages.success(request, 'Thank you for your donation!')
-            return redirect('projects:project_detail', project_id=payment_attempt.project.id)
+            return redirect('projects:project_detail', slug=payment_attempt.project.slug)
         else:
             # Payment failed at Paystack
             payment_attempt.status = 'failed'
             payment_attempt.error_message = result['data'].get('gateway_response', 'Payment was not successful')
             payment_attempt.save()
             messages.error(request, 'Payment was not successful. No charges have been applied.')
-            return redirect('projects:project_detail', project_id=payment_attempt.project.id)
+            return redirect('projects:project_detail', slug=payment_attempt.project.slug)
 
     messages.error(request, 'Payment verification failed. If you were charged, please contact support.')
-    return redirect('projects:project_detail', project_id=payment_attempt.project.id)
+    return redirect('projects:project_detail', slug=payment_attempt.project.slug)
 
 
 @login_required
@@ -575,7 +581,7 @@ def investment_proposal(request, project_id):
 
     if project.status != 'approved':
         messages.error(request, 'This project is not yet approved for investment. Please check back later.')
-        return redirect('projects:project_detail', project_id=project.id)
+        return redirect('projects:project_detail', slug=project.slug)
 
     if request.method == 'POST':
         form = InvestmentForm(request.POST, project=project)
@@ -673,7 +679,7 @@ def investment_payment_callback(request):
     # Avoid re-processing
     if investment.status != 'pending_payment':
         messages.info(request, 'This payment has already been processed.')
-        return redirect('projects:project_detail', project_id=investment.project.id)
+        return redirect('projects:project_detail', slug=investment.project.slug)
 
     paystack_secret = getattr(settings, 'PAYSTACK_SECRET_KEY', '')
     headers = {'Authorization': f'Bearer {paystack_secret}'}
@@ -686,7 +692,7 @@ def investment_payment_callback(request):
         )
     except requests.exceptions.RequestException:
         messages.error(request, 'Could not verify payment. If you were charged, please contact support.')
-        return redirect('projects:project_detail', project_id=investment.project.id)
+        return redirect('projects:project_detail', slug=investment.project.slug)
 
     if response.status_code == 200:
         result = response.json()
@@ -706,7 +712,7 @@ def investment_payment_callback(request):
     else:
         messages.error(request, 'Payment verification failed. If you were charged, please contact support.')
 
-    return redirect('projects:project_detail', project_id=investment.project.id)
+    return redirect('projects:project_detail', slug=investment.project.slug)
 
 
 @login_required
@@ -731,7 +737,7 @@ def approve_investment(request, investment_id):
 
     if request.user != investment.project.creator:
         messages.error(request, 'You are not authorized to approve this investment.')
-        return redirect('projects:project_detail', project_id=investment.project.id)
+        return redirect('projects:project_detail', slug=investment.project.slug)
 
     if investment.status != 'pending_approval':
         messages.error(request, 'This investment is not pending approval.')
@@ -756,7 +762,7 @@ def reject_investment(request, investment_id):
 
     if request.user != investment.project.creator:
         messages.error(request, 'You are not authorized to reject this investment.')
-        return redirect('projects:project_detail', project_id=investment.project.id)
+        return redirect('projects:project_detail', slug=investment.project.slug)
 
     if investment.status != 'pending_approval':
         messages.error(request, 'This investment cannot be rejected.')

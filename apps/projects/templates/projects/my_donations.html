@@ -24,7 +24,7 @@
                 {% for donation in donations %}
                 <tr>
                     <td>
-                        <a href="{% url 'projects:project_detail' donation.project.id %}">
+                        <a href="{% url 'projects:project_detail' donation.project.slug %}">
                             {{ donation.project.title }}
                         </a>
                     </td>
@@ -43,7 +43,7 @@
                     </td>
                     <td>{{ donation.created_at|date:"M d, Y" }}</td>
                     <td>
-                        <a href="{% url 'projects:project_detail' donation.project.id %}" class="btn btn-sm btn-outline-primary">
+                        <a href="{% url 'projects:project_detail' donation.project.slug %}" class="btn btn-sm btn-outline-primary">
                             View Project
                         </a>
                     </td>
