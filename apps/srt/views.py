@@ -538,17 +538,6 @@ def invest_in_venture(request, slug):
         )
         return redirect('srt:venture_detail', slug=slug)
 
-    # Check if already invested
-    existing = VentureInvestment.objects.filter(
-        partner=request.user,
-        venture=venture,
-        status__in=['pending', 'active']
-    ).exists()
-
-    if existing:
-        messages.warning(request, "You already have an active investment in this venture.")
-        return redirect('srt:venture_detail', slug=slug)
-
     # Create investment
     investment = VentureInvestment.objects.create(
         partner=request.user,

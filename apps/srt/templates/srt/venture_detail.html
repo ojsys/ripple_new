@@ -135,12 +135,10 @@
                     {% if existing_investment %}
                     <div class="alert alert-success">
                         <i class="fas fa-check-circle me-2"></i>
-                        You've already invested <strong>{{ existing_investment.tokens_invested|floatformat:2 }} SRT</strong> in this venture.
+                        You've invested <strong>{{ existing_investment.tokens_invested|floatformat:2 }} SRT</strong> in this venture.
+                        <a href="{% url 'srt:investment_detail' existing_investment.reference %}" class="alert-link ms-1">View investment</a>
                     </div>
-                    <a href="{% url 'srt:investment_detail' existing_investment.reference %}" class="btn btn-outline-success w-100">
-                        View My Investment
-                    </a>
-                    {% else %}
+                    {% endif %}
                     <form method="post" action="{% url 'srt:invest' venture.slug %}">
                         {% csrf_token %}
                         <div class="mb-3">
@@ -171,7 +169,6 @@
                             <i class="fas fa-hand-holding-usd me-2"></i>Invest Now
                         </button>
                     </form>
-                    {% endif %}
                 {% else %}
                 <div class="alert alert-warning">
                     <i class="fas fa-info-circle me-2"></i>
