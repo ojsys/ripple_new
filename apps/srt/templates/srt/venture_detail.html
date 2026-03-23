@@ -133,10 +133,10 @@
                 <!-- Investment Form -->
                 {% if venture.status == 'open' %}
                     {% if existing_investment %}
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle me-2"></i>
-                        You've invested <strong>{{ existing_investment.tokens_invested|floatformat:2 }} SRT</strong> in this venture.
-                        <a href="{% url 'srt:investment_detail' existing_investment.reference %}" class="alert-link ms-1">View investment</a>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You've previously invested <strong>{{ existing_investment.tokens_invested|floatformat:2 }} SRT</strong> in this venture.
+                        <a href="{% url 'srt:investment_detail' existing_investment.reference %}" class="alert-link ms-1">View investment</a>. You can invest again below.
                     </div>
                     {% endif %}
                     <form method="post" action="{% url 'srt:invest' venture.slug %}">
