@@ -34,7 +34,7 @@ def contact_page(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Thank you for your message! We will get back to you soon.')
-            return redirect('cms:contact')
+            return redirect('cms:contact_page')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:

@@ -155,11 +155,11 @@
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span>Duration</span>
-                    <strong>{{ investment.venture.investment_duration_months }} months</strong>
+                    <strong>{{ investment.investment_target.investment_duration_months }} months</strong>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span>Rate</span>
-                    <strong>{{ investment.venture.expected_return_rate }}%</strong>
+                    <strong>{{ investment.investment_target.expected_return_rate }}%</strong>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between">
@@ -191,9 +191,15 @@
         <!-- Quick Actions -->
         <div class="card border-0 shadow-sm">
             <div class="card-body">
+                {% if investment.venture and investment.venture.slug %}
                 <a href="{% url 'srt:venture_detail' investment.venture.slug %}" class="btn btn-outline-success w-100 mb-2">
                     <i class="fas fa-rocket me-2"></i>View Venture
                 </a>
+                {% elif investment.project and investment.project.slug %}
+                <a href="{% url 'projects:project_detail' investment.project.slug %}" class="btn btn-outline-success w-100 mb-2">
+                    <i class="fas fa-briefcase me-2"></i>View Project
+                </a>
+                {% endif %}
                 <a href="{% url 'srt:my_investments' %}" class="btn btn-outline-secondary w-100">
                     <i class="fas fa-arrow-left me-2"></i>Back to Investments
                 </a>
