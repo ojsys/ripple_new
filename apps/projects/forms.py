@@ -25,6 +25,9 @@ class ProjectForm(forms.ModelForm):
             # Venture-specific fields
             'company_name', 'financing_type', 'equity_offered', 'valuation',
             'interest_rate', 'repayment_period_months', 'use_of_funds',
+            # SRT investment fields
+            'srt_enabled', 'srt_funding_goal', 'expected_return_rate',
+            'investment_duration_months', 'minimum_investment', 'maximum_investment',
         ]
         widgets = {
             'listing_type': forms.RadioSelect(attrs={
@@ -102,6 +105,37 @@ class ProjectForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Explain how the investment funds will be allocated...'
             }),
+            # SRT fields
+            'srt_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'srt_funding_goal': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '10000',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'expected_return_rate': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '15.00',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'investment_duration_months': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '12',
+                'min': '1'
+            }),
+            'minimum_investment': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '10',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'maximum_investment': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Leave blank for no limit',
+                'step': '0.01',
+                'min': '0'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
@@ -109,11 +143,13 @@ class ProjectForm(forms.ModelForm):
         self.fields['category'].empty_label = "Select Category"
         self.fields['funding_type'].empty_label = "Select Funding Type"
         # Venture fields are optional at the form level; validated in clean()
-        venture_fields = [
+        optional_fields = [
             'company_name', 'financing_type', 'equity_offered', 'valuation',
-            'interest_rate', 'repayment_period_months', 'use_of_funds'
+            'interest_rate', 'repayment_period_months', 'use_of_funds',
+            'srt_enabled', 'srt_funding_goal', 'expected_return_rate',
+            'investment_duration_months', 'minimum_investment', 'maximum_investment',
         ]
-        for field_name in venture_fields:
+        for field_name in optional_fields:
             self.fields[field_name].required = False
 
     def clean(self):

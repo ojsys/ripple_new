@@ -978,6 +978,68 @@
                                     <ul class="errorlist">{% for error in form.use_of_funds.errors %}<li>{{ error }}</li>{% endfor %}</ul>
                                     {% endif %}
                                 </div>
+
+                                <!-- SRT Token Investment Settings -->
+                                <div class="field-wrapper mt-4">
+                                    <h6 class="fw-semibold mb-3">SRT Token Investment Settings</h6>
+                                    <div class="form-check mb-3">
+                                        {{ form.srt_enabled }}
+                                        <label class="form-check-label" for="{{ form.srt_enabled.id_for_label }}">
+                                            Enable SRT token investments for this venture
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="field-wrapper">
+                                            <label for="{{ form.expected_return_rate.id_for_label }}">Expected Annual Return Rate (%)</label>
+                                            {{ form.expected_return_rate }}
+                                            <div class="form-text">Annual return percentage for SRT investors (e.g. 15 for 15%)</div>
+                                            {% if form.expected_return_rate.errors %}
+                                            <ul class="errorlist">{% for error in form.expected_return_rate.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="field-wrapper">
+                                            <label for="{{ form.investment_duration_months.id_for_label }}">Investment Duration (months)</label>
+                                            {{ form.investment_duration_months }}
+                                            {% if form.investment_duration_months.errors %}
+                                            <ul class="errorlist">{% for error in form.investment_duration_months.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-wrapper">
+                                            <label for="{{ form.srt_funding_goal.id_for_label }}">SRT Funding Goal</label>
+                                            {{ form.srt_funding_goal }}
+                                            <div class="form-text">Total SRT tokens to raise</div>
+                                            {% if form.srt_funding_goal.errors %}
+                                            <ul class="errorlist">{% for error in form.srt_funding_goal.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-wrapper">
+                                            <label for="{{ form.minimum_investment.id_for_label }}">Minimum Investment (SRT)</label>
+                                            {{ form.minimum_investment }}
+                                            {% if form.minimum_investment.errors %}
+                                            <ul class="errorlist">{% for error in form.minimum_investment.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-wrapper">
+                                            <label for="{{ form.maximum_investment.id_for_label }}">Maximum Investment (SRT)</label>
+                                            {{ form.maximum_investment }}
+                                            <div class="form-text">Optional — leave blank for no limit</div>
+                                            {% if form.maximum_investment.errors %}
+                                            <ul class="errorlist">{% for error in form.maximum_investment.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

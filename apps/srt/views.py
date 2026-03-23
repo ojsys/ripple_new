@@ -624,6 +624,17 @@ def investment_detail(request, reference):
         tx_filter &= Q(project=investment.project)
     transactions = SRTTransaction.objects.filter(tx_filter).order_by('-created_at')
 
+    # Recalculate expected_return if the target has a non-zero rate and
+    # the stored value looks stale (equals tokens_invested, i.e. 0% gain).
+    target = investment.investment_target
+    if target and target.expected_return_rate and target.investment_duration_months:
+        rate = Decimal(str(target.expected_return_rate)) / Decimal('100')
+        duration_years = Decimal(str(target.investment_duration_months)) / Decimal('12')
+        correct_return = investment.tokens_invested * (1 + rate * duration_years)
+        if investment.expected_return != correct_return:
+            investment.expected_return = correct_return
+            investment.save(update_fields=['expected_return'])
+
     context = {
         'investment': investment,
         'account': account,
