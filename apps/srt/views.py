@@ -579,6 +579,16 @@ def my_investments(request):
     if status_filter:
         investments = investments.filter(status=status_filter)
 
+    # Recalculate expected_return for project-linked investments whose rate may have changed
+    to_update = []
+    for inv in investments.filter(project__isnull=False):
+        correct = inv.project.calculate_srt_expected_return(inv.tokens_invested)
+        if inv.expected_return != correct:
+            inv.expected_return = correct
+            to_update.append(inv)
+    if to_update:
+        VentureInvestment.objects.bulk_update(to_update, ['expected_return'])
+
     # Stats
     stats = {
         'total_invested': investments.filter(
@@ -624,13 +634,9 @@ def investment_detail(request, reference):
         tx_filter &= Q(project=investment.project)
     transactions = SRTTransaction.objects.filter(tx_filter).order_by('-created_at')
 
-    # Recalculate expected_return if the target has a non-zero rate and
-    # the stored value looks stale (equals tokens_invested, i.e. 0% gain).
-    target = investment.investment_target
-    if target and target.expected_return_rate and target.investment_duration_months:
-        rate = Decimal(str(target.expected_return_rate)) / Decimal('100')
-        duration_years = Decimal(str(target.investment_duration_months)) / Decimal('12')
-        correct_return = investment.tokens_invested * (1 + rate * duration_years)
+    # Recalculate expected_return in case project financing terms changed since investment was made
+    if investment.project:
+        correct_return = investment.project.calculate_srt_expected_return(investment.tokens_invested)
         if investment.expected_return != correct_return:
             investment.expected_return = correct_return
             investment.save(update_fields=['expected_return'])

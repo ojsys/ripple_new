@@ -407,14 +407,29 @@ class VentureInvestment(models.Model):
 
         target = self.project or self.venture
         if target:
-            if not self.maturity_date and target.investment_duration_months:
-                self.maturity_date = timezone.now().date() + relativedelta(months=target.investment_duration_months)
-            if not self.expected_return:
-                # Calculate expected return based on target's return rate
+            # Determine duration: projects have smart helpers; ventures use their own fields
+            if self.project:
+                duration_months = target.get_srt_duration_months()
+            else:
+                duration_months = target.investment_duration_months or 12
+
+            if not self.maturity_date and duration_months:
+                self.maturity_date = timezone.now().date() + relativedelta(months=duration_months)
+
+            # Always recalculate expected_return from current financing terms
+            if self.project:
+                self.expected_return = target.calculate_srt_expected_return(self.tokens_invested)
+            else:
                 rate = Decimal(str(target.expected_return_rate)) / Decimal('100')
-                duration_years = Decimal(str(target.investment_duration_months)) / Decimal('12')
-                self.expected_return = self.tokens_invested * (1 + rate * duration_years)
+                years = Decimal(str(duration_months)) / Decimal('12')
+                self.expected_return = self.tokens_invested * (1 + rate * years)
+
         super().save(*args, **kwargs)
+
+    @property
+    def interest_earned(self):
+        """Interest portion only (expected_return minus principal)."""
+        return self.expected_return - self.tokens_invested
 
     @property
     def return_rate(self):

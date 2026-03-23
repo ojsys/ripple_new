@@ -175,9 +175,9 @@
         <!-- Current Balance -->
         <div class="card border-0 shadow-sm mt-3">
             <div class="card-body text-center">
-                <small class="text-muted">Current Balance</small>
-                <h3 class="text-success mb-1">{{ account.token_balance|floatformat:2|intcomma }} SRT</h3>
-                <small class="text-muted">Available: {{ account.available_tokens|floatformat:2 }} SRT</small>
+                <small class="text-muted">Available Balance</small>
+                <h3 class="text-success mb-1">{{ account.available_tokens|floatformat:2|intcomma }} SRT</h3>
+                <small class="text-muted">Total purchased: {{ account.total_tokens_purchased|floatformat:2|intcomma }} SRT</small>
             </div>
         </div>
 

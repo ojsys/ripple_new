@@ -255,6 +255,30 @@ class Project(models.Model):
     def get_absolute_url(self):
         return reverse('projects:project_detail', kwargs={'slug': self.slug})
 
+    def get_srt_annual_rate(self):
+        """Return the annual return rate (%) to use for SRT token investment calculations.
+        For debt financing, this is the interest_rate set by the founder.
+        For equity or unset, falls back to expected_return_rate."""
+        if self.financing_type == 'debt' and self.interest_rate:
+            return self.interest_rate
+        return self.expected_return_rate
+
+    def get_srt_duration_months(self):
+        """Return the investment duration in months to use for SRT calculations.
+        For debt financing, this is the repayment period.
+        Otherwise, uses investment_duration_months."""
+        if self.financing_type == 'debt' and self.repayment_period_months:
+            return self.repayment_period_months
+        return self.investment_duration_months or 12
+
+    def calculate_srt_expected_return(self, tokens_invested):
+        """Calculate expected SRT return for a given investment amount.
+        Simple interest: principal × (1 + rate/100 × years)
+        """
+        rate = Decimal(str(self.get_srt_annual_rate())) / Decimal('100')
+        years = Decimal(str(self.get_srt_duration_months())) / Decimal('12')
+        return tokens_invested * (1 + rate * years)
+
     # SRT-related properties
     @property
     def srt_raised_usd(self):

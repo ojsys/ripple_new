@@ -537,21 +537,21 @@
 
             <!-- Token Balance Widget -->
             <div class="token-balance-widget">
-                <div class="balance-label">Token Balance</div>
+                <div class="balance-label">Available Balance</div>
                 <div class="balance-amount">
-                    {{ account.token_balance|floatformat:2|intcomma }}
+                    {{ account.available_tokens|floatformat:2|intcomma }}
                     <span class="symbol">SRT</span>
                 </div>
                 <div class="balance-available">
-                    <i class="fas fa-unlock-alt me-1"></i>
-                    Available: {{ account.available_tokens|floatformat:2|intcomma }} SRT
+                    <i class="fas fa-shopping-cart me-1"></i>
+                    Total Purchased: {{ account.total_tokens_purchased|floatformat:2|intcomma }} SRT
                 </div>
             </div>
 
             <!-- Quick Stats -->
             <div class="sidebar-stats">
                 <div class="stat-row">
-                    <span class="stat-label">Locked Tokens</span>
+                    <span class="stat-label">Locked in Investments</span>
                     <span class="stat-value">{{ account.locked_tokens|floatformat:2|intcomma }} SRT</span>
                 </div>
                 <div class="stat-row">

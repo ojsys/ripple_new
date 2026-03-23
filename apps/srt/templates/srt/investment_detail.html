@@ -73,15 +73,27 @@
                     <div class="col-md-4">
                         <div class="border rounded p-3 text-center h-100">
                             <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
-                            <h4 class="mb-1">{{ investment.expected_return|floatformat:2|intcomma }}</h4>
-                            <small class="text-muted">Expected Return</small>
+                            <h4 class="mb-1 text-success">+{{ investment.interest_earned|floatformat:2|intcomma }}</h4>
+                            <small class="text-muted">Interest Earned</small>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="border rounded p-3 text-center h-100">
                             <i class="fas fa-percentage fa-2x text-warning mb-2"></i>
-                            <h4 class="mb-1">{{ target.expected_return_rate }}%</h4>
-                            <small class="text-muted">Return Rate</small>
+                            <h4 class="mb-1">
+                                {% if investment.project and investment.project.financing_type == 'debt' %}
+                                    {{ investment.project.interest_rate }}%
+                                {% else %}
+                                    {{ target.expected_return_rate }}%
+                                {% endif %}
+                            </h4>
+                            <small class="text-muted">
+                                {% if investment.project and investment.project.financing_type == 'debt' %}
+                                    Interest Rate p.a.
+                                {% else %}
+                                    Return Rate p.a.
+                                {% endif %}
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -149,21 +161,50 @@
                 <h6 class="mb-0"><i class="fas fa-calculator me-2 text-success"></i>Projected Returns</h6>
             </div>
             <div class="card-body">
+                {% with target=investment.investment_target %}
                 <div class="d-flex justify-content-between mb-2">
                     <span>Principal</span>
                     <strong>{{ investment.tokens_invested|floatformat:2 }} SRT</strong>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span>Duration</span>
-                    <strong>{{ investment.investment_target.investment_duration_months }} months</strong>
+                    <span>
+                        {% if investment.project and investment.project.financing_type == 'debt' %}
+                            Interest Rate (p.a.)
+                        {% else %}
+                            Return Rate (p.a.)
+                        {% endif %}
+                    </span>
+                    <strong>
+                        {% if investment.project and investment.project.financing_type == 'debt' %}
+                            {{ investment.project.interest_rate }}%
+                        {% else %}
+                            {{ target.expected_return_rate }}%
+                        {% endif %}
+                    </strong>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span>Rate</span>
-                    <strong>{{ investment.investment_target.expected_return_rate }}%</strong>
+                    <span>
+                        {% if investment.project and investment.project.financing_type == 'debt' %}
+                            Repayment Period
+                        {% else %}
+                            Duration
+                        {% endif %}
+                    </span>
+                    <strong>
+                        {% if investment.project %}
+                            {{ investment.project.get_srt_duration_months }} months
+                        {% else %}
+                            {{ target.investment_duration_months }} months
+                        {% endif %}
+                    </strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2 text-success">
+                    <span>Interest Earned</span>
+                    <span>+{{ investment.interest_earned|floatformat:2 }} SRT</span>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between">
-                    <span class="fw-bold">Expected Return</span>
+                    <span class="fw-bold">Total at Maturity</span>
                     <span class="text-success fw-bold fs-5">{{ investment.expected_return|floatformat:2 }} SRT</span>
                 </div>
                 {% if investment.actual_return %}
@@ -173,6 +214,7 @@
                     <span class="text-primary fw-bold fs-5">{{ investment.actual_return|floatformat:2 }} SRT</span>
                 </div>
                 {% endif %}
+                {% endwith %}
             </div>
         </div>
 
