@@ -640,14 +640,14 @@
                     <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'projects:my_donations' %}">My Donations</a></li>
                     {% endif %}
                     <li class="nav-item d-lg-none">
-                        <a class="btn btn-md-outlined btn-danger" href="{% url 'accounts:logout' %}">Logout</a>
+                        <a class="btn btn-md-outlined btn-warning" href="{% url 'accounts:logout' %}">Logout</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+                        <a class="btn btn-md-outlined btn-outline-success" href="{% url 'accounts:login' %}">Login</a>
                     </li>
                     <li class="nav-item ms-lg-2">
-                        <a class="btn btn-md-filled" href="{% url 'accounts:signup' %}">
+                        <a class="btn btn-md-filled btn-success" href="{% url 'accounts:signup' %}">
                             Get Started
                         </a>
                     </li>
