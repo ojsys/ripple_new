@@ -580,10 +580,11 @@
                 </ul>
                 <ul class="navbar-nav align-items-lg-center">
                     {% if user.is_authenticated %}
-                    <li class="nav-item dropdown">
+                    <!-- Desktop Dropdown -->
+                    <li class="nav-item dropdown d-none d-lg-block">
                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
                             <span class="user-avatar">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
-                            <span class="d-none d-lg-inline">{{ user.first_name|default:user.email }}</span>
+                            <span>{{ user.first_name|default:user.email }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li class="px-3 py-2 border-bottom">
@@ -617,6 +618,28 @@
                             <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
                         </ul>
                     </li>
+
+                    <!-- Mobile Links -->
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'accounts:profile_view' %}">View Profile</a></li>
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'accounts:edit_profile' %}">Edit Profile</a></li>
+                    {% if user.user_type == 'founder' %}
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'projects:my_projects' %}">My Projects</a></li>
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'projects:create_project' %}">Create Project</a></li>
+                    {% endif %}
+                    {% if user.user_type == 'partner' %}
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'srt:dashboard' %}">SRT Dashboard</a></li>
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'srt:buy_tokens' %}">Buy Tokens</a></li>
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'srt:venture_list' %}">Ventures</a></li>
+                    {% endif %}
+                    {% if user.user_type == 'investor' %}
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'projects:venture_list' %}">Browse Ventures</a></li>
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'projects:my_investments' %}">My Investments</a></li>
+                    {% endif %}
+                    {% if user.user_type == 'donor' %}
+                    <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'projects:my_donations' %}">My Donations</a></li>
+                    {% endif %}
+                    <li class="nav-item d-lg-none"><a class="nav-link text-danger" href="{% url 'accounts:logout' %}">Logout</a></li>
                     {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
