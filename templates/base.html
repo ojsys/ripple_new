@@ -639,7 +639,9 @@
                     {% if user.user_type == 'donor' %}
                     <li class="nav-item d-lg-none"><a class="nav-link" href="{% url 'projects:my_donations' %}">My Donations</a></li>
                     {% endif %}
-                    <li class="nav-item d-lg-none"><a class="nav-link text-danger" href="{% url 'accounts:logout' %}">Logout</a></li>
+                    <li class="nav-item d-lg-none">
+                        <a class="btn btn-md-outlined btn-danger" href="{% url 'accounts:logout' %}">Logout</a>
+                    </li>
                     {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
