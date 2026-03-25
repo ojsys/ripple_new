@@ -462,8 +462,8 @@
                         </a>
                     </li>
                     <li class="srt-nav-item">
-                        <a class="srt-nav-link {% if request.resolver_match.url_name == 'venture_list' or request.resolver_match.url_name == 'venture_detail' or request.resolver_match.url_name == 'srt_project_list' %}active{% endif %}" href="{% url 'srt:venture_list' %}">
-                            <i class="fas fa-rocket"></i>
+                        <a class="srt-nav-link {% if request.resolver_match.url_name == 'srt_project_list' or request.resolver_match.url_name == 'venture_list' or request.resolver_match.url_name == 'venture_detail' %}active{% endif %}" href="{% url 'srt:srt_project_list' %}">
+                            <i class="fas fa-chart-line"></i>
                             <span>Ventures</span>
                         </a>
                     </li>
