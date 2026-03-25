@@ -16,6 +16,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.tokens import default_token_generator
+from .tokens import email_verification_token
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.http import require_GET
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -233,7 +234,7 @@ def initiate_email_verification(request):
             'user': user,
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'token': default_token_generator.make_token(user),
+            'token': email_verification_token.make_token(user),
             'protocol': 'https' if request.is_secure() else 'http',
         }
 
@@ -278,7 +279,7 @@ def verify_email(request, uidb64, token):
         uid = urlsafe_base64_decode(uidb64).decode()
         user = CustomUser.objects.get(pk=uid)
 
-        if default_token_generator.check_token(user, token):
+        if email_verification_token.check_token(user, token):
             user.is_active = True
             user.email_verified = True
             user.save()
