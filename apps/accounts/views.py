@@ -560,13 +560,16 @@ def dashboard(request):
             'created_projects': created_projects,
             'total_projects': created_projects.count(),
             'active_projects': created_projects.filter(deadline__gte=timezone.now()).count(),
-            'total_raised': sum(p.amount_raised for p in created_projects),
+            'total_raised': sum(p.get_total_raised() for p in created_projects),
             'avg_funding': sum(p.get_percent_funded() for p in created_projects) / created_projects.count() if created_projects.count() > 0 else 0,
         })
 
     if user.user_type in ['investor', 'donor']:
-        # Get investments for investors
-        investments = Investment.objects.filter(investor=user).select_related('project', 'terms').order_by('-created_at')
+        # Only show payment-confirmed investments (exclude pending_payment / unpaid)
+        investments = Investment.objects.filter(
+            investor=user,
+            payment_status='paid',
+        ).select_related('project', 'terms').order_by('-created_at')
         context['investments'] = investments
 
     if user.user_type == 'donor':

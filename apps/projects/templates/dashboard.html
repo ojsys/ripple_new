@@ -761,7 +761,7 @@
                                     <div class="progress-bar-fill" style="width: {{ project.get_percent_funded|floatformat:2 }}%;"></div>
                                 </div>
                             </td>
-                            <td class="fw-bold" style="color: var(--teal-primary);">${{ project.amount_raised|intcomma }}</td>
+                            <td class="fw-bold" style="color: var(--teal-primary);">${{ project.get_total_raised|floatformat:0|intcomma }}</td>
                             <td class="text-muted">${{ project.funding_goal|intcomma }}</td>
                             <td>
                                 <div class="d-flex gap-1">
@@ -960,7 +960,7 @@
                         <div class="recommended-info">
                             <h6>{{ project.title }}</h6>
                             <div class="recommended-stats">
-                                <span class="amount">${{ project.amount_raised|intcomma }}</span>
+                                <span class="amount">${{ project.get_total_raised|floatformat:0|intcomma }}</span>
                                 <span class="percent">{{ project.get_percent_funded|floatformat:2 }}%</span>
                             </div>
                         </div>
