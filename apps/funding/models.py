@@ -85,19 +85,18 @@ class Investment(models.Model):
             if not self.terms and self.project:
                 self.terms = self.project.investment_terms.first()
 
-            counting_statuses = ('active', 'approved')
+            # pending_approval = payment confirmed by Paystack; approved = founder approved
+            counting_statuses = ('pending_approval', 'active', 'approved')
 
             with transaction.atomic():
                 super().save(*args, **kwargs)
 
                 if self.status in counting_statuses and (previous_status not in counting_statuses):
                     Project.objects.filter(pk=self.project.pk).update(
-                        amount_raised=F('amount_raised') + self.amount,
                         total_investment_raised=F('total_investment_raised') + self.amount
                     )
                 elif previous_status in counting_statuses and self.status not in counting_statuses:
                     Project.objects.filter(pk=self.project.pk).update(
-                        amount_raised=F('amount_raised') - self.amount,
                         total_investment_raised=F('total_investment_raised') - self.amount
                     )
         except Exception as e:

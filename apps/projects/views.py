@@ -850,8 +850,11 @@ def my_donations(request):
 
 @login_required
 def my_investments(request):
-    """View user's investments."""
-    investments = Investment.objects.filter(investor=request.user).order_by('-created_at')
+    """View user's investments — only show payment-confirmed records."""
+    investments = Investment.objects.filter(
+        investor=request.user,
+        payment_status='paid',
+    ).order_by('-created_at')
     escrow = InvestorEscrowBalance.objects.filter(investor=request.user).first()
 
     context = {

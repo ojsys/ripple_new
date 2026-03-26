@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.db.models import Sum
+from decimal import Decimal
 from .models import Category, FundingType, Project, Reward, Update, Donation, PaymentAttempt
 
 
@@ -66,7 +68,7 @@ class ProjectAdmin(admin.ModelAdmin):
         )
     percent_funded_display.short_description = 'Funded'
 
-    actions = ['approve_projects', 'reject_projects', 'recalculate_funding']
+    actions = ['approve_projects', 'reject_projects', 'recalculate_funding', 'recalculate_investments']
 
     def approve_projects(self, request, queryset):
         queryset.update(status='approved')
@@ -83,6 +85,20 @@ class ProjectAdmin(admin.ModelAdmin):
             project.recalculate_funding()
         self.message_user(request, f"Recalculated funding for {queryset.count()} projects.")
     recalculate_funding.short_description = "Recalculate funding from completed donations"
+
+    def recalculate_investments(self, request, queryset):
+        from apps.funding.models import Investment
+        count = 0
+        for project in queryset.filter(listing_type='venture'):
+            total = Investment.objects.filter(
+                project=project,
+                status__in=('pending_approval', 'active', 'approved'),
+                payment_status='paid',
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+            Project.objects.filter(pk=project.pk).update(total_investment_raised=total)
+            count += 1
+        self.message_user(request, f"Recalculated investment totals for {count} venture(s).")
+    recalculate_investments.short_description = "Recalculate investment totals from paid investments"
 
 
 @admin.register(Reward)

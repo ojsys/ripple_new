@@ -13,8 +13,8 @@ class InvestmentTermAdmin(admin.ModelAdmin):
 
 @admin.register(Investment)
 class InvestmentAdmin(admin.ModelAdmin):
-    list_display = ['investor', 'project', 'amount', 'equity_percentage', 'status', 'status_badge', 'created_at']
-    list_filter = ['status', 'created_at']
+    list_display = ['investor', 'project', 'amount', 'equity_percentage', 'status', 'payment_status', 'status_badge', 'created_at']
+    list_filter = ['status', 'payment_status', 'created_at']
     list_editable = ['status']
     search_fields = ['investor__email', 'investor__first_name', 'investor__last_name', 'project__title']
     readonly_fields = ['created_at', 'is_counted']
@@ -23,10 +23,10 @@ class InvestmentAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Investment Details', {
-            'fields': ('investor', 'project', 'amount', 'equity_percentage')
+            'fields': ('investor', 'project', 'amount', 'amount_ngn', 'equity_percentage')
         }),
         ('Terms & Status', {
-            'fields': ('terms', 'status', 'actual_return')
+            'fields': ('terms', 'status', 'payment_status', 'paystack_reference', 'actual_return')
         }),
         ('System', {
             'fields': ('is_counted', 'created_at'),
@@ -48,21 +48,43 @@ class InvestmentAdmin(admin.ModelAdmin):
         )
     status_badge.short_description = 'Status'
 
-    actions = ['mark_active', 'mark_completed', 'mark_failed']
+    actions = ['mark_approved', 'mark_active', 'mark_completed', 'mark_failed']
+
+    def mark_approved(self, request, queryset):
+        count = 0
+        for investment in queryset.filter(payment_status='paid'):
+            investment.status = 'approved'
+            investment.is_counted = True
+            investment.save()
+            count += 1
+        self.message_user(request, f"{count} paid investments marked as approved (project totals updated).")
+    mark_approved.short_description = "Approve selected (paid) investments — updates venture progress"
 
     def mark_active(self, request, queryset):
-        queryset.update(status='active')
-        self.message_user(request, f"{queryset.count()} investments marked as active.")
+        count = 0
+        for investment in queryset:
+            investment.status = 'active'
+            investment.save()
+            count += 1
+        self.message_user(request, f"{count} investments marked as active.")
     mark_active.short_description = "Mark selected as Active"
 
     def mark_completed(self, request, queryset):
-        queryset.update(status='completed')
-        self.message_user(request, f"{queryset.count()} investments marked as completed.")
+        count = 0
+        for investment in queryset:
+            investment.status = 'completed'
+            investment.save()
+            count += 1
+        self.message_user(request, f"{count} investments marked as completed.")
     mark_completed.short_description = "Mark selected as Completed"
 
     def mark_failed(self, request, queryset):
-        queryset.update(status='failed')
-        self.message_user(request, f"{queryset.count()} investments marked as failed.")
+        count = 0
+        for investment in queryset:
+            investment.status = 'failed'
+            investment.save()
+            count += 1
+        self.message_user(request, f"{count} investments marked as failed.")
     mark_failed.short_description = "Mark selected as Failed"
 
 

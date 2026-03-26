@@ -111,14 +111,14 @@
 
                 <div class="mb-4">
                     <div class="d-flex justify-content-between mb-2">
-                        <h3 class="mb-0 text-success">{{ venture.amount_raised|floatformat:0|intcomma }}</h3>
-                        <span class="text-muted">of {{ venture.funding_goal|floatformat:0|intcomma }} SRT</span>
+                        <h3 class="mb-0 text-success">${{ venture.get_total_raised|floatformat:0|intcomma }}</h3>
+                        <span class="text-muted">of ${{ venture.funding_goal|floatformat:0|intcomma }} goal</span>
                     </div>
                     <div class="progress mb-2" style="height: 12px;">
-                        <div class="progress-bar bg-success" style="width: {{ venture.percent_funded|floatformat:0 }}%"></div>
+                        <div class="progress-bar bg-success" style="width: {{ venture.get_percent_funded|floatformat:0 }}%"></div>
                     </div>
                     <div class="d-flex justify-content-between small text-muted">
-                        <span>{{ venture.percent_funded|floatformat:1 }}% funded</span>
+                        <span>{{ venture.get_percent_funded|floatformat:1 }}% funded</span>
                         <span>{{ venture.investor_count }} investors</span>
                     </div>
                 </div>

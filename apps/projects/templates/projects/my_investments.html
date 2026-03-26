@@ -615,11 +615,11 @@
 
                 <div class="progress-section">
                     <div class="progress-header">
-                        <span class="label">Project Funding</span>
-                        <span class="value">{{ investment.project.amount_raised|percentage:investment.project.funding_goal|floatformat:0 }}%</span>
+                        <span class="label">Venture Funding — ${{ investment.project.get_total_raised|floatformat:0|intcomma }} raised</span>
+                        <span class="value">{{ investment.project.get_percent_funded|floatformat:0 }}%</span>
                     </div>
                     <div class="progress-bar-wrapper">
-                        <div class="progress-bar-fill" style="width: {{ investment.project.amount_raised|percentage:investment.project.funding_goal }}%;"></div>
+                        <div class="progress-bar-fill" style="width: {{ investment.project.get_percent_funded }}%;"></div>
                     </div>
                 </div>
 
