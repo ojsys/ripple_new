@@ -207,13 +207,18 @@ class FounderWithdrawalRequest(models.Model):
 
     @classmethod
     def get_available_amount(cls, project):
-        """USD available = (direct investments + SRT converted to USD) minus amounts in active requests."""
-        total_raised = project.total_investment_raised + project.srt_raised_usd
+        """
+        USD available for withdrawal after Paystack + admin fees across all transactions.
+        = net_total_usd (from fees.summarise_project_fees) minus already-locked requests.
+        """
+        from apps.funding.fees import summarise_project_fees
+        summary = summarise_project_fees(project)
+        net_usd = summary['net_total_usd']
         locked = cls.objects.filter(
             project=project,
             status__in=['pending', 'approved', 'processing']
         ).aggregate(total=Sum('amount_usd'))['total'] or Decimal('0')
-        return max(Decimal('0'), total_raised - locked)
+        return max(Decimal('0'), net_usd - locked)
 
     def approve(self, admin_user):
         if self.status != 'pending':

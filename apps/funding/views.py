@@ -8,6 +8,7 @@ from decimal import Decimal
 from apps.projects.models import Project
 from .models import FounderWithdrawalRequest
 from .forms import FounderWithdrawalForm
+from .fees import summarise_project_fees
 
 
 @login_required
@@ -25,7 +26,12 @@ def founder_withdrawal_request(request, project_id):
         status='approved',
     )
 
-    available = FounderWithdrawalRequest.get_available_amount(project)
+    fee_summary = summarise_project_fees(project)
+    locked = FounderWithdrawalRequest.objects.filter(
+        project=project,
+        status__in=['pending', 'approved', 'processing']
+    ).aggregate(total=Sum('amount_usd'))['total'] or Decimal('0')
+    available = max(Decimal('0'), fee_summary['net_total_usd'] - locked)
 
     pending_withdrawals = FounderWithdrawalRequest.objects.filter(
         project=project,
@@ -52,12 +58,10 @@ def founder_withdrawal_request(request, project_id):
         'project': project,
         'form': form,
         'available': available,
+        'locked': locked,
         'pending_withdrawals': pending_withdrawals,
         'ngn_rate': FounderWithdrawalRequest.NGN_RATE,
-        'direct_investment': project.total_investment_raised,
-        'srt_tokens': project.srt_amount_raised,
-        'srt_usd': project.srt_raised_usd,
-        'total_investment': project.total_investment_raised + project.srt_raised_usd,
+        'fee_summary': fee_summary,
     }
     return render(request, 'funding/founder_withdrawal_form.html', context)
 
