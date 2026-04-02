@@ -558,18 +558,30 @@ def dashboard(request):
         from apps.funding.models import FounderWithdrawalRequest
         from decimal import Decimal
         created_projects = Project.objects.filter(creator=user).order_by('-created_at')
-        total_investment_usd = sum(p.total_investment_raised for p in created_projects)
-        total_srt = sum(p.srt_amount_raised for p in created_projects)
-        srt_usd = sum(p.srt_raised_usd for p in created_projects)
+        # Evaluate the queryset once, then compute all aggregates from the list
+        created_projects_list = list(created_projects)
+        total_direct_usd = sum(p.total_investment_raised for p in created_projects_list)
+        total_srt = sum(p.srt_amount_raised for p in created_projects_list)
+        total_srt_usd = sum(p.srt_raised_usd for p in created_projects_list)
+        # Build per-project rows with combined investment total pre-computed
+        projects_with_totals = [
+            {
+                'project': p,
+                'combined_investment': p.total_investment_raised + p.srt_raised_usd,
+            }
+            for p in created_projects_list
+        ]
         context.update({
             'created_projects': created_projects,
-            'total_projects': created_projects.count(),
-            'active_projects': created_projects.filter(deadline__gte=timezone.now()).count(),
-            'total_raised': sum(p.get_total_raised() for p in created_projects),
-            'total_investment_usd': total_investment_usd,
+            'projects_with_totals': projects_with_totals,
+            'total_projects': len(created_projects_list),
+            'active_projects': sum(1 for p in created_projects_list if p.deadline and p.deadline >= timezone.now()),
+            'total_raised': sum(p.get_total_raised() for p in created_projects_list),
+            'total_investment_usd': total_direct_usd + total_srt_usd,
+            'total_direct_usd': total_direct_usd,
             'total_srt': total_srt,
-            'total_srt_usd': srt_usd,
-            'avg_funding': sum(p.get_percent_funded() for p in created_projects) / created_projects.count() if created_projects.count() > 0 else 0,
+            'total_srt_usd': total_srt_usd,
+            'avg_funding': sum(p.get_percent_funded() for p in created_projects_list) / len(created_projects_list) if created_projects_list else 0,
         })
 
     if user.user_type in ['investor', 'donor']:

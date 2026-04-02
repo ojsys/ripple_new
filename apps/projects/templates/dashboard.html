@@ -681,22 +681,28 @@
                     <p>Active Campaigns</p>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon secondary">
-                    <i class="fas fa-hand-holding-usd"></i>
+            <div class="stat-card" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                <div class="d-flex align-items-center gap-3 w-100">
+                    <div class="stat-icon secondary">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>${{ total_investment_usd|floatformat:0|intcomma|default:0 }}</h3>
+                        <p>Total Investment</p>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <h3>${{ total_investment_usd|floatformat:0|intcomma|default:0 }}</h3>
-                    <p>Total Investment ($)</p>
+                <div class="w-100 pt-2" style="border-top: 1px solid #f3f4f6; font-size: 0.8rem; color: #6b7280; line-height: 1.7;">
+                    <div><i class="fas fa-dollar-sign me-1" style="color: #d97706; width:14px;"></i>Direct: <span class="fw-semibold text-dark">${{ total_direct_usd|floatformat:0|intcomma|default:0 }}</span></div>
+                    <div><i class="fas fa-coins me-1" style="color: #7c3aed; width:14px;"></i>SRT: <span class="fw-semibold" style="color:#7c3aed;">{{ total_srt|floatformat:0|intcomma|default:0 }}</span> ≈ <span class="fw-semibold text-dark">${{ total_srt_usd|floatformat:0|intcomma|default:0 }}</span></div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon info">
-                    <i class="fas fa-coins"></i>
+                    <i class="fas fa-percentage"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>{{ total_srt|floatformat:0|intcomma|default:0 }} <small style="font-size:0.9rem;">SRT</small></h3>
-                    <p>SRT Raised <span class="small text-muted">(≈${{ total_srt_usd|floatformat:0|intcomma|default:0 }})</span></p>
+                    <h3>{{ avg_funding|floatformat:1 }}%</h3>
+                    <p>Avg. Funded</p>
                 </div>
             </div>
         </div>
@@ -725,7 +731,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for project in created_projects %}
+                        {% for item in projects_with_totals %}
+                        {% with project=item.project %}
                         <tr>
                             <td>
                                 <div class="project-cell">
@@ -766,17 +773,23 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="fw-bold" style="color: var(--teal-primary);">${{ project.total_investment_raised|floatformat:0|intcomma }}</div>
-                                {% if project.is_venture and project.amount_raised %}
-                                <div class="small text-muted">+${{ project.amount_raised|floatformat:0|intcomma }} donations</div>
+                                {% if project.is_venture %}
+                                {# combined = direct + SRT (pre-computed in view) #}
+                                <div class="fw-bold" style="color: var(--teal-primary);">${{ item.combined_investment|floatformat:2|intcomma }}</div>
+                                <div class="small" style="color: #6b7280; line-height: 1.7;">
+                                    <i class="fas fa-dollar-sign" style="color:#d97706; width:12px;"></i> ${{ project.total_investment_raised|floatformat:2|intcomma }}<br>
+                                    <i class="fas fa-coins" style="color:#7c3aed; width:12px;"></i> {{ project.srt_amount_raised|floatformat:0|intcomma }} SRT ≈ ${{ project.srt_raised_usd|floatformat:2|intcomma }}
+                                </div>
+                                {% else %}
+                                <div class="fw-bold" style="color: var(--teal-primary);">${{ project.total_investment_raised|floatformat:2|intcomma }}</div>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if project.is_venture %}
+                                {% if project.is_venture and project.srt_amount_raised %}
                                 <div class="fw-bold" style="color: #7c3aed;">{{ project.srt_amount_raised|floatformat:0|intcomma }} SRT</div>
-                                <div class="small text-muted">≈${{ project.srt_raised_usd|floatformat:0|intcomma }}</div>
+                                <div class="small text-muted">≈${{ project.srt_raised_usd|floatformat:2|intcomma }}</div>
                                 {% else %}
-                                <span class="text-muted small">N/A</span>
+                                <span class="text-muted small">—</span>
                                 {% endif %}
                             </td>
                             <td class="text-muted">${{ project.funding_goal|intcomma }}</td>
@@ -791,7 +804,7 @@
                                     <a href="{% url 'projects:add_update' project.id %}" class="action-btn" title="Add Update">
                                         <i class="fas fa-bullhorn"></i>
                                     </a>
-                                    {% if project.is_venture and project.status == 'approved' and project.total_investment_raised > 0 %}
+                                    {% if project.is_venture and project.status == 'approved' and item.combined_investment > 0 %}
                                     <a href="{% url 'funding:founder_withdrawal_request' project.id %}" class="action-btn" title="Withdraw Funds" style="background: #d1fae5; color: #059669; border-color: #a7f3d0;">
                                         <i class="fas fa-money-bill-wave"></i>
                                     </a>
@@ -799,6 +812,7 @@
                                 </div>
                             </td>
                         </tr>
+                        {% endwith %}
                         {% empty %}
                         <tr>
                             <td colspan="7">
