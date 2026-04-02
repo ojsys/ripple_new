@@ -1,0 +1,25 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block branding %}
+<div id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <strong>StartUpRipple</strong> Admin
+    </a>
+</div>
+{% endblock %}
+
+{% block nav-global %}
+<div style="background: #0d9488; padding: 8px 16px; display: flex; align-items: center; gap: 16px;">
+    <a href="{% url 'core:analytics_dashboard' %}"
+       style="color: white; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(255,255,255,0.15); border-radius: 6px; transition: background 0.2s;"
+       onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+       onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+        Analytics Dashboard
+    </a>
+    <span style="color: rgba(255,255,255,0.4); font-size: 0.75rem;">Platform revenue · User stats · Investments · Withdrawals</span>
+</div>
+{% endblock %}

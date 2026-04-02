@@ -81,6 +81,77 @@ def srt_investment_ngn(tokens: Decimal) -> Decimal:
     return Decimal(str(tokens)) * NGN_PER_SRT
 
 
+def platform_fee_summary():
+    """
+    Compute cumulative fee totals across ALL projects on the platform.
+    Used by the analytics dashboard.
+
+    Returns a dict with the same keys as summarise_project_fees plus:
+        total_transactions   – number of individual transactions processed
+    """
+    from apps.funding.models import Investment
+
+    COUNTING_STATUSES = ('pending_approval', 'active', 'approved', 'completed')
+
+    direct_investments = Investment.objects.filter(
+        status__in=COUNTING_STATUSES,
+        payment_status='paid',
+    )
+
+    try:
+        from apps.srt.models import VentureInvestment
+        srt_investments = VentureInvestment.objects.filter(
+            status__in=('active', 'matured'),
+        )
+    except Exception:
+        srt_investments = []
+
+    ps_fees   = Decimal('0')
+    adm_fees  = Decimal('0')
+    gross_direct = Decimal('0')
+    gross_srt    = Decimal('0')
+    txn_count = 0
+
+    for inv in direct_investments:
+        g = investment_ngn(inv)
+        gross_direct += g
+        ps_fees  += paystack_fee_ngn(g)
+        adm_fees += admin_fee_ngn(g)
+        txn_count += 1
+
+    for inv in srt_investments:
+        g = srt_investment_ngn(inv.tokens_invested)
+        gross_srt += g
+        ps_fees  += paystack_fee_ngn(g)
+        adm_fees += admin_fee_ngn(g)
+        txn_count += 1
+
+    gross_total = gross_direct + gross_srt
+    total_fees  = ps_fees + adm_fees
+    net_total   = max(Decimal('0'), gross_total - total_fees)
+
+    def to_usd(ngn):
+        return (ngn / NGN_PER_USD).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    return {
+        'gross_direct_ngn':  gross_direct.quantize(Decimal('0.01')),
+        'gross_srt_ngn':     gross_srt.quantize(Decimal('0.01')),
+        'gross_total_ngn':   gross_total.quantize(Decimal('0.01')),
+        'paystack_fees_ngn': ps_fees.quantize(Decimal('0.01')),
+        'admin_fees_ngn':    adm_fees.quantize(Decimal('0.01')),
+        'total_fees_ngn':    total_fees.quantize(Decimal('0.01')),
+        'net_total_ngn':     net_total.quantize(Decimal('0.01')),
+        'net_total_usd':     to_usd(net_total),
+        'gross_direct_usd':  to_usd(gross_direct),
+        'gross_srt_usd':     to_usd(gross_srt),
+        'gross_total_usd':   to_usd(gross_total),
+        'admin_fees_usd':    to_usd(adm_fees),
+        'paystack_fees_usd': to_usd(ps_fees),
+        'total_fees_usd':    to_usd(total_fees),
+        'total_transactions': txn_count,
+    }
+
+
 def summarise_project_fees(project):
     """
     Compute a full fee breakdown for a project's investments.

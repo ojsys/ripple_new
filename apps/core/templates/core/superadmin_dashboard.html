@@ -333,9 +333,57 @@
 <div class="dashboard-container">
     <div class="container-fluid px-4">
         <!-- Header -->
-        <div class="dashboard-header">
-            <h1><i class="fas fa-chart-line me-2" style="color: var(--teal-primary);"></i>Analytics Dashboard</h1>
-            <p>Platform analytics and performance overview</p>
+        <div class="dashboard-header d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1><i class="fas fa-chart-line me-2" style="color: var(--teal-primary);"></i>Analytics Dashboard</h1>
+                <p>Full platform overview — users, projects, investments, revenue &amp; withdrawals</p>
+            </div>
+            <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-cog me-1"></i>Admin Panel
+            </a>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════
+             PLATFORM REVENUE BANNER  (StartUpRipple's earnings)
+             ═══════════════════════════════════════════════════════ -->
+        <div class="mb-4 p-4" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); border-radius: 20px; box-shadow: 0 10px 40px rgba(13,148,136,0.3);">
+            <div class="row align-items-center g-4">
+                <div class="col-md-4">
+                    <div class="text-white">
+                        <div style="font-size:0.85rem; opacity:0.8; margin-bottom:4px;">
+                            <i class="fas fa-building me-1"></i>TOTAL PLATFORM REVENUE
+                        </div>
+                        <div style="font-size:2.6rem; font-weight:800; line-height:1;">${{ total_platform_revenue_usd|floatformat:2|intcomma }}</div>
+                        <div style="font-size:1rem; opacity:0.85; margin-top:4px;">₦{{ total_platform_revenue_ngn|floatformat:0|intcomma }}</div>
+                        <div style="font-size:0.75rem; opacity:0.65; margin-top:6px;">Admin fees (2%) + Registration fees</div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="row g-3">
+                        <div class="col-sm-4">
+                            <div style="background:rgba(255,255,255,0.15); border-radius:12px; padding:16px; color:white; text-align:center;">
+                                <div style="font-size:1.5rem; font-weight:700;">${{ admin_fee_usd_total|floatformat:2|intcomma }}</div>
+                                <div style="font-size:0.78rem; opacity:0.8; margin-top:2px;">Admin Fees (2%)</div>
+                                <div style="font-size:0.72rem; opacity:0.6;">₦{{ admin_fee_ngn_total|floatformat:0|intcomma }}</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div style="background:rgba(255,255,255,0.15); border-radius:12px; padding:16px; color:white; text-align:center;">
+                                <div style="font-size:1.5rem; font-weight:700;">${{ reg_revenue_usd|floatformat:2|intcomma }}</div>
+                                <div style="font-size:0.78rem; opacity:0.8; margin-top:2px;">Registration Fees</div>
+                                <div style="font-size:0.72rem; opacity:0.6;">{{ reg_count }} users</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div style="background:rgba(255,255,255,0.15); border-radius:12px; padding:16px; color:white; text-align:center;">
+                                <div style="font-size:1.5rem; font-weight:700;">{{ fee_transactions }}</div>
+                                <div style="font-size:0.78rem; opacity:0.8; margin-top:2px;">Transactions Processed</div>
+                                <div style="font-size:0.72rem; opacity:0.6;">${{ gross_investment_usd|floatformat:0|intcomma }} gross</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Top Stats Row -->
@@ -345,19 +393,15 @@
                     <div class="stat-icon teal"><i class="fas fa-users"></i></div>
                     <div class="stat-value">{{ total_users|intcomma }}</div>
                     <div class="stat-label">Total Users</div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i> {{ new_users_7d }} this week
-                    </div>
+                    <div class="stat-change positive"><i class="fas fa-arrow-up"></i> {{ new_users_7d }} this week</div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
                 <div class="stat-card">
                     <div class="stat-icon blue"><i class="fas fa-project-diagram"></i></div>
                     <div class="stat-value">{{ total_projects|intcomma }}</div>
-                    <div class="stat-label">Total Projects</div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-circle"></i> {{ active_projects }} active
-                    </div>
+                    <div class="stat-label">Total Projects &amp; Ventures</div>
+                    <div class="stat-change positive"><i class="fas fa-circle"></i> {{ active_projects }} active</div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -365,24 +409,20 @@
                     <div class="stat-icon green"><i class="fas fa-hand-holding-usd"></i></div>
                     <div class="stat-value">${{ total_investment_amount|floatformat:0|intcomma }}</div>
                     <div class="stat-label">Total Investments</div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i> ${{ investments_30d_amount|floatformat:0|intcomma }} this month
-                    </div>
+                    <div class="stat-change positive"><i class="fas fa-arrow-up"></i> ${{ investments_30d_amount|floatformat:0|intcomma }} this month</div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
                 <div class="stat-card">
                     <div class="stat-icon purple"><i class="fas fa-coins"></i></div>
-                    <div class="stat-value">${{ total_token_revenue|floatformat:0|intcomma }}</div>
-                    <div class="stat-label">Token Revenue</div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-coins"></i> {{ total_tokens_purchased|floatformat:0|intcomma }} tokens sold
-                    </div>
+                    <div class="stat-value">{{ srt_total_tokens_purchased|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">SRT Tokens Sold</div>
+                    <div class="stat-change positive"><i class="fas fa-dollar-sign"></i> ${{ srt_total_revenue_usd|floatformat:0|intcomma }} raised</div>
                 </div>
             </div>
         </div>
 
-        <!-- Second Stats Row -->
+        <!-- User Type Stats -->
         <div class="row g-4 mb-4">
             <div class="col-lg-3 col-md-6">
                 <div class="stat-card">
@@ -396,6 +436,7 @@
                     <div class="stat-icon pink"><i class="fas fa-chart-line"></i></div>
                     <div class="stat-value">{{ investors_count|intcomma }}</div>
                     <div class="stat-label">Investors</div>
+                    <div class="stat-change positive"><i class="fas fa-circle"></i> {{ investments_30d_count }} invested last 30d</div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -403,6 +444,7 @@
                     <div class="stat-icon yellow"><i class="fas fa-heart"></i></div>
                     <div class="stat-value">{{ donors_count|intcomma }}</div>
                     <div class="stat-label">Donors</div>
+                    <div class="stat-change positive"><i class="fas fa-circle"></i> {{ pledges_30d_count }} donations last 30d</div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -410,9 +452,7 @@
                     <div class="stat-icon teal"><i class="fas fa-handshake"></i></div>
                     <div class="stat-value">{{ total_partners|intcomma }}</div>
                     <div class="stat-label">SRT Partners</div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-check-circle"></i> {{ verified_partners }} verified
-                    </div>
+                    <div class="stat-change positive"><i class="fas fa-check-circle"></i> {{ verified_partners }} verified</div>
                 </div>
             </div>
         </div>
@@ -425,9 +465,7 @@
                         <h3><i class="fas fa-chart-area"></i> User Registrations (Last 30 Days)</h3>
                     </div>
                     <div class="section-body">
-                        <div class="chart-container">
-                            <canvas id="registrationChart"></canvas>
-                        </div>
+                        <div class="chart-container"><canvas id="registrationChart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -437,16 +475,74 @@
                         <h3><i class="fas fa-pie-chart"></i> Users by Type</h3>
                     </div>
                     <div class="section-body">
-                        <div class="chart-container">
-                            <canvas id="userTypeChart"></canvas>
-                        </div>
+                        <div class="chart-container"><canvas id="userTypeChart"></canvas></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Middle Row -->
+        <!-- ═══════════════════════════════════════════════════════
+             REVENUE BREAKDOWN
+             ═══════════════════════════════════════════════════════ -->
         <div class="row g-4 mb-4">
+            <!-- Revenue Sources -->
+            <div class="col-lg-5">
+                <div class="section-card h-100">
+                    <div class="section-header">
+                        <h3><i class="fas fa-receipt"></i> Revenue Sources</h3>
+                    </div>
+                    <div class="section-body">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Source</th>
+                                    <th style="text-align:right">NGN</th>
+                                    <th style="text-align:right">USD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong>Admin Fee (2%)</strong>
+                                        <div class="text-muted" style="font-size:0.78rem;">{{ fee_transactions }} investment transactions</div>
+                                    </td>
+                                    <td style="text-align:right; font-weight:600; color:#0d9488;">₦{{ admin_fee_ngn_total|floatformat:0|intcomma }}</td>
+                                    <td style="text-align:right; font-weight:600; color:#0d9488;">${{ admin_fee_usd_total|floatformat:2|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Registration Fees</strong>
+                                        <div class="text-muted" style="font-size:0.78rem;">{{ reg_count }} paid registrations</div>
+                                    </td>
+                                    <td style="text-align:right; font-weight:600; color:#0d9488;">₦{{ reg_revenue_ngn|floatformat:0|intcomma }}</td>
+                                    <td style="text-align:right; font-weight:600; color:#0d9488;">${{ reg_revenue_usd|floatformat:2|intcomma }}</td>
+                                </tr>
+                                <tr style="border-top: 2px solid #e5e7eb;">
+                                    <td><strong>Total Platform Revenue</strong></td>
+                                    <td style="text-align:right; font-weight:800; color:#0f766e;">₦{{ total_platform_revenue_ngn|floatformat:0|intcomma }}</td>
+                                    <td style="text-align:right; font-weight:800; color:#0f766e;">${{ total_platform_revenue_usd|floatformat:2|intcomma }}</td>
+                                </tr>
+                                <tr style="color:#6b7280;">
+                                    <td colspan="3" class="pt-3">
+                                        <em style="font-size:0.78rem;">Payment Processing Fees (Paystack — not StartUpRipple revenue)</em>
+                                    </td>
+                                </tr>
+                                <tr style="color:#6b7280;">
+                                    <td style="font-size:0.85rem;">Processing Fees Collected</td>
+                                    <td style="text-align:right; font-size:0.85rem;">₦{{ processing_fee_ngn_total|floatformat:0|intcomma }}</td>
+                                    <td style="text-align:right; font-size:0.85rem;">${{ processing_fee_usd_total|floatformat:2|intcomma }}</td>
+                                </tr>
+                                <tr style="color:#6b7280;">
+                                    <td style="font-size:0.85rem;">Gross Transacted</td>
+                                    <td style="text-align:right; font-size:0.85rem;">₦{{ gross_investment_ngn|floatformat:0|intcomma }}</td>
+                                    <td style="text-align:right; font-size:0.85rem;">${{ gross_investment_usd|floatformat:2|intcomma }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- Funding Overview -->
             <div class="col-lg-4">
                 <div class="section-card h-100">
@@ -464,14 +560,12 @@
                                 <div class="progress-bar bg-success" style="width: {{ percent|default:0 }}%"></div>
                             </div>
                         </div>
-
-                        <hr class="my-4">
-
+                        <hr class="my-3">
                         <div class="row g-3">
                             <div class="col-6">
                                 <div class="mini-stat">
                                     <div class="value">{{ total_investments }}</div>
-                                    <div class="label">Investments</div>
+                                    <div class="label">Direct Investments</div>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -483,13 +577,13 @@
                             <div class="col-6">
                                 <div class="mini-stat">
                                     <div class="value">${{ total_pledge_amount|floatformat:0|intcomma }}</div>
-                                    <div class="label">Donation Total</div>
+                                    <div class="label">Donations Total</div>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="mini-stat">
-                                    <div class="value">${{ total_partner_capital|floatformat:0|intcomma }}</div>
-                                    <div class="label">Partner Capital</div>
+                                    <div class="value">${{ total_investment_raised|floatformat:0|intcomma }}</div>
+                                    <div class="label">Ventures Raised</div>
                                 </div>
                             </div>
                         </div>
@@ -497,13 +591,22 @@
                 </div>
             </div>
 
-            <!-- Project Status -->
-            <div class="col-lg-4">
+            <!-- Projects & Ventures -->
+            <div class="col-lg-3">
                 <div class="section-card h-100">
                     <div class="section-header">
-                        <h3><i class="fas fa-tasks"></i> Project Status</h3>
+                        <h3><i class="fas fa-tasks"></i> Projects &amp; Ventures</h3>
                     </div>
                     <div class="section-body">
+                        <div class="mini-stat mb-3">
+                            <div class="value">{{ total_regular_projects }}</div>
+                            <div class="label">Donation Projects</div>
+                        </div>
+                        <div class="mini-stat mb-3">
+                            <div class="value" style="color:#7c3aed;">{{ total_ventures_projects }}</div>
+                            <div class="label">Venture Projects</div>
+                        </div>
+                        <hr>
                         <div class="progress-stat">
                             <div class="progress-header">
                                 <span class="progress-label">Approved</span>
@@ -531,34 +634,195 @@
                                 <div class="progress-bar bg-danger" style="width: {% widthratio projects_by_status.rejected|default:0 total_projects 100 %}%"></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                        <hr class="my-4">
-
-                        <h6 class="text-muted mb-3">Top Funded Projects</h6>
-                        {% for project in top_projects %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-truncate" style="max-width: 180px;">{{ project.title }}</span>
-                            <strong class="text-success">${{ project.amount_raised|floatformat:0|intcomma }}</strong>
+        <!-- ═══════════════════════════════════════════════════════
+             WITHDRAWAL REQUESTS
+             ═══════════════════════════════════════════════════════ -->
+        <div class="row g-4 mb-4">
+            <!-- Founder Withdrawal Requests -->
+            <div class="col-lg-5">
+                <div class="section-card h-100">
+                    <div class="section-header">
+                        <h3><i class="fas fa-money-bill-wave"></i> Founder Withdrawal Requests</h3>
+                        {% if fwr_pending_action %}<span class="badge bg-danger">{{ fwr_pending_action }} need action</span>{% endif %}
+                    </div>
+                    <div class="section-body">
+                        <div class="row g-3 mb-4">
+                            <div class="col-4">
+                                <div class="mini-stat" style="background:#fef3c7;">
+                                    <div class="value" style="color:#d97706;">{{ fwr_pending_count }}</div>
+                                    <div class="label">Pending</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mini-stat" style="background:#dbeafe;">
+                                    <div class="value" style="color:#2563eb;">{{ fwr_approved_count }}</div>
+                                    <div class="label">Approved</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mini-stat" style="background:#d1fae5;">
+                                    <div class="value" style="color:#059669;">{{ fwr_completed_count }}</div>
+                                    <div class="label">Completed</div>
+                                </div>
+                            </div>
                         </div>
-                        {% empty %}
-                        <p class="text-muted small">No funded projects yet</p>
-                        {% endfor %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Total Requested</span>
+                            <strong>${{ fwr_total_requested|floatformat:2|intcomma|default:"0.00" }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Pending (locked)</span>
+                            <strong class="text-warning">${{ fwr_total_pending_amount|floatformat:2|intcomma|default:"0.00" }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="text-muted">Paid Out</span>
+                            <strong class="text-success">${{ fwr_total_paid_out|floatformat:2|intcomma|default:"0.00" }}</strong>
+                        </div>
+                        <a href="{% url 'admin:funding_founderwithdrawalrequest_changelist' %}" class="quick-link">
+                            <i class="fas fa-external-link-alt"></i> Manage Withdrawal Requests
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Incubator & Revenue -->
+            <!-- SRT & Venture Withdrawals -->
             <div class="col-lg-4">
                 <div class="section-card h-100">
                     <div class="section-header">
-                        <h3><i class="fas fa-rocket"></i> Incubator & Revenue</h3>
+                        <h3><i class="fas fa-wallet"></i> SRT &amp; Venture Withdrawals</h3>
                     </div>
                     <div class="section-body">
-                        <div class="row g-3 mb-4">
+                        <h6 class="text-muted mb-3">Partner Token Withdrawals</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total SRT Withdrawn</span>
+                            <strong>{{ srt_total_tokens_withdrawn|floatformat:0|intcomma }} SRT</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Paid (NGN)</span>
+                            <strong>₦{{ srt_total_ngn_withdrawn|floatformat:0|intcomma }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between text-warning mb-4">
+                            <span>Pending</span>
+                            <strong>{{ srt_pending_withdrawals }}</strong>
+                        </div>
+                        <hr>
+                        <h6 class="text-muted mb-3">Venture Token Withdrawals (Founders)</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Paid (NGN)</span>
+                            <strong>₦{{ vtw_completed_ngn|floatformat:0|intcomma }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between text-warning">
+                            <span>Pending</span>
+                            <strong>{{ vtw_pending }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Founder Withdrawals -->
+            <div class="col-lg-3">
+                <div class="section-card h-100">
+                    <div class="section-header">
+                        <h3><i class="fas fa-clock"></i> Recent Requests</h3>
+                    </div>
+                    <div class="section-body" style="padding:16px;">
+                        <ul class="activity-list">
+                            {% for wr in recent_founder_withdrawals %}
+                            <li>
+                                <div class="activity-icon" style="background:#d1fae5; color:#059669;">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">${{ wr.amount_usd|floatformat:0|intcomma }}</div>
+                                    <div class="activity-meta">{{ wr.founder.get_full_name|truncatechars:18 }}</div>
+                                </div>
+                                <div class="activity-time">
+                                    <span class="badge rounded-pill" style="font-size:0.65rem;
+                                        background:{% if wr.status == 'completed' %}#d1fae5; color:#059669{% elif wr.status == 'pending' %}#fef3c7; color:#d97706{% elif wr.status == 'rejected' %}#fee2e2; color:#dc2626{% else %}#dbeafe; color:#2563eb{% endif %};">
+                                        {{ wr.get_status_display }}
+                                    </span>
+                                </div>
+                            </li>
+                            {% empty %}
+                            <li class="text-muted text-center small">No requests yet</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════
+             SRT ANALYTICS
+             ═══════════════════════════════════════════════════════ -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="section-card h-100">
+                    <div class="section-header">
+                        <h3><i class="fas fa-coins"></i> SRT Tokenomics</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="mini-stat mb-3">
+                            <div class="value">{{ srt_total_tokens_in_circulation|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
+                            <div class="label">Tokens in Circulation</div>
+                        </div>
+                        <div class="mini-stat mb-3">
+                            <div class="value">{{ srt_total_tokens_purchased|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
+                            <div class="label">Total Tokens Purchased</div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Token Sales (USD)</span>
+                            <strong class="text-success">${{ srt_total_revenue_usd|floatformat:2|intcomma }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Token Sales (NGN)</span>
+                            <strong class="text-success">₦{{ srt_total_revenue_ngn|floatformat:0|intcomma }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="section-card h-100">
+                    <div class="section-header">
+                        <h3><i class="fas fa-chart-line"></i> SRT Investments</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="mini-stat mb-3">
+                            <div class="value">{{ srt_total_tokens_invested|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
+                            <div class="label">Tokens in Active Investments</div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Active Investments</span><strong>{{ srt_active_investment_count|intcomma }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Investments</span><strong>{{ srt_total_investment_count|intcomma }}</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span>Active Ventures</span>
+                            <strong class="text-success">{{ active_ventures|intcomma }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="section-card h-100">
+                    <div class="section-header">
+                        <h3><i class="fas fa-rocket"></i> Incubator</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <div class="mini-stat">
                                     <div class="value">{{ total_applications }}</div>
-                                    <div class="label">Applications</div>
+                                    <div class="label">Total Applications</div>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -568,39 +832,20 @@
                                 </div>
                             </div>
                         </div>
-
-                        <h6 class="text-muted mb-3">Application Status</h6>
-                        <div class="d-flex flex-wrap gap-2 mb-4">
-                            <span class="status-badge approved">
-                                <i class="fas fa-check"></i> {{ applications_by_status.approved|default:0 }} Approved
-                            </span>
-                            <span class="status-badge pending">
-                                <i class="fas fa-clock"></i> {{ applications_by_status.pending|default:0 }} Pending
-                            </span>
-                            <span class="status-badge rejected">
-                                <i class="fas fa-times"></i> {{ applications_by_status.rejected|default:0 }} Rejected
-                            </span>
-                        </div>
-
-                        <hr class="my-3">
-
-                        <h6 class="text-muted mb-3">Registration Revenue</h6>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>USD Revenue</span>
-                            <strong class="text-success">${{ registration_revenue_usd|floatformat:2|intcomma }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>NGN Revenue</span>
-                            <strong class="text-success">₦{{ registration_revenue_ngn|floatformat:0|intcomma }}</strong>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="status-badge approved"><i class="fas fa-check"></i> {{ applications_by_status.approved|default:0 }} Approved</span>
+                            <span class="status-badge pending"><i class="fas fa-clock"></i> {{ applications_by_status.pending|default:0 }} Pending</span>
+                            <span class="status-badge rejected"><i class="fas fa-times"></i> {{ applications_by_status.rejected|default:0 }} Rejected</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Activity Row -->
+        <!-- ═══════════════════════════════════════════════════════
+             RECENT ACTIVITY
+             ═══════════════════════════════════════════════════════ -->
         <div class="row g-4 mb-4">
-            <!-- Recent Users -->
             <div class="col-lg-4">
                 <div class="section-card">
                     <div class="section-header">
@@ -612,9 +857,7 @@
                         <ul class="activity-list">
                             {% for user in recent_users %}
                             <li>
-                                <div class="activity-icon" style="background: var(--teal-50); color: var(--teal-primary);">
-                                    <i class="fas fa-user"></i>
-                                </div>
+                                <div class="activity-icon" style="background: var(--teal-50); color: var(--teal-primary);"><i class="fas fa-user"></i></div>
                                 <div class="activity-content">
                                     <div class="activity-title">{{ user.get_full_name|default:user.email }}</div>
                                     <div class="activity-meta">{{ user.get_user_type_display }}</div>
@@ -628,8 +871,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Recent Investments -->
             <div class="col-lg-4">
                 <div class="section-card">
                     <div class="section-header">
@@ -640,9 +881,7 @@
                         <ul class="activity-list">
                             {% for inv in recent_investments %}
                             <li>
-                                <div class="activity-icon" style="background: #d1fae5; color: #059669;">
-                                    <i class="fas fa-dollar-sign"></i>
-                                </div>
+                                <div class="activity-icon" style="background:#d1fae5; color:#059669;"><i class="fas fa-dollar-sign"></i></div>
                                 <div class="activity-content">
                                     <div class="activity-title">${{ inv.amount|floatformat:0|intcomma }}</div>
                                     <div class="activity-meta">{{ inv.investor.email|truncatechars:20 }} → {{ inv.project.title|truncatechars:15 }}</div>
@@ -656,8 +895,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Recent Applications -->
             <div class="col-lg-4">
                 <div class="section-card">
                     <div class="section-header">
@@ -668,9 +905,7 @@
                         <ul class="activity-list">
                             {% for app in recent_applications %}
                             <li>
-                                <div class="activity-icon" style="background: #fef3c7; color: #d97706;">
-                                    <i class="fas fa-rocket"></i>
-                                </div>
+                                <div class="activity-icon" style="background:#fef3c7; color:#d97706;"><i class="fas fa-rocket"></i></div>
                                 <div class="activity-content">
                                     <div class="activity-title">{{ app.project }}</div>
                                     <div class="activity-meta">{{ app.applicant_name }}</div>
@@ -686,93 +921,9 @@
             </div>
         </div>
 
-        <!-- SRT Analytics Row -->
-        <div class="row g-4 mb-4">
-            <!-- SRT Tokenomics -->
-            <div class="col-lg-4">
-                <div class="section-card h-100">
-                    <div class="section-header">
-                        <h3><i class="fas fa-coins"></i> SRT Tokenomics</h3>
-                    </div>
-                    <div class="section-body">
-                        <div class="mini-stat mb-3">
-                            <div class="value">{{ srt_total_tokens_in_circulation|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
-                            <div class="label">Total Tokens in Circulation</div>
-                        </div>
-                        <div class="mini-stat mb-3">
-                            <div class="value">{{ srt_total_tokens_purchased|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
-                            <div class="label">Total Tokens Purchased</div>
-                        </div>
-                        <hr>
-                        <h6 class="text-muted mb-3">Total Funds Raised from Tokens</h6>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>USD Revenue</span>
-                            <strong class="text-success">${{ srt_total_revenue_usd|floatformat:2|intcomma }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>NGN Revenue</span>
-                            <strong class="text-success">₦{{ srt_total_revenue_ngn|floatformat:0|intcomma }}</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SRT Investments -->
-            <div class="col-lg-4">
-                <div class="section-card h-100">
-                    <div class="section-header">
-                        <h3><i class="fas fa-chart-line"></i> SRT Investments</h3>
-                    </div>
-                    <div class="section-body">
-                        <div class="mini-stat mb-3">
-                            <div class="value">{{ srt_total_tokens_invested|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
-                            <div class="label">Total Tokens in Active Investments</div>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Active Investments</span>
-                            <strong>{{ srt_active_investment_count|intcomma }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Total Investments (All Time)</span>
-                            <strong>{{ srt_total_investment_count|intcomma }}</strong>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between">
-                            <span>Open for Investment</span>
-                            <strong class="text-success">{{ active_ventures|intcomma }} Ventures</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SRT Withdrawals -->
-            <div class="col-lg-4">
-                <div class="section-card h-100">
-                    <div class="section-header">
-                        <h3><i class="fas fa-wallet"></i> SRT Withdrawals</h3>
-                    </div>
-                    <div class="section-body">
-                        <div class="mini-stat mb-3">
-                            <div class="value">{{ srt_total_tokens_withdrawn|floatformat:0|intcomma }} <span class="fs-6 text-muted">SRT</span></div>
-                            <div class="label">Total Tokens Withdrawn (Completed)</div>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total Withdrawn (NGN)</span>
-                            <strong>₦{{ srt_total_ngn_withdrawn|floatformat:0|intcomma }}</strong>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between text-warning">
-                            <span>Pending Withdrawal Requests</span>
-                            <strong>{{ srt_pending_withdrawals|intcomma }}</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions & Engagement Row -->
+        <!-- ═══════════════════════════════════════════════════════
+             QUICK ACTIONS & ENGAGEMENT
+             ═══════════════════════════════════════════════════════ -->
         <div class="row g-4">
             <div class="col-lg-6">
                 <div class="section-card">
@@ -780,59 +931,58 @@
                         <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
                     </div>
                     <div class="section-body">
-                        <a href="{% url 'admin:index' %}" class="quick-link">
-                            <i class="fas fa-cog"></i>
-                            <span>Admin Panel</span>
+                        <a href="{% url 'admin:index' %}" class="quick-link"><i class="fas fa-cog"></i><span>Admin Panel</span></a>
+                        <a href="{% url 'admin:funding_founderwithdrawalrequest_changelist' %}" class="quick-link" style="{% if fwr_pending_action %}background:#fef3c7;{% endif %}">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Founder Withdrawals {% if fwr_pending_action %}<span class="badge bg-warning text-dark">{{ fwr_pending_action }}</span>{% endif %}</span>
                         </a>
-                        <a href="{% url 'admin:accounts_customuser_changelist' %}" class="quick-link">
-                            <i class="fas fa-users"></i>
-                            <span>Manage Users</span>
-                        </a>
-                        <a href="{% url 'admin:projects_project_changelist' %}" class="quick-link">
-                            <i class="fas fa-project-diagram"></i>
-                            <span>Manage Projects</span>
-                        </a>
-                        <a href="{% url 'admin:incubator_incubatorapplication_changelist' %}" class="quick-link">
-                            <i class="fas fa-rocket"></i>
-                            <span>Review Applications</span>
-                        </a>
-                        <a href="{% url 'admin:cms_contact_changelist' %}" class="quick-link">
-                            <i class="fas fa-envelope"></i>
-                            <span>Contact Messages {% if unread_contacts %}<span class="badge bg-danger">{{ unread_contacts }}</span>{% endif %}</span>
-                        </a>
+                        <a href="{% url 'admin:accounts_customuser_changelist' %}" class="quick-link"><i class="fas fa-users"></i><span>Manage Users</span></a>
+                        <a href="{% url 'admin:projects_project_changelist' %}" class="quick-link"><i class="fas fa-project-diagram"></i><span>Manage Projects</span></a>
+                        <a href="{% url 'admin:incubator_incubatorapplication_changelist' %}" class="quick-link"><i class="fas fa-rocket"></i><span>Review Applications</span></a>
+                        <a href="{% url 'admin:cms_contact_changelist' %}" class="quick-link"><i class="fas fa-envelope"></i><span>Contact Messages</span></a>
                     </div>
                 </div>
             </div>
             <div class="col-lg-6">
                 <div class="section-card">
                     <div class="section-header">
-                        <h3><i class="fas fa-bell"></i> Engagement</h3>
+                        <h3><i class="fas fa-bell"></i> Engagement &amp; Top Projects</h3>
                     </div>
                     <div class="section-body">
-                        <div class="row g-3">
-                            <div class="col-6">
+                        <div class="row g-3 mb-4">
+                            <div class="col-4">
                                 <div class="mini-stat">
                                     <div class="value">{{ newsletter_subscribers }}</div>
                                     <div class="label">Newsletter Subs</div>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-4">
                                 <div class="mini-stat">
                                     <div class="value">{{ total_contacts }}</div>
                                     <div class="label">Contact Messages</div>
                                 </div>
                             </div>
-                            <div class="col-12">
-                                <div class="mini-stat" style="background: {% if unread_contacts > 0 %}#fef2f2{% else %}#f0fdf4{% endif %};">
-                                    <div class="value" style="color: {% if unread_contacts > 0 %}#dc2626{% else %}#16a34a{% endif %};">{{ unread_contacts }}</div>
-                                    <div class="label">Unread Messages</div>
+                            <div class="col-4">
+                                <div class="mini-stat">
+                                    <div class="value">{{ new_users_30d }}</div>
+                                    <div class="label">New Users (30d)</div>
                                 </div>
                             </div>
                         </div>
+                        <h6 class="text-muted mb-3">Top Funded Projects</h6>
+                        {% for project in top_projects %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-truncate" style="max-width:200px; font-size:0.85rem;">{{ project.title }}</span>
+                            <strong class="text-success" style="font-size:0.85rem;">${{ project.amount_raised|floatformat:0|intcomma }}</strong>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted small">No funded projects yet</p>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 {% endblock %}
@@ -852,28 +1002,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 data: registrationData.map(d => d.count),
                 borderColor: '#0d9488',
                 backgroundColor: 'rgba(13, 148, 136, 0.1)',
-                fill: true,
-                tension: 0.4,
+                fill: true, tension: 0.4,
                 pointBackgroundColor: '#0d9488',
                 pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
+                pointBorderWidth: 2, pointRadius: 4,
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1 }
-                },
-                x: {
-                    grid: { display: false }
-                }
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
             }
         }
     });
@@ -887,27 +1027,14 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: userTypeData.map(d => d.type.charAt(0).toUpperCase() + d.type.slice(1)),
             datasets: [{
                 data: userTypeData.map(d => d.count),
-                backgroundColor: [
-                    '#0d9488',
-                    '#3b82f6',
-                    '#f97316',
-                    '#8b5cf6',
-                    '#ec4899',
-                ],
+                backgroundColor: ['#0d9488','#3b82f6','#f97316','#8b5cf6','#ec4899'],
                 borderWidth: 0,
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            responsive: true, maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true,
-                    }
-                }
+                legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } }
             },
             cutout: '65%',
         }
