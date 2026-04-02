@@ -36,10 +36,57 @@
             <h2 class="mb-1 fw-bold"><i class="fas fa-money-bill-wave me-2" style="color: var(--teal-primary);"></i>Withdrawal Requests</h2>
             <p class="text-muted mb-0">Track your investment fund withdrawal requests</p>
         </div>
-        <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-        </a>
+        <div class="d-flex gap-2">
+            {% if venture_projects %}
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newWithdrawalModal">
+                <i class="fas fa-plus me-2"></i>New Request
+            </button>
+            {% endif %}
+            <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
     </div>
+
+    <!-- New Withdrawal Modal -->
+    {% if venture_projects %}
+    <div class="modal fade" id="newWithdrawalModal" tabindex="-1" aria-labelledby="newWithdrawalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--teal-primary), var(--teal-dark)); border-radius: 16px 16px 0 0; border: none;">
+                    <h5 class="modal-title fw-bold text-white" id="newWithdrawalModalLabel">
+                        <i class="fas fa-money-bill-wave me-2"></i>New Withdrawal Request
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted mb-4">Select the venture project you want to withdraw investment funds from.</p>
+                    <div class="d-flex flex-column gap-3">
+                        {% for item in venture_projects %}
+                        <a href="{% url 'funding:founder_withdrawal_request' item.project.id %}"
+                           class="d-flex align-items-center justify-content-between p-3 rounded-3 text-decoration-none"
+                           style="border: 1px solid #e5e7eb; background: #f9fafb; transition: all 0.2s;"
+                           onmouseover="this.style.background='var(--teal-50)';this.style.borderColor='var(--teal-primary)';"
+                           onmouseout="this.style.background='#f9fafb';this.style.borderColor='#e5e7eb';">
+                            <div>
+                                <div class="fw-bold" style="color: #1f2937;">{{ item.project.title }}</div>
+                                <div class="small text-muted mt-1 d-flex flex-wrap gap-3">
+                                    <span><i class="fas fa-hand-holding-usd me-1"></i>${{ item.project.total_investment_raised|floatformat:0|intcomma }} direct</span>
+                                    <span style="color: #7c3aed;"><i class="fas fa-coins me-1"></i>{{ item.project.srt_amount_raised|floatformat:0|intcomma }} SRT ≈ ${{ item.project.srt_raised_usd|floatformat:0|intcomma }}</span>
+                                </div>
+                            </div>
+                            <div class="text-end ms-3 flex-shrink-0">
+                                <div class="fw-bold" style="color: #059669; font-size: 1.05rem;">${{ item.available|floatformat:2|intcomma }}</div>
+                                <div class="small text-muted">available</div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Stats -->
     <div class="row g-3 mb-4">
@@ -178,11 +225,16 @@
             <div class="empty-state">
                 <i class="fas fa-inbox d-block"></i>
                 <h5>No withdrawal requests yet</h5>
-                <p class="text-muted mb-0">
+                <p class="text-muted mb-3">
                     {% if current_status %}No {{ current_status }} requests found.
-                    {% else %}Go to your dashboard and click "Withdraw Funds" on a venture project.
+                    {% else %}Click <strong>New Request</strong> above to withdraw investment funds from one of your ventures.
                     {% endif %}
                 </p>
+                {% if not current_status and venture_projects %}
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newWithdrawalModal">
+                    <i class="fas fa-plus me-2"></i>New Request
+                </button>
+                {% endif %}
             </div>
             {% endif %}
         </div>

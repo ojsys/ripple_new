@@ -54,6 +54,10 @@ def founder_withdrawal_request(request, project_id):
         'available': available,
         'pending_withdrawals': pending_withdrawals,
         'ngn_rate': FounderWithdrawalRequest.NGN_RATE,
+        'direct_investment': project.total_investment_raised,
+        'srt_tokens': project.srt_amount_raised,
+        'srt_usd': project.srt_raised_usd,
+        'total_investment': project.total_investment_raised + project.srt_raised_usd,
     }
     return render(request, 'funding/founder_withdrawal_form.html', context)
 
@@ -94,6 +98,21 @@ def founder_withdrawals(request):
         ).count(),
     }
 
+    # Ventures the founder can withdraw from, with totals precomputed
+    raw_ventures = Project.objects.filter(
+        creator=request.user,
+        listing_type='venture',
+        status='approved',
+    ).order_by('title')
+    venture_projects = [
+        {
+            'project': p,
+            'total': p.total_investment_raised + p.srt_raised_usd,
+            'available': FounderWithdrawalRequest.get_available_amount(p),
+        }
+        for p in raw_ventures
+    ]
+
     paginator = Paginator(withdrawals, 15)
     page = request.GET.get('page', 1)
     withdrawals = paginator.get_page(page)
@@ -102,6 +121,7 @@ def founder_withdrawals(request):
         'withdrawals': withdrawals,
         'stats': stats,
         'current_status': status_filter,
+        'venture_projects': venture_projects,
     }
     return render(request, 'funding/founder_withdrawals.html', context)
 

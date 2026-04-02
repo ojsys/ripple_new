@@ -82,28 +82,41 @@
         </ol>
     </nav>
 
-    <!-- Balance info -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="info-box">
-                <div class="label">Total Investments Raised</div>
-                <div class="value">${{ project.total_investment_raised|floatformat:2|intcomma }}</div>
-                <small class="text-muted">All approved investments</small>
+    <!-- Balance breakdown -->
+    <div class="card-custom p-4 mb-4">
+        <div class="section-title mb-3"><i class="fas fa-chart-pie me-2" style="color: var(--teal-primary);"></i>Investment Breakdown — {{ project.title }}</div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="label">Direct Investment</div>
+                    <div class="value">${{ direct_investment|floatformat:2|intcomma }}</div>
+                    <small class="text-muted">Fiat USD</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="label">SRT Raised</div>
+                    <div class="value" style="color: #7c3aed;">{{ srt_tokens|floatformat:0|intcomma }} SRT</div>
+                    <small class="text-muted">≈ ${{ srt_usd|floatformat:2|intcomma }}</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-box" style="background: #dbeafe; border-color: #bfdbfe;">
+                    <div class="label">Total Investment</div>
+                    <div class="value" style="color: #1e40af;">${{ total_investment|floatformat:2|intcomma }}</div>
+                    <small class="text-muted">Direct + SRT (USD)</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-box" style="background: #d1fae5; border-color: #a7f3d0;">
+                    <div class="label">Available Now</div>
+                    <div class="value" style="color: #059669;">${{ available|floatformat:2|intcomma }}</div>
+                    <small class="text-muted">After pending requests</small>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="info-box">
-                <div class="label">Available for Withdrawal</div>
-                <div class="value" style="color: #059669;">${{ available|floatformat:2|intcomma }}</div>
-                <small class="text-muted">After pending requests</small>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="info-box">
-                <div class="label">NGN Rate</div>
-                <div class="value">₦{{ ngn_rate|intcomma }}</div>
-                <small class="text-muted">Per USD</small>
-            </div>
+        <div class="mt-3 pt-3" style="border-top: 1px solid #e5e7eb;">
+            <span class="text-muted small"><i class="fas fa-info-circle me-1"></i>NGN rate: <strong>₦{{ ngn_rate|intcomma }} / USD</strong>. SRT converted at 1 SRT = ₦2,000 (≈ $1.25).</span>
         </div>
     </div>
 

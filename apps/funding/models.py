@@ -207,12 +207,13 @@ class FounderWithdrawalRequest(models.Model):
 
     @classmethod
     def get_available_amount(cls, project):
-        """USD available = project.total_investment_raised minus amounts in active requests."""
+        """USD available = (direct investments + SRT converted to USD) minus amounts in active requests."""
+        total_raised = project.total_investment_raised + project.srt_raised_usd
         locked = cls.objects.filter(
             project=project,
             status__in=['pending', 'approved', 'processing']
         ).aggregate(total=Sum('amount_usd'))['total'] or Decimal('0')
-        return max(Decimal('0'), project.total_investment_raised - locked)
+        return max(Decimal('0'), total_raised - locked)
 
     def approve(self, admin_user):
         if self.status != 'pending':
