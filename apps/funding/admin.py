@@ -110,20 +110,26 @@ class FounderWithdrawalRequestAdmin(admin.ModelAdmin):
         'founder__email', 'founder__first_name', 'founder__last_name',
         'project__title', 'reference', 'account_number', 'account_name'
     ]
-    readonly_fields = ['reference', 'amount_ngn', 'created_at', 'processed_at', 'completed_at']
+    readonly_fields = [
+        'reference', 'amount_ngn', 'created_at', 'processed_at', 'completed_at',
+        'paystack_recipient_code', 'paystack_transfer_code', 'transfer_initiated_at',
+    ]
     raw_id_fields = ['founder', 'project', 'processed_by']
     date_hierarchy = 'created_at'
-    actions = ['mark_approved', 'mark_processing', 'mark_completed', 'mark_rejected']
+    actions = ['mark_approved', 'initiate_paystack_transfer', 'mark_completed', 'mark_rejected']
 
     fieldsets = (
         ('Request Details', {
             'fields': ('reference', 'founder', 'project', 'amount_usd', 'amount_ngn', 'notes')
         }),
         ('Bank Account', {
-            'fields': ('bank_name', 'account_number', 'account_name')
+            'fields': ('bank_name', 'bank_code', 'account_number', 'account_name')
         }),
         ('Status & Processing', {
             'fields': ('status', 'admin_notes', 'payment_reference', 'processed_by')
+        }),
+        ('Paystack Transfer', {
+            'fields': ('paystack_recipient_code', 'paystack_transfer_code', 'transfer_initiated_at'),
         }),
         ('Timestamps', {
             'fields': ('created_at', 'processed_at', 'completed_at'),
@@ -163,16 +169,24 @@ class FounderWithdrawalRequestAdmin(admin.ModelAdmin):
         self.message_user(request, f"{count} withdrawal request(s) approved.")
     mark_approved.short_description = "Approve selected withdrawal requests"
 
-    def mark_processing(self, request, queryset):
-        count = 0
+    def initiate_paystack_transfer(self, request, queryset):
+        from .paystack_transfer import process_withdrawal
+        success_count = 0
+        fail_msgs = []
         for wr in queryset.filter(status='approved'):
-            wr.status = 'processing'
-            wr.processed_by = request.user
-            wr.processed_at = timezone.now()
-            wr.save()
-            count += 1
-        self.message_user(request, f"{count} withdrawal request(s) marked as processing.")
-    mark_processing.short_description = "Mark selected as Processing (transfer initiated)"
+            ok, msg = process_withdrawal(wr)
+            if ok:
+                wr.processed_by = request.user
+                wr.processed_at = timezone.now()
+                wr.save(update_fields=['processed_by', 'processed_at'])
+                success_count += 1
+            else:
+                fail_msgs.append(f"{wr.reference}: {msg}")
+        if success_count:
+            self.message_user(request, f"{success_count} transfer(s) initiated via Paystack.")
+        for msg in fail_msgs:
+            self.message_user(request, msg, level='ERROR')
+    initiate_paystack_transfer.short_description = "Initiate Paystack transfer for approved requests"
 
     def mark_completed(self, request, queryset):
         count = 0

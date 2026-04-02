@@ -170,6 +170,7 @@ class FounderWithdrawalRequest(models.Model):
 
     # Bank account details
     bank_name = models.CharField(max_length=200, help_text="Recipient bank name")
+    bank_code = models.CharField(max_length=20, blank=True, help_text="Paystack bank code e.g. 058 for GTBank")
     account_number = models.CharField(max_length=20)
     account_name = models.CharField(max_length=200, help_text="Account holder name")
 
@@ -186,6 +187,11 @@ class FounderWithdrawalRequest(models.Model):
         related_name='processed_founder_withdrawals'
     )
     payment_reference = models.CharField(max_length=100, blank=True)
+
+    # Paystack transfer tracking
+    paystack_recipient_code = models.CharField(max_length=100, blank=True, help_text="Paystack transfer recipient code")
+    paystack_transfer_code = models.CharField(max_length=100, blank=True, help_text="Paystack transfer code")
+    transfer_initiated_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     processed_at = models.DateTimeField(null=True, blank=True)

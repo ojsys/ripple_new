@@ -236,6 +236,7 @@
                     <div class="col-md-12">
                         <label for="{{ form.bank_name.id_for_label }}" class="form-label">Bank Name</label>
                         {{ form.bank_name }}
+                        {{ form.bank_code }}
                         {% if form.bank_name.errors %}
                             <div class="text-danger small mt-1">{{ form.bank_name.errors.0 }}</div>
                         {% endif %}
