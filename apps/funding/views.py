@@ -41,16 +41,25 @@ def founder_withdrawal_request(request, project_id):
     if request.method == 'POST':
         form = FounderWithdrawalForm(request.POST, project=project)
         if form.is_valid():
-            withdrawal = form.save(commit=False)
-            withdrawal.project = project
-            withdrawal.founder = request.user
-            withdrawal.save()
-            messages.success(
-                request,
-                f'Withdrawal request for ${withdrawal.amount_usd:,.2f} submitted successfully! '
-                f'You will receive ₦{withdrawal.amount_ngn:,.2f} once approved and processed.'
-            )
-            return redirect('funding:founder_withdrawal_detail', reference=withdrawal.reference)
+            try:
+                withdrawal = form.save(commit=False)
+                withdrawal.project = project
+                withdrawal.founder = request.user
+                withdrawal.save()
+                messages.success(
+                    request,
+                    f'Withdrawal request for ${withdrawal.amount_usd:,.2f} submitted successfully! '
+                    f'You will receive ₦{withdrawal.amount_ngn:,.2f} once approved and processed.'
+                )
+                return redirect('funding:founder_withdrawal_detail', reference=withdrawal.reference)
+            except Exception as e:
+                messages.error(request, f'Could not save withdrawal request: {e}')
+        else:
+            # Surface form errors as messages so they're visible even if the
+            # template's inline error display is missed
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}' if field != '__all__' else error)
     else:
         form = FounderWithdrawalForm(project=project)
 

@@ -128,7 +128,6 @@ def platform_fee_summary():
 
     direct_investments = Investment.objects.filter(
         status__in=COUNTING_STATUSES,
-        payment_status='paid',
     )
 
     try:
@@ -203,7 +202,6 @@ def summarise_project_fees(project):
     direct_investments = Investment.objects.filter(
         project=project,
         status__in=COUNTING_STATUSES,
-        payment_status='paid',
     )
 
     # SRT investments linked to this project
