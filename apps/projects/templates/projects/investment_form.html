@@ -132,7 +132,7 @@
                         </ol>
                     </div>
 
-                    <form method="post">
+                    <form method="post" id="investmentForm">
                         {% csrf_token %}
                         {{ form|crispy }}
 
@@ -157,8 +157,10 @@
                             </div>
                         </div>
 
+                        <div id="formError" class="alert alert-danger mt-3 d-none"></div>
+
                         <div class="d-flex gap-2 mt-4">
-                            <button type="submit" class="btn btn-lg text-white" style="background: #2563eb; border-radius: 100px; padding: 12px 32px;">
+                            <button type="submit" id="payBtn" class="btn btn-lg text-white" style="background: #2563eb; border-radius: 100px; padding: 12px 32px;">
                                 <i class="fas fa-lock me-2"></i>Proceed to Payment
                             </button>
                             <a href="{% url 'projects:project_detail' project.slug %}" class="btn btn-outline-secondary" style="border-radius: 100px; padding: 12px 24px;">
@@ -285,22 +287,14 @@
 <script>
 (function () {
     const NGN_RATE = 1600;
-    const PS_RATE = 0.015;
-    const PS_FLAT = 100;
-    const PS_THRESHOLD = 2500;
-    const PS_CAP = 2000;
+    const PS_RATE = 0.015, PS_FLAT = 100, PS_THRESHOLD = 2500, PS_CAP = 2000;
 
     function grossUp(netNgn) {
-        let charged;
         const chargedNoFlat = netNgn / (1 - PS_RATE);
-        if (chargedNoFlat < PS_THRESHOLD) {
-            charged = chargedNoFlat;
-        } else {
-            const chargedWithFlat = (netNgn + PS_FLAT) / (1 - PS_RATE);
-            const fee = PS_RATE * chargedWithFlat + PS_FLAT;
-            charged = fee > PS_CAP ? netNgn + PS_CAP : chargedWithFlat;
-        }
-        return Math.ceil(charged);
+        if (chargedNoFlat < PS_THRESHOLD) return Math.ceil(chargedNoFlat);
+        const chargedWithFlat = (netNgn + PS_FLAT) / (1 - PS_RATE);
+        const fee = PS_RATE * chargedWithFlat + PS_FLAT;
+        return Math.ceil(fee > PS_CAP ? netNgn + PS_CAP : chargedWithFlat);
     }
 
     function fmt(ngn) {
@@ -309,19 +303,61 @@
 
     const amountInput = document.getElementById('id_amount');
     const breakdown = document.getElementById('feeBreakdown');
-    if (!amountInput || !breakdown) return;
+    if (amountInput && breakdown) {
+        amountInput.addEventListener('input', function () {
+            const usd = parseFloat(this.value);
+            if (isNaN(usd) || usd <= 0) { breakdown.style.display = 'none'; return; }
+            const netNgn = usd * NGN_RATE;
+            const chargedNgn = grossUp(netNgn);
+            document.getElementById('feeInvestment').textContent = fmt(netNgn);
+            document.getElementById('feeProcessing').textContent = '+' + fmt(chargedNgn - netNgn);
+            document.getElementById('feeTotal').textContent = fmt(chargedNgn);
+            breakdown.style.display = 'block';
+        });
+    }
 
-    amountInput.addEventListener('input', function () {
-        const usd = parseFloat(this.value);
-        if (isNaN(usd) || usd <= 0) { breakdown.style.display = 'none'; return; }
-        const netNgn = usd * NGN_RATE;
-        const chargedNgn = grossUp(netNgn);
-        const processingFee = chargedNgn - netNgn;
+    // Paystack inline popup
+    const form = document.getElementById('investmentForm');
+    const payBtn = document.getElementById('payBtn');
+    const formError = document.getElementById('formError');
+    const callbackUrl = '{% url "projects:investment_payment_callback" %}';
 
-        document.getElementById('feeInvestment').textContent = fmt(netNgn);
-        document.getElementById('feeProcessing').textContent = '+' + fmt(processingFee);
-        document.getElementById('feeTotal').textContent = fmt(chargedNgn);
-        breakdown.style.display = 'block';
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        payBtn.disabled = true;
+        payBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        formError.classList.add('d-none');
+
+        fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                formError.textContent = data.error;
+                formError.classList.remove('d-none');
+                payBtn.disabled = false;
+                payBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+                return;
+            }
+            PaystackPop.resumeTransaction(data.access_code, {
+                onSuccess: function (transaction) {
+                    window.location.href = callbackUrl + '?reference=' + transaction.reference;
+                },
+                onCancel: function () {
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+                },
+            });
+        })
+        .catch(() => {
+            formError.textContent = 'An unexpected error occurred. Please try again.';
+            formError.classList.remove('d-none');
+            payBtn.disabled = false;
+            payBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+        });
     });
 })();
 </script>

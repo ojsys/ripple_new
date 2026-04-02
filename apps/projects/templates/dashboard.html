@@ -705,6 +705,24 @@
                     <p>Avg. Funded</p>
                 </div>
             </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(220, 38, 38, 0.1);">
+                    <i class="fas fa-arrow-circle-up" style="color: #dc2626;"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>${{ total_withdrawn_usd|floatformat:0|intcomma|default:0 }}</h3>
+                    <p>Total Withdrawn</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(5, 150, 105, 0.1);">
+                    <i class="fas fa-wallet" style="color: #059669;"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 style="color: #059669;">${{ total_available_usd|floatformat:0|intcomma|default:0 }}</h3>
+                    <p>Available Balance</p>
+                </div>
+            </div>
         </div>
 
         <!-- Founder Projects -->

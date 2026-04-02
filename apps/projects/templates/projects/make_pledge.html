@@ -206,7 +206,7 @@
                     </div>
                     {% endif %}
 
-                    <form method="post">
+                    <form method="post" id="pledgeForm">
                         {% csrf_token %}
                         {{ form|crispy }}
 
@@ -231,8 +231,10 @@
                             </div>
                         </div>
 
+                        <div id="formError" class="alert alert-danger mt-3 d-none"></div>
+
                         <div class="d-flex gap-3 mt-4 pt-2">
-                            <button type="submit" class="btn btn-pledge btn-lg">
+                            <button type="submit" id="payBtn" class="btn btn-pledge btn-lg">
                                 <i class="fas fa-lock me-2"></i>Continue to Payment
                             </button>
                             <a href="{% url 'projects:project_detail' project.slug %}" class="btn btn-cancel">
@@ -324,19 +326,61 @@
 
     const amountInput = document.getElementById('id_amount');
     const breakdown = document.getElementById('feeBreakdown');
-    if (!amountInput || !breakdown) return;
+    if (amountInput && breakdown) {
+        amountInput.addEventListener('input', function () {
+            const usd = parseFloat(this.value);
+            if (isNaN(usd) || usd <= 0) { breakdown.style.display = 'none'; return; }
+            const netNgn = usd * NGN_RATE;
+            const chargedNgn = grossUp(netNgn);
+            document.getElementById('feeDonation').textContent = fmt(netNgn);
+            document.getElementById('feeProcessing').textContent = '+' + fmt(chargedNgn - netNgn);
+            document.getElementById('feeTotal').textContent = fmt(chargedNgn);
+            breakdown.style.display = 'block';
+        });
+    }
 
-    amountInput.addEventListener('input', function () {
-        const usd = parseFloat(this.value);
-        if (isNaN(usd) || usd <= 0) { breakdown.style.display = 'none'; return; }
-        const netNgn = usd * NGN_RATE;
-        const chargedNgn = grossUp(netNgn);
-        const processingFee = chargedNgn - netNgn;
+    // Paystack inline popup
+    const form = document.getElementById('pledgeForm');
+    const payBtn = document.getElementById('payBtn');
+    const formError = document.getElementById('formError');
+    const callbackUrl = '{% url "projects:donation_callback" %}';
 
-        document.getElementById('feeDonation').textContent = fmt(netNgn);
-        document.getElementById('feeProcessing').textContent = '+' + fmt(processingFee);
-        document.getElementById('feeTotal').textContent = fmt(chargedNgn);
-        breakdown.style.display = 'block';
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        payBtn.disabled = true;
+        payBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        formError.classList.add('d-none');
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                formError.textContent = data.error;
+                formError.classList.remove('d-none');
+                payBtn.disabled = false;
+                payBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Continue to Payment';
+                return;
+            }
+            PaystackPop.resumeTransaction(data.access_code, {
+                onSuccess: function (transaction) {
+                    window.location.href = callbackUrl + '?reference=' + transaction.reference;
+                },
+                onCancel: function () {
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Continue to Payment';
+                },
+            });
+        })
+        .catch(() => {
+            formError.textContent = 'An unexpected error occurred. Please try again.';
+            formError.classList.remove('d-none');
+            payBtn.disabled = false;
+            payBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Continue to Payment';
+        });
     });
 })();
 </script>

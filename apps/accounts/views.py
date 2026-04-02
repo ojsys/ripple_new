@@ -556,7 +556,9 @@ def dashboard(request):
     if user.user_type == 'founder':
         # Founder-specific context
         from apps.funding.models import FounderWithdrawalRequest
+        from apps.funding.fees import summarise_project_fees
         from decimal import Decimal
+        from django.db.models import Sum
         created_projects = Project.objects.filter(creator=user).order_by('-created_at')
         # Evaluate the queryset once, then compute all aggregates from the list
         created_projects_list = list(created_projects)
@@ -571,6 +573,20 @@ def dashboard(request):
             }
             for p in created_projects_list
         ]
+
+        # Withdrawal stats across all founder's projects
+        total_withdrawn_usd = FounderWithdrawalRequest.objects.filter(
+            founder=user, status='completed'
+        ).aggregate(total=Sum('amount_usd'))['total'] or Decimal('0')
+
+        # Net available balance = sum of net totals across all ventures minus locked/completed withdrawals
+        venture_projects = [p for p in created_projects_list if p.listing_type == 'venture' and p.status == 'approved']
+        total_net_usd = sum(summarise_project_fees(p)['net_total_usd'] for p in venture_projects)
+        locked_usd = FounderWithdrawalRequest.objects.filter(
+            founder=user, status__in=['pending', 'approved', 'processing']
+        ).aggregate(total=Sum('amount_usd'))['total'] or Decimal('0')
+        total_available_usd = max(Decimal('0'), total_net_usd - locked_usd - total_withdrawn_usd)
+
         context.update({
             'created_projects': created_projects,
             'projects_with_totals': projects_with_totals,
@@ -582,6 +598,8 @@ def dashboard(request):
             'total_srt': total_srt,
             'total_srt_usd': total_srt_usd,
             'avg_funding': sum(p.get_percent_funded() for p in created_projects_list) / len(created_projects_list) if created_projects_list else 0,
+            'total_withdrawn_usd': total_withdrawn_usd,
+            'total_available_usd': total_available_usd,
         })
 
     if user.user_type in ['investor', 'donor']:
@@ -683,24 +701,34 @@ def initialize_registration_payment(request):
 
             response = requests.post(url, headers=headers, json=data)
 
+            from django.http import JsonResponse as _JR
+            is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
             if response.status_code == 200:
                 response_data = response.json()
                 if response_data['status']:
-                    authorization_url = response_data['data']['authorization_url']
-                    return redirect(authorization_url)
+                    if is_ajax:
+                        return _JR({
+                            'access_code': response_data['data']['access_code'],
+                            'reference': pending_registration.paystack_reference,
+                        })
+                    return redirect(response_data['data']['authorization_url'])
                 else:
-                    # Log the actual error from Paystack
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.error(f"Paystack error: {response_data.get('message', 'Unknown error')}")
-                    messages.error(request, f"Payment failed: {response_data.get('message', 'Unknown error')}")
+                    err = response_data.get('message', 'Unknown error')
+                    if is_ajax:
+                        return _JR({'error': f'Payment failed: {err}'}, status=400)
+                    messages.error(request, f"Payment failed: {err}")
                     return redirect('accounts:registration_payment')
             else:
-                # Log HTTP error
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.error(f"Paystack HTTP error {response.status_code}: {response.text}")
-                messages.error(request, f"Payment service error. Status: {response.status_code}")
+                err = f"Payment service error. Status: {response.status_code}"
+                if is_ajax:
+                    return _JR({'error': err}, status=400)
+                messages.error(request, err)
             return redirect('accounts:registration_payment')
 
         except PendingRegistration.DoesNotExist:

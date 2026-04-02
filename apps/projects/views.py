@@ -454,33 +454,53 @@ def make_pledge(request, project_id):
                     timeout=30
                 )
 
+                is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
                 if response.status_code == 200:
                     result = response.json()
                     if result.get('status'):
+                        if is_ajax:
+                            from django.http import JsonResponse as _JR
+                            return _JR({
+                                'access_code': result['data']['access_code'],
+                                'reference': reference,
+                            })
                         return redirect(result['data']['authorization_url'])
                     else:
                         payment_attempt.status = 'failed'
                         payment_attempt.error_message = result.get('message', 'Unknown error')
                         payment_attempt.save()
-                        messages.error(request, f'Payment error: {result.get("message", "Unknown error")}')
+                        err = result.get('message', 'Unknown error')
+                        if is_ajax:
+                            from django.http import JsonResponse as _JR
+                            return _JR({'error': err}, status=400)
+                        messages.error(request, f'Payment error: {err}')
                 else:
                     result = response.json() if response.text else {}
                     error_msg = result.get('message', f'Status {response.status_code}')
                     payment_attempt.status = 'failed'
                     payment_attempt.error_message = error_msg
                     payment_attempt.save()
+                    if is_ajax:
+                        from django.http import JsonResponse as _JR
+                        return _JR({'error': error_msg}, status=400)
                     messages.error(request, f'Payment service error: {error_msg}')
 
             except requests.exceptions.Timeout:
                 payment_attempt.status = 'failed'
                 payment_attempt.error_message = 'Payment service timed out'
                 payment_attempt.save()
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    from django.http import JsonResponse as _JR
+                    return _JR({'error': 'Payment service timed out. Please try again.'}, status=500)
                 messages.error(request, 'Payment service timed out. Please try again.')
             except requests.exceptions.RequestException as e:
                 payment_attempt.status = 'failed'
                 payment_attempt.error_message = str(e)
                 payment_attempt.save()
-                messages.error(request, f'Connection error. Please try again.')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    from django.http import JsonResponse as _JR
+                    return _JR({'error': 'Connection error. Please try again.'}, status=500)
+                messages.error(request, 'Connection error. Please try again.')
     else:
         form = DonationForm(project=project, initial=initial_data)
 
@@ -636,26 +656,47 @@ def investment_proposal(request, project_id):
                     headers=headers,
                     timeout=30,
                 )
+                is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
                 if response.status_code == 200:
                     result = response.json()
                     if result.get('status'):
+                        if is_ajax:
+                            from django.http import JsonResponse as _JR
+                            return _JR({
+                                'access_code': result['data']['access_code'],
+                                'reference': reference,
+                            })
                         return redirect(result['data']['authorization_url'])
                     else:
                         investment.status = 'failed'
                         investment.save()
-                        messages.error(request, f'Payment error: {result.get("message", "Unknown error")}')
+                        err = result.get('message', 'Unknown error')
+                        if is_ajax:
+                            from django.http import JsonResponse as _JR
+                            return _JR({'error': err}, status=400)
+                        messages.error(request, f'Payment error: {err}')
                 else:
                     investment.status = 'failed'
                     investment.save()
                     result = response.json() if response.text else {}
-                    messages.error(request, f'Payment service error: {result.get("message", f"Status {response.status_code}")}')
+                    err = result.get('message', f'Status {response.status_code}')
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        from django.http import JsonResponse as _JR
+                        return _JR({'error': err}, status=400)
+                    messages.error(request, f'Payment service error: {err}')
             except requests.exceptions.Timeout:
                 investment.status = 'failed'
                 investment.save()
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    from django.http import JsonResponse as _JR
+                    return _JR({'error': 'Payment service timed out. Please try again.'}, status=500)
                 messages.error(request, 'Payment service timed out. Please try again.')
-            except requests.exceptions.RequestException as e:
+            except requests.exceptions.RequestException:
                 investment.status = 'failed'
                 investment.save()
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    from django.http import JsonResponse as _JR
+                    return _JR({'error': 'Connection error. Please try again.'}, status=500)
                 messages.error(request, 'Connection error. Please try again.')
     else:
         form = InvestmentForm(project=project)

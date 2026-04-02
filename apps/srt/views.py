@@ -318,6 +318,7 @@ def initialize_token_purchase(request):
         if result.get('status'):
             return JsonResponse({
                 'authorization_url': result['data']['authorization_url'],
+                'access_code': result['data']['access_code'],
                 'reference': reference
             })
         else:

@@ -365,28 +365,37 @@
         this.disabled = true;
         this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
 
+        const btn = this;
         fetch('{% url "srt:initialize_purchase" %}', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest',
             }
         })
         .then(response => response.json())
         .then(data => {
-            if (data.authorization_url) {
-                window.location.href = data.authorization_url;
+            if (data.access_code) {
+                PaystackPop.resumeTransaction(data.access_code, {
+                    onSuccess: function (transaction) {
+                        window.location.href = '/srt/token-purchase-callback/?reference=' + transaction.reference;
+                    },
+                    onCancel: function () {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+                    },
+                });
             } else if (data.error) {
                 alert(data.error);
-                this.disabled = false;
-                this.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
+        .catch(() => {
             alert('An error occurred. Please try again.');
-            this.disabled = false;
-            this.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
         });
     });
 </script>
