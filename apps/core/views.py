@@ -2,7 +2,7 @@
 Core views including superadmin analytics dashboard.
 """
 import json
-from datetime import timedelta
+from datetime import timedelta, datetime
 from decimal import Decimal
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
@@ -51,14 +51,29 @@ def analytics_dashboard(request):
 
     verified_users = CustomUser.objects.filter(email_verified=True).count() if hasattr(CustomUser, 'email_verified') else 0
 
+    # Date range filter for user registrations chart
+    reg_from_str = request.GET.get('reg_from', '')
+    reg_to_str   = request.GET.get('reg_to', '')
+    try:
+        reg_from_date = timezone.make_aware(datetime.strptime(reg_from_str, '%Y-%m-%d')) if reg_from_str else thirty_days_ago
+    except ValueError:
+        reg_from_date = thirty_days_ago
+    try:
+        reg_to_date = timezone.make_aware(datetime.strptime(reg_to_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59)) if reg_to_str else now
+    except ValueError:
+        reg_to_date = now
+
     user_registrations = (
         CustomUser.objects
-        .filter(date_joined__gte=thirty_days_ago)
+        .filter(date_joined__gte=reg_from_date, date_joined__lte=reg_to_date)
         .annotate(date=TruncDate('date_joined'))
         .values('date')
         .annotate(count=Count('id'))
         .order_by('date')
     )
+    reg_filtered_count = CustomUser.objects.filter(
+        date_joined__gte=reg_from_date, date_joined__lte=reg_to_date
+    ).count()
 
     # ============================================================
     # PROJECT / VENTURE STATISTICS
@@ -271,6 +286,11 @@ def analytics_dashboard(request):
         'investors_count':    total_investors_count,
         'donors_count':       users_by_type_dict.get('donor', 0),
         'partners_count':     users_by_type_dict.get('partner', 0),
+
+        # Registration chart filter
+        'reg_from':           reg_from_str or reg_from_date.strftime('%Y-%m-%d'),
+        'reg_to':             reg_to_str or reg_to_date.strftime('%Y-%m-%d'),
+        'reg_filtered_count': reg_filtered_count,
 
         # Projects
         'total_projects':           total_projects,

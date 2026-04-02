@@ -463,10 +463,36 @@
         <div class="row g-4 mb-4">
             <div class="col-lg-8">
                 <div class="section-card">
-                    <div class="section-header">
-                        <h3><i class="fas fa-chart-area"></i> User Registrations (Last 30 Days)</h3>
+                    <div class="section-header" style="flex-wrap:wrap; gap:10px;">
+                        <h3><i class="fas fa-chart-area"></i> User Registrations</h3>
+                        <form method="get" id="regFilterForm" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <!-- preserve other GET params -->
+                            {% for key, value in request.GET.items %}
+                                {% if key != 'reg_from' and key != 'reg_to' %}
+                                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                                {% endif %}
+                            {% endfor %}
+                            <label style="font-size:0.78rem; color:#6b7280; margin:0;">From</label>
+                            <input type="date" name="reg_from" value="{{ reg_from }}"
+                                   style="font-size:0.8rem; padding:4px 8px; border:1px solid #d1d5db; border-radius:6px; color:#374151;">
+                            <label style="font-size:0.78rem; color:#6b7280; margin:0;">To</label>
+                            <input type="date" name="reg_to" value="{{ reg_to }}"
+                                   style="font-size:0.8rem; padding:4px 8px; border:1px solid #d1d5db; border-radius:6px; color:#374151;">
+                            <button type="submit"
+                                    style="font-size:0.8rem; padding:4px 12px; background:var(--teal-primary); color:white; border:none; border-radius:6px; cursor:pointer;">
+                                Apply
+                            </button>
+                            <a href="{% url 'core:analytics_dashboard' %}"
+                               style="font-size:0.78rem; color:#6b7280; text-decoration:none; padding:4px 8px; border:1px solid #d1d5db; border-radius:6px;">
+                                Reset
+                            </a>
+                        </form>
                     </div>
                     <div class="section-body">
+                        <div style="font-size:0.82rem; color:#6b7280; margin-bottom:10px;">
+                            <strong style="color:#0d9488;">{{ reg_filtered_count }}</strong> registrations from
+                            <strong>{{ reg_from }}</strong> to <strong>{{ reg_to }}</strong>
+                        </div>
                         <div class="chart-container"><canvas id="registrationChart"></canvas></div>
                     </div>
                 </div>
