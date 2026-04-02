@@ -407,9 +407,11 @@
             <div class="col-lg-3 col-md-6">
                 <div class="stat-card">
                     <div class="stat-icon green"><i class="fas fa-hand-holding-usd"></i></div>
-                    <div class="stat-value">${{ total_investment_amount|floatformat:0|intcomma }}</div>
-                    <div class="stat-label">Total Investments</div>
-                    <div class="stat-change positive"><i class="fas fa-arrow-up"></i> ${{ investments_30d_amount|floatformat:0|intcomma }} this month</div>
+                    <div class="stat-value">${{ gross_investment_usd|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Total Investments (Direct + SRT)</div>
+                    <div class="stat-change positive" style="font-size:0.72rem;">
+                        Direct ${{ gross_direct_usd|floatformat:0|intcomma }} &middot; SRT ${{ gross_srt_usd|floatformat:0|intcomma }}
+                    </div>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -561,11 +563,35 @@
                             </div>
                         </div>
                         <hr class="my-3">
+                        <!-- Combined investment total -->
+                        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 14px; margin-bottom:12px;">
+                            <div style="font-size:0.75rem; color:#6b7280; margin-bottom:2px;">Total Invested (Direct + SRT)</div>
+                            <div style="font-size:1.35rem; font-weight:700; color:#059669;">${{ gross_investment_usd|floatformat:0|intcomma }}</div>
+                            <div style="font-size:0.72rem; color:#6b7280; margin-top:2px;">₦{{ gross_investment_ngn|floatformat:0|intcomma }}</div>
+                        </div>
                         <div class="row g-3">
                             <div class="col-6">
                                 <div class="mini-stat">
                                     <div class="value">{{ total_investments }}</div>
                                     <div class="label">Direct Investments</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">${{ gross_direct_usd|floatformat:0|intcomma }}</div>
+                                    <div class="label">Direct Amount</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">{{ srt_total_investment_count }}</div>
+                                    <div class="label">SRT Investments</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <div class="value">${{ gross_srt_usd|floatformat:0|intcomma }}</div>
+                                    <div class="label">SRT Amount</div>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -578,12 +604,6 @@
                                 <div class="mini-stat">
                                     <div class="value">${{ total_pledge_amount|floatformat:0|intcomma }}</div>
                                     <div class="label">Donations Total</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="mini-stat">
-                                    <div class="value">${{ total_investment_raised|floatformat:0|intcomma }}</div>
-                                    <div class="label">Ventures Raised</div>
                                 </div>
                             </div>
                         </div>

@@ -36,6 +36,16 @@ def analytics_dashboard(request):
     users_by_type    = CustomUser.objects.values('user_type').annotate(count=Count('id'))
     users_by_type_dict = {item['user_type']: item['count'] for item in users_by_type}
 
+    # Investors: users with user_type='investor' PLUS unique SRT partners who have invested
+    direct_investor_ids = set(
+        Investment.objects.values_list('investor_id', flat=True).distinct()
+    )
+    srt_investor_ids = set(
+        VentureInvestment.objects.values_list('partner_id', flat=True).distinct()
+    )
+    all_investor_ids = direct_investor_ids | srt_investor_ids
+    total_investors_count = len(all_investor_ids)
+
     new_users_30d = CustomUser.objects.filter(date_joined__gte=thirty_days_ago).count()
     new_users_7d  = CustomUser.objects.filter(date_joined__gte=seven_days_ago).count()
 
@@ -258,7 +268,7 @@ def analytics_dashboard(request):
         'new_users_30d':      new_users_30d,
         'new_users_7d':       new_users_7d,
         'founders_count':     users_by_type_dict.get('founder', 0),
-        'investors_count':    users_by_type_dict.get('investor', 0),
+        'investors_count':    total_investors_count,
         'donors_count':       users_by_type_dict.get('donor', 0),
         'partners_count':     users_by_type_dict.get('partner', 0),
 
@@ -332,6 +342,10 @@ def analytics_dashboard(request):
         'fee_transactions':             fee_data['total_transactions'],
         'gross_investment_ngn':         fee_data['gross_total_ngn'],
         'gross_investment_usd':         fee_data['gross_total_usd'],
+        'gross_direct_usd':             fee_data['gross_direct_usd'],
+        'gross_srt_usd':                fee_data['gross_srt_usd'],
+        'gross_direct_ngn':             fee_data['gross_direct_ngn'],
+        'gross_srt_ngn':                fee_data['gross_srt_ngn'],
 
         # Incubator
         'total_applications':        total_applications,
