@@ -203,8 +203,8 @@ def analytics_dashboard(request):
     fee_data = platform_fee_summary()
     admin_fee_ngn_total     = fee_data['admin_fees_ngn']
     admin_fee_usd_total     = fee_data['admin_fees_usd']
-    processing_fee_ngn_total = fee_data['paystack_fees_ngn']
-    processing_fee_usd_total = fee_data['paystack_fees_usd']
+    processing_fee_ngn_total = Decimal('0')
+    processing_fee_usd_total = Decimal('0')
 
     # Total platform revenue = registration fees + admin fees from investments
     total_platform_revenue_ngn = admin_fee_ngn_total + Decimal(str(reg_revenue_ngn))
