@@ -38,13 +38,21 @@ def founder_withdrawal_request(request, project_id):
         status__in=['pending', 'approved', 'processing']
     )
 
+    from .paystack_transfer import fetch_banks
+    banks = fetch_banks()  # [(code, name), ...] from Paystack API, cached 24h
+
     if request.method == 'POST':
-        form = FounderWithdrawalForm(request.POST, project=project)
+        form = FounderWithdrawalForm(request.POST, project=project, banks=banks)
         if form.is_valid():
             try:
                 withdrawal = form.save(commit=False)
                 withdrawal.project = project
                 withdrawal.founder = request.user
+                # bank_name currently holds the bank code (choice value) — resolve it
+                selected_code = withdrawal.bank_name
+                bank_display = dict(banks).get(selected_code, selected_code)
+                withdrawal.bank_name = bank_display
+                withdrawal.bank_code = selected_code
                 withdrawal.save()
                 messages.success(
                     request,
@@ -55,13 +63,11 @@ def founder_withdrawal_request(request, project_id):
             except Exception as e:
                 messages.error(request, f'Could not save withdrawal request: {e}')
         else:
-            # Surface form errors as messages so they're visible even if the
-            # template's inline error display is missed
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f'{field}: {error}' if field != '__all__' else error)
     else:
-        form = FounderWithdrawalForm(project=project)
+        form = FounderWithdrawalForm(project=project, banks=banks)
 
     context = {
         'project': project,

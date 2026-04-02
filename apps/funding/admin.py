@@ -103,7 +103,7 @@ class PledgeAdmin(admin.ModelAdmin):
 class FounderWithdrawalRequestAdmin(admin.ModelAdmin):
     list_display = [
         'reference', 'founder', 'project', 'amount_usd_display', 'amount_ngn_display',
-        'bank_name', 'account_number', 'status_badge', 'created_at'
+        'bank_name', 'bank_code_display', 'account_number', 'status_badge', 'created_at'
     ]
     list_filter = ['status', 'created_at']
     search_fields = [
@@ -114,6 +114,7 @@ class FounderWithdrawalRequestAdmin(admin.ModelAdmin):
         'reference', 'amount_ngn', 'created_at', 'processed_at', 'completed_at',
         'paystack_recipient_code', 'paystack_transfer_code', 'transfer_initiated_at',
     ]
+    # bank_code must remain editable so admins can fill it for old requests
     raw_id_fields = ['founder', 'project', 'processed_by']
     date_hierarchy = 'created_at'
     actions = ['mark_approved', 'initiate_paystack_transfer', 'mark_completed', 'mark_rejected']
@@ -136,6 +137,12 @@ class FounderWithdrawalRequestAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def bank_code_display(self, obj):
+        if obj.bank_code:
+            return obj.bank_code
+        return format_html('<span style="color:#ef4444; font-weight:600;">⚠ Missing</span>')
+    bank_code_display.short_description = 'Bank Code'
 
     def amount_usd_display(self, obj):
         return f"${obj.amount_usd:,.2f}"
@@ -162,12 +169,32 @@ class FounderWithdrawalRequestAdmin(admin.ModelAdmin):
     status_badge.short_description = 'Status'
 
     def mark_approved(self, request, queryset):
-        count = 0
+        from .paystack_transfer import process_withdrawal
+        approved_count = 0
+        transfer_count = 0
+        fail_msgs = []
+
         for wr in queryset.filter(status='pending'):
             wr.approve(request.user)
-            count += 1
-        self.message_user(request, f"{count} withdrawal request(s) approved.")
-    mark_approved.short_description = "Approve selected withdrawal requests"
+            approved_count += 1
+
+            # Immediately initiate Paystack transfer after approval
+            ok, msg = process_withdrawal(wr)
+            if ok:
+                wr.processed_by = request.user
+                wr.processed_at = timezone.now()
+                wr.save(update_fields=['processed_by', 'processed_at'])
+                transfer_count += 1
+            else:
+                fail_msgs.append(f"{wr.reference}: {msg}")
+
+        if transfer_count:
+            self.message_user(request, f"{approved_count} approved, {transfer_count} Paystack transfer(s) initiated.")
+        elif approved_count:
+            self.message_user(request, f"{approved_count} approved but transfer(s) could not be initiated — check errors below.", level='WARNING')
+        for msg in fail_msgs:
+            self.message_user(request, msg, level='ERROR')
+    mark_approved.short_description = "Approve & initiate Paystack transfer"
 
     def initiate_paystack_transfer(self, request, queryset):
         from .paystack_transfer import process_withdrawal

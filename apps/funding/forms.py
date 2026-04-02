@@ -2,41 +2,6 @@ from django import forms
 from decimal import Decimal
 from .models import FounderWithdrawalRequest
 
-NIGERIAN_BANKS = [
-    ('', '— Select Bank —'),
-    ('044', 'Access Bank'),
-    ('063', 'Access Bank (Diamond)'),
-    ('035A', 'ALAT by Wema'),
-    ('401', 'ASO Savings and Loans'),
-    ('023', 'Citibank Nigeria'),
-    ('050', 'Ecobank Nigeria'),
-    ('562', 'Ekondo Microfinance Bank'),
-    ('070', 'Fidelity Bank'),
-    ('011', 'First Bank of Nigeria'),
-    ('214', 'First City Monument Bank'),
-    ('058', 'Guaranty Trust Bank'),
-    ('030', 'Heritage Bank'),
-    ('301', 'Jaiz Bank'),
-    ('082', 'Keystone Bank'),
-    ('50211', 'Kuda Bank'),
-    ('503', 'Moniepoint MFB'),
-    ('526', 'Paycom (OPay)'),
-    ('999992', 'PalmPay'),
-    ('076', 'Polaris Bank'),
-    ('101', 'Providus Bank'),
-    ('125', 'Rubies MFB'),
-    ('221', 'Stanbic IBTC Bank'),
-    ('068', 'Standard Chartered'),
-    ('232', 'Sterling Bank'),
-    ('100', 'Suntrust Bank'),
-    ('302', 'TAJ Bank'),
-    ('032', 'Union Bank of Nigeria'),
-    ('033', 'United Bank for Africa'),
-    ('215', 'Unity Bank'),
-    ('035', 'Wema Bank'),
-    ('057', 'Zenith Bank'),
-]
-
 
 class FounderWithdrawalForm(forms.ModelForm):
     amount_usd = forms.DecimalField(
@@ -53,13 +18,8 @@ class FounderWithdrawalForm(forms.ModelForm):
     )
 
     bank_name = forms.ChoiceField(
-        choices=NIGERIAN_BANKS,
+        choices=[('', '— Select your bank —')],
         widget=forms.Select(attrs={'class': 'form-select form-select-lg'}),
-    )
-
-    bank_code = forms.CharField(
-        widget=forms.HiddenInput(),
-        required=False,
     )
 
     account_number = forms.CharField(
@@ -90,25 +50,20 @@ class FounderWithdrawalForm(forms.ModelForm):
 
     class Meta:
         model = FounderWithdrawalRequest
-        fields = ['amount_usd', 'bank_name', 'bank_code', 'account_number', 'account_name', 'notes']
+        fields = ['amount_usd', 'bank_name', 'account_number', 'account_name', 'notes']
 
-    def __init__(self, *args, project=None, **kwargs):
+    def __init__(self, *args, project=None, banks=None, **kwargs):
         self.project = project
         super().__init__(*args, **kwargs)
+        # Populate bank choices from Paystack API data passed in from the view
+        if banks:
+            self.fields['bank_name'].choices = [('', '— Select your bank —')] + banks
 
     def clean_bank_name(self):
-        # The choice value IS the bank code; store name for display
-        code = self.cleaned_data.get('bank_name')
-        if not code:
+        value = self.cleaned_data.get('bank_name')
+        if not value:
             raise forms.ValidationError('Please select your bank.')
-        # Find display name
-        name = dict(NIGERIAN_BANKS).get(code, code)
-        # Stash the code so clean_bank_code can pick it up
-        self._selected_bank_code = code
-        return name  # store human-readable name
-
-    def clean_bank_code(self):
-        return getattr(self, '_selected_bank_code', self.cleaned_data.get('bank_code', ''))
+        return value
 
     def clean_amount_usd(self):
         amount = self.cleaned_data.get('amount_usd')
