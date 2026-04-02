@@ -555,12 +555,20 @@ def dashboard(request):
 
     if user.user_type == 'founder':
         # Founder-specific context
+        from apps.funding.models import FounderWithdrawalRequest
+        from decimal import Decimal
         created_projects = Project.objects.filter(creator=user).order_by('-created_at')
+        total_investment_usd = sum(p.total_investment_raised for p in created_projects)
+        total_srt = sum(p.srt_amount_raised for p in created_projects)
+        srt_usd = sum(p.srt_raised_usd for p in created_projects)
         context.update({
             'created_projects': created_projects,
             'total_projects': created_projects.count(),
             'active_projects': created_projects.filter(deadline__gte=timezone.now()).count(),
             'total_raised': sum(p.get_total_raised() for p in created_projects),
+            'total_investment_usd': total_investment_usd,
+            'total_srt': total_srt,
+            'total_srt_usd': srt_usd,
             'avg_funding': sum(p.get_percent_funded() for p in created_projects) / created_projects.count() if created_projects.count() > 0 else 0,
         })
 

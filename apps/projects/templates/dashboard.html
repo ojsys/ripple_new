@@ -576,6 +576,9 @@
             <a href="{% url 'projects:create_project' %}" class="nav-item-link">
                 <i class="fas fa-plus-circle"></i> New Project
             </a>
+            <a href="{% url 'funding:founder_withdrawals' %}" class="nav-item-link">
+                <i class="fas fa-money-bill-wave"></i> Withdrawals
+            </a>
             {% endif %}
             <a href="{% url 'projects:project_list' %}" class="nav-item-link">
                 <i class="fas fa-compass"></i> Discover
@@ -680,20 +683,20 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon secondary">
-                    <i class="fas fa-coins"></i>
+                    <i class="fas fa-hand-holding-usd"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>${{ total_raised|intcomma|default:0 }}</h3>
-                    <p>Total Raised</p>
+                    <h3>${{ total_investment_usd|floatformat:0|intcomma|default:0 }}</h3>
+                    <p>Total Investment ($)</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon info">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-coins"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>{{ total_backers|default:0 }}</h3>
-                    <p>Total Backers</p>
+                    <h3>{{ total_srt|floatformat:0|intcomma|default:0 }} <small style="font-size:0.9rem;">SRT</small></h3>
+                    <p>SRT Raised <span class="small text-muted">(≈${{ total_srt_usd|floatformat:0|intcomma|default:0 }})</span></p>
                 </div>
             </div>
         </div>
@@ -715,7 +718,8 @@
                             <th>Project</th>
                             <th>Status</th>
                             <th>Progress</th>
-                            <th>Raised</th>
+                            <th>Investment ($)</th>
+                            <th>SRT Raised</th>
                             <th>Goal</th>
                             <th>Actions</th>
                         </tr>
@@ -753,7 +757,7 @@
                                     <span class="status-badge status-pending">{{ project.get_status_display }}</span>
                                 {% endif %}
                             </td>
-                            <td style="width: 18%;">
+                            <td style="width: 14%;">
                                 <div class="d-flex justify-content-between small mb-1">
                                     <span class="fw-bold" style="color: var(--teal-primary);">{{ project.get_percent_funded|floatformat:2 }}%</span>
                                 </div>
@@ -761,10 +765,23 @@
                                     <div class="progress-bar-fill" style="width: {{ project.get_percent_funded|floatformat:2 }}%;"></div>
                                 </div>
                             </td>
-                            <td class="fw-bold" style="color: var(--teal-primary);">${{ project.get_total_raised|floatformat:0|intcomma }}</td>
+                            <td>
+                                <div class="fw-bold" style="color: var(--teal-primary);">${{ project.total_investment_raised|floatformat:0|intcomma }}</div>
+                                {% if project.is_venture and project.amount_raised %}
+                                <div class="small text-muted">+${{ project.amount_raised|floatformat:0|intcomma }} donations</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if project.is_venture %}
+                                <div class="fw-bold" style="color: #7c3aed;">{{ project.srt_amount_raised|floatformat:0|intcomma }} SRT</div>
+                                <div class="small text-muted">≈${{ project.srt_raised_usd|floatformat:0|intcomma }}</div>
+                                {% else %}
+                                <span class="text-muted small">N/A</span>
+                                {% endif %}
+                            </td>
                             <td class="text-muted">${{ project.funding_goal|intcomma }}</td>
                             <td>
-                                <div class="d-flex gap-1">
+                                <div class="d-flex gap-1 flex-wrap">
                                     <a href="{% url 'projects:project_detail' project.slug %}" class="action-btn" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a>
@@ -774,12 +791,17 @@
                                     <a href="{% url 'projects:add_update' project.id %}" class="action-btn" title="Add Update">
                                         <i class="fas fa-bullhorn"></i>
                                     </a>
+                                    {% if project.is_venture and project.status == 'approved' and project.total_investment_raised > 0 %}
+                                    <a href="{% url 'funding:founder_withdrawal_request' project.id %}" class="action-btn" title="Withdraw Funds" style="background: #d1fae5; color: #059669; border-color: #a7f3d0;">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6">
+                            <td colspan="7">
                                 <div class="empty-state">
                                     <i class="fas fa-folder-plus empty-state-icon"></i>
                                     <h5>No projects yet</h5>

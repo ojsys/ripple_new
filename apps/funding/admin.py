@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Investment, InvestmentTerm, Pledge
+from django.utils import timezone
+from .models import Investment, InvestmentTerm, Pledge, FounderWithdrawalRequest
 
 
 @admin.register(InvestmentTerm)
@@ -96,3 +97,95 @@ class PledgeAdmin(admin.ModelAdmin):
     readonly_fields = ['pledged_at']
     raw_id_fields = ['backer', 'project', 'reward']
     date_hierarchy = 'pledged_at'
+
+
+@admin.register(FounderWithdrawalRequest)
+class FounderWithdrawalRequestAdmin(admin.ModelAdmin):
+    list_display = [
+        'reference', 'founder', 'project', 'amount_usd_display', 'amount_ngn_display',
+        'bank_name', 'account_number', 'status_badge', 'created_at'
+    ]
+    list_filter = ['status', 'created_at']
+    search_fields = [
+        'founder__email', 'founder__first_name', 'founder__last_name',
+        'project__title', 'reference', 'account_number', 'account_name'
+    ]
+    readonly_fields = ['reference', 'amount_ngn', 'created_at', 'processed_at', 'completed_at']
+    raw_id_fields = ['founder', 'project', 'processed_by']
+    date_hierarchy = 'created_at'
+    actions = ['mark_approved', 'mark_processing', 'mark_completed', 'mark_rejected']
+
+    fieldsets = (
+        ('Request Details', {
+            'fields': ('reference', 'founder', 'project', 'amount_usd', 'amount_ngn', 'notes')
+        }),
+        ('Bank Account', {
+            'fields': ('bank_name', 'account_number', 'account_name')
+        }),
+        ('Status & Processing', {
+            'fields': ('status', 'admin_notes', 'payment_reference', 'processed_by')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'processed_at', 'completed_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def amount_usd_display(self, obj):
+        return f"${obj.amount_usd:,.2f}"
+    amount_usd_display.short_description = 'Amount (USD)'
+
+    def amount_ngn_display(self, obj):
+        return f"₦{obj.amount_ngn:,.2f}"
+    amount_ngn_display.short_description = 'Amount (NGN)'
+
+    def status_badge(self, obj):
+        colors = {
+            'pending': '#f59e0b',
+            'approved': '#3b82f6',
+            'processing': '#8b5cf6',
+            'completed': '#10b981',
+            'rejected': '#ef4444',
+            'cancelled': '#6b7280',
+        }
+        color = colors.get(obj.status, '#6b7280')
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px;">{}</span>',
+            color, obj.get_status_display()
+        )
+    status_badge.short_description = 'Status'
+
+    def mark_approved(self, request, queryset):
+        count = 0
+        for wr in queryset.filter(status='pending'):
+            wr.approve(request.user)
+            count += 1
+        self.message_user(request, f"{count} withdrawal request(s) approved.")
+    mark_approved.short_description = "Approve selected withdrawal requests"
+
+    def mark_processing(self, request, queryset):
+        count = 0
+        for wr in queryset.filter(status='approved'):
+            wr.status = 'processing'
+            wr.processed_by = request.user
+            wr.processed_at = timezone.now()
+            wr.save()
+            count += 1
+        self.message_user(request, f"{count} withdrawal request(s) marked as processing.")
+    mark_processing.short_description = "Mark selected as Processing (transfer initiated)"
+
+    def mark_completed(self, request, queryset):
+        count = 0
+        for wr in queryset.filter(status__in=['approved', 'processing']):
+            wr.mark_completed(request.user)
+            count += 1
+        self.message_user(request, f"{count} withdrawal request(s) marked as completed.")
+    mark_completed.short_description = "Mark selected as Completed (transfer done)"
+
+    def mark_rejected(self, request, queryset):
+        count = 0
+        for wr in queryset.filter(status__in=['pending', 'approved']):
+            wr.reject(request.user)
+            count += 1
+        self.message_user(request, f"{count} withdrawal request(s) rejected.")
+    mark_rejected.short_description = "Reject selected withdrawal requests"

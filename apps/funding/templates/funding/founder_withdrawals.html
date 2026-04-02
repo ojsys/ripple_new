@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}My Withdrawal Requests — StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root { --teal-primary: #0d9488; --teal-dark: #0f766e; --teal-100: #ccfbf1; --teal-50: #f0fdfa; }
+    .page-wrapper { background: #f8fafc; min-height: 100vh; padding: 40px 0 60px; padding-top: 96px; }
+    .stat-card { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; border: 1px solid #e5e7eb; }
+    .table-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.07); border: none; overflow: hidden; }
+    .table-card .card-header { background: var(--teal-50); border-bottom: 1px solid var(--teal-100); padding: 20px 24px; }
+    .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-approved { background: #dbeafe; color: #1e40af; }
+    .status-processing { background: #ede9fe; color: #5b21b6; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .status-cancelled { background: #f3f4f6; color: #4b5563; }
+    .filter-btn { border: 1px solid #e5e7eb; background: white; padding: 7px 14px; border-radius: 8px; color: #6b7280; font-size: 0.85rem; text-decoration: none; transition: all 0.2s; }
+    .filter-btn:hover, .filter-btn.active { background: var(--teal-primary); border-color: var(--teal-primary); color: white; }
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-state i { font-size: 4rem; color: #e5e7eb; margin-bottom: 20px; }
+    .btn-view { background: var(--teal-50); border: 1px solid var(--teal-100); color: var(--teal-primary); padding: 5px 12px; border-radius: 6px; font-size: 0.83rem; text-decoration: none; }
+    .btn-view:hover { background: var(--teal-primary); color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="container">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="mb-1 fw-bold"><i class="fas fa-money-bill-wave me-2" style="color: var(--teal-primary);"></i>Withdrawal Requests</h2>
+            <p class="text-muted mb-0">Track your investment fund withdrawal requests</p>
+        </div>
+        <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1 small">Total Withdrawn</p>
+                    <h4 class="mb-0 fw-bold" style="color: var(--teal-dark);">${{ stats.total_withdrawn_usd|floatformat:2|intcomma }}</h4>
+                </div>
+                <div style="width:48px;height:48px;background:var(--teal-50);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-wallet" style="color: var(--teal-primary);"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1 small">Pending</p>
+                    <h4 class="mb-0 fw-bold" style="color: #d97706;">{{ stats.pending_count }}</h4>
+                </div>
+                <div style="width:48px;height:48px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-clock" style="color: #d97706;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1 small">Completed</p>
+                    <h4 class="mb-0 fw-bold" style="color: #059669;">{{ stats.completed_count }}</h4>
+                </div>
+                <div style="width:48px;height:48px;background:#d1fae5;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-check-circle" style="color: #059669;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="d-flex gap-2 flex-wrap mb-4">
+        <a href="{% url 'funding:founder_withdrawals' %}" class="filter-btn {% if not current_status %}active{% endif %}">All</a>
+        <a href="?status=pending" class="filter-btn {% if current_status == 'pending' %}active{% endif %}">Pending</a>
+        <a href="?status=approved" class="filter-btn {% if current_status == 'approved' %}active{% endif %}">Approved</a>
+        <a href="?status=processing" class="filter-btn {% if current_status == 'processing' %}active{% endif %}">Processing</a>
+        <a href="?status=completed" class="filter-btn {% if current_status == 'completed' %}active{% endif %}">Completed</a>
+        <a href="?status=rejected" class="filter-btn {% if current_status == 'rejected' %}active{% endif %}">Rejected</a>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card card">
+        <div class="card-header">
+            <h5 class="mb-0 fw-bold" style="color: var(--teal-dark);">
+                <i class="fas fa-list me-2" style="color: var(--teal-primary);"></i>Requests
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if withdrawals %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background: #f9fafb;">
+                        <tr>
+                            <th class="px-4 py-3">Reference</th>
+                            <th class="py-3">Project</th>
+                            <th class="py-3">Amount (USD)</th>
+                            <th class="py-3">Amount (NGN)</th>
+                            <th class="py-3">Bank</th>
+                            <th class="py-3">Date</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3 text-end pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for wr in withdrawals %}
+                        <tr>
+                            <td class="px-4 py-3 font-monospace">{{ wr.reference }}</td>
+                            <td class="py-3">{{ wr.project.title|truncatechars:25 }}</td>
+                            <td class="py-3 fw-bold" style="color: var(--teal-dark);">${{ wr.amount_usd|floatformat:2|intcomma }}</td>
+                            <td class="py-3 text-muted">₦{{ wr.amount_ngn|floatformat:0|intcomma }}</td>
+                            <td class="py-3">
+                                {{ wr.bank_name }}<br>
+                                <small class="text-muted">{{ wr.account_number }}</small>
+                            </td>
+                            <td class="py-3">
+                                {{ wr.created_at|date:"M d, Y" }}<br>
+                                <small class="text-muted">{{ wr.created_at|time:"H:i" }}</small>
+                            </td>
+                            <td class="py-3">
+                                <span class="status-badge status-{{ wr.status }}">{{ wr.get_status_display }}</span>
+                            </td>
+                            <td class="py-3 text-end pe-4">
+                                <a href="{% url 'funding:founder_withdrawal_detail' wr.reference %}" class="btn-view">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if withdrawals.has_other_pages %}
+            <div class="d-flex justify-content-center py-4">
+                <nav>
+                    <ul class="pagination mb-0">
+                        {% if withdrawals.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ withdrawals.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% for num in withdrawals.paginator.page_range %}
+                        {% if withdrawals.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link" style="background: var(--teal-primary); border-color: var(--teal-primary);">{{ num }}</span>
+                        </li>
+                        {% elif num > withdrawals.number|add:'-3' and num < withdrawals.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if current_status %}&status={{ current_status }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        {% if withdrawals.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ withdrawals.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox d-block"></i>
+                <h5>No withdrawal requests yet</h5>
+                <p class="text-muted mb-0">
+                    {% if current_status %}No {{ current_status }} requests found.
+                    {% else %}Go to your dashboard and click "Withdraw Funds" on a venture project.
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+</div>
+{% endblock %}

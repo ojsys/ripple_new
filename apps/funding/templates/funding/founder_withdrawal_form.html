@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Withdraw Investment Funds — {{ project.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --teal-primary: #0d9488;
+        --teal-dark: #0f766e;
+        --teal-100: #ccfbf1;
+        --teal-50: #f0fdfa;
+    }
+    .page-wrapper {
+        background: #f8fafc;
+        min-height: 100vh;
+        padding: 40px 0 60px;
+        padding-top: 96px;
+    }
+    .card-custom {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+        border: 1px solid #e5e7eb;
+    }
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+        border-radius: 16px 16px 0 0;
+        padding: 28px 32px;
+        color: white;
+    }
+    .info-box {
+        background: var(--teal-50);
+        border: 1px solid var(--teal-100);
+        border-radius: 12px;
+        padding: 20px;
+    }
+    .info-box .label { font-size: 0.82rem; color: #6b7280; margin-bottom: 2px; }
+    .info-box .value { font-size: 1.4rem; font-weight: 700; color: var(--teal-dark); }
+    .form-label { font-weight: 600; color: #374151; }
+    .btn-submit {
+        background: linear-gradient(135deg, var(--teal-primary), var(--teal-dark));
+        color: white;
+        border: none;
+        padding: 14px 36px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+    .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); color: white; }
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-approved { background: #dbeafe; color: #1e40af; }
+    .status-processing { background: #ede9fe; color: #5b21b6; }
+    .section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--teal-dark);
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--teal-100);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="container" style="max-width: 800px;">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}" style="color: var(--teal-primary);">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'funding:founder_withdrawals' %}" style="color: var(--teal-primary);">Withdrawals</a></li>
+            <li class="breadcrumb-item active">New Request</li>
+        </ol>
+    </nav>
+
+    <!-- Balance info -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="info-box">
+                <div class="label">Total Investments Raised</div>
+                <div class="value">${{ project.total_investment_raised|floatformat:2|intcomma }}</div>
+                <small class="text-muted">All approved investments</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-box">
+                <div class="label">Available for Withdrawal</div>
+                <div class="value" style="color: #059669;">${{ available|floatformat:2|intcomma }}</div>
+                <small class="text-muted">After pending requests</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-box">
+                <div class="label">NGN Rate</div>
+                <div class="value">₦{{ ngn_rate|intcomma }}</div>
+                <small class="text-muted">Per USD</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending requests alert -->
+    {% if pending_withdrawals %}
+    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <i class="fas fa-clock me-3"></i>
+        <div>
+            You have <strong>{{ pending_withdrawals.count }} pending withdrawal request(s)</strong> for this project.
+            <a href="{% url 'funding:founder_withdrawals' %}" style="color: inherit; font-weight: 600;">View them here.</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if available <= 0 %}
+    <div class="alert alert-info d-flex align-items-center mb-4">
+        <i class="fas fa-info-circle me-3"></i>
+        <div>No funds available for withdrawal at this time. Pending requests may be locking the balance.</div>
+    </div>
+    {% endif %}
+
+    <!-- Withdrawal Form -->
+    <div class="card-custom">
+        <div class="card-header-custom">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-money-bill-wave me-3" style="font-size: 1.5rem;"></i>
+                <div>
+                    <h4 class="mb-0 fw-bold">Request Withdrawal</h4>
+                    <p class="mb-0 opacity-75 small">{{ project.title }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="post" id="withdrawalForm">
+                {% csrf_token %}
+
+                <!-- Amount -->
+                <div class="section-title"><i class="fas fa-dollar-sign me-2" style="color: var(--teal-primary);"></i>Withdrawal Amount</div>
+                <div class="mb-4">
+                    <label for="{{ form.amount_usd.id_for_label }}" class="form-label">Amount (USD)</label>
+                    {{ form.amount_usd }}
+                    {% if form.amount_usd.errors %}
+                        <div class="text-danger small mt-1">{{ form.amount_usd.errors.0 }}</div>
+                    {% endif %}
+                    <div class="text-muted small mt-1">{{ form.amount_usd.help_text }}</div>
+                    <div id="ngnPreview" class="mt-2 p-3 rounded" style="background: var(--teal-50); display: none;">
+                        <span class="text-muted small">You will receive approximately:</span>
+                        <span id="ngnAmount" class="fw-bold ms-2" style="color: var(--teal-dark);"></span>
+                    </div>
+                </div>
+
+                <!-- Bank Details -->
+                <div class="section-title mt-4"><i class="fas fa-university me-2" style="color: var(--teal-primary);"></i>Bank Account Details</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-12">
+                        <label for="{{ form.bank_name.id_for_label }}" class="form-label">Bank Name</label>
+                        {{ form.bank_name }}
+                        {% if form.bank_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.bank_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.account_number.id_for_label }}" class="form-label">Account Number</label>
+                        {{ form.account_number }}
+                        {% if form.account_number.errors %}
+                            <div class="text-danger small mt-1">{{ form.account_number.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.account_name.id_for_label }}" class="form-label">Account Name</label>
+                        {{ form.account_name }}
+                        {% if form.account_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.account_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-4">
+                    <label for="{{ form.notes.id_for_label }}" class="form-label">Notes <span class="text-muted fw-normal">(optional)</span></label>
+                    {{ form.notes }}
+                </div>
+
+                <div class="d-flex gap-3 align-items-center">
+                    <button type="submit" class="btn-submit" {% if available <= 0 %}disabled{% endif %}>
+                        <i class="fas fa-paper-plane me-2"></i>Submit Withdrawal Request
+                    </button>
+                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="mt-4 p-4" style="background: white; border-radius: 12px; border: 1px solid #e5e7eb;">
+        <h6 class="fw-bold mb-3" style="color: #374151;"><i class="fas fa-info-circle me-2" style="color: var(--teal-primary);"></i>How Withdrawals Work</h6>
+        <ol class="mb-0 text-muted" style="padding-left: 20px; line-height: 2;">
+            <li>Submit your withdrawal request with bank account details.</li>
+            <li>Admin reviews and approves the request (usually within 1-3 business days).</li>
+            <li>Once approved, the NGN equivalent is transferred to your bank account.</li>
+            <li>You'll see the status update to <strong>Completed</strong> when the transfer is done.</li>
+        </ol>
+    </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const ngnRate = {{ ngn_rate }};
+    const amountInput = document.getElementById('{{ form.amount_usd.id_for_label }}');
+    const ngnPreview = document.getElementById('ngnPreview');
+    const ngnAmount = document.getElementById('ngnAmount');
+
+    amountInput.addEventListener('input', function () {
+        const val = parseFloat(this.value);
+        if (!isNaN(val) && val > 0) {
+            const ngn = val * ngnRate;
+            ngnAmount.textContent = '₦' + ngn.toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            ngnPreview.style.display = 'block';
+        } else {
+            ngnPreview.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

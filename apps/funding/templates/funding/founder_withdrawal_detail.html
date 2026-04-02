@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Withdrawal {{ withdrawal.reference }} — StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root { --teal-primary: #0d9488; --teal-dark: #0f766e; --teal-100: #ccfbf1; --teal-50: #f0fdfa; }
+    .page-wrapper { background: #f8fafc; min-height: 100vh; padding: 40px 0 60px; padding-top: 96px; }
+    .card-custom { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.07); border: 1px solid #e5e7eb; }
+    .detail-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f3f4f6; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #6b7280; font-size: 0.9rem; }
+    .detail-value { font-weight: 600; color: #1f2937; text-align: right; }
+    .status-badge { padding: 6px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-approved { background: #dbeafe; color: #1e40af; }
+    .status-processing { background: #ede9fe; color: #5b21b6; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .status-cancelled { background: #f3f4f6; color: #4b5563; }
+    .amount-big { font-size: 2.5rem; font-weight: 800; color: var(--teal-primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+<div class="container" style="max-width: 700px;">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}" style="color: var(--teal-primary);">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'funding:founder_withdrawals' %}" style="color: var(--teal-primary);">Withdrawals</a></li>
+            <li class="breadcrumb-item active">{{ withdrawal.reference }}</li>
+        </ol>
+    </nav>
+
+    <div class="card-custom">
+        <!-- Header -->
+        <div class="p-4 pb-0">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <h4 class="fw-bold mb-1">Withdrawal Request</h4>
+                    <code class="text-muted">{{ withdrawal.reference }}</code>
+                </div>
+                <span class="status-badge status-{{ withdrawal.status }}">{{ withdrawal.get_status_display }}</span>
+            </div>
+            <hr>
+        </div>
+
+        <div class="p-4 pt-0">
+            <!-- Amount highlight -->
+            <div class="text-center py-4 mb-4" style="background: var(--teal-50); border-radius: 12px; border: 1px solid var(--teal-100);">
+                <div class="text-muted small mb-1">Requested Amount</div>
+                <div class="amount-big">${{ withdrawal.amount_usd|floatformat:2|intcomma }}</div>
+                <div class="text-muted">≈ ₦{{ withdrawal.amount_ngn|floatformat:2|intcomma }} NGN</div>
+            </div>
+
+            <!-- Details -->
+            <div class="detail-row">
+                <span class="detail-label">Project</span>
+                <span class="detail-value">{{ withdrawal.project.title }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Bank</span>
+                <span class="detail-value">{{ withdrawal.bank_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Account Number</span>
+                <span class="detail-value font-monospace">{{ withdrawal.account_number }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Account Name</span>
+                <span class="detail-value">{{ withdrawal.account_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Submitted</span>
+                <span class="detail-value">{{ withdrawal.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+            {% if withdrawal.processed_at %}
+            <div class="detail-row">
+                <span class="detail-label">Processed</span>
+                <span class="detail-value">{{ withdrawal.processed_at|date:"M d, Y H:i" }}</span>
+            </div>
+            {% endif %}
+            {% if withdrawal.completed_at %}
+            <div class="detail-row">
+                <span class="detail-label">Completed</span>
+                <span class="detail-value">{{ withdrawal.completed_at|date:"M d, Y H:i" }}</span>
+            </div>
+            {% endif %}
+            {% if withdrawal.payment_reference %}
+            <div class="detail-row">
+                <span class="detail-label">Payment Reference</span>
+                <span class="detail-value font-monospace">{{ withdrawal.payment_reference }}</span>
+            </div>
+            {% endif %}
+            {% if withdrawal.notes %}
+            <div class="detail-row">
+                <span class="detail-label">Your Notes</span>
+                <span class="detail-value" style="max-width: 60%;">{{ withdrawal.notes }}</span>
+            </div>
+            {% endif %}
+            {% if withdrawal.admin_notes %}
+            <div class="detail-row">
+                <span class="detail-label">Admin Notes</span>
+                <span class="detail-value" style="max-width: 60%;">{{ withdrawal.admin_notes }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="p-4 pt-0 d-flex gap-3">
+            <a href="{% url 'funding:founder_withdrawals' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>All Withdrawals
+            </a>
+            {% if withdrawal.status == 'pending' %}
+            <form method="post" action="{% url 'funding:cancel_founder_withdrawal' withdrawal.reference %}" onsubmit="return confirm('Cancel this withdrawal request?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fas fa-times me-2"></i>Cancel Request
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
