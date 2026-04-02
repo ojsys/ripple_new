@@ -150,12 +150,16 @@
                         <span id="summaryTokens" class="fw-bold">-</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Rate:</span>
-                        <span class="text-muted">&#8358;2,000 per token</span>
+                        <span>Token cost:</span>
+                        <span id="summaryTokenCost" class="text-muted">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 text-danger" style="font-size:0.85rem;">
+                        <span>+ Gateway fee <small class="text-muted">(1.5%+₦100)</small>:</span>
+                        <span id="summaryFee">-</span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between mb-3">
-                        <span class="fw-bold">Total:</span>
+                        <span class="fw-bold">Total charged:</span>
                         <span id="summaryTotal" class="fw-bold text-success fs-5">-</span>
                     </div>
                     <button class="btn btn-success w-100" id="proceedPayment">
@@ -257,10 +261,6 @@
 
             selectedTokens = parseInt(this.dataset.tokens);
             document.getElementById('tokenAmount').value = selectedTokens;
-
-            const amount = selectedTokens * TOKEN_RATE;
-            document.getElementById('amountPreview').innerHTML = '&#8358;' + amount.toLocaleString();
-
             updateOrderSummary();
         });
     });
@@ -274,9 +274,6 @@
             tokens = MAX_REMAINING;
             this.value = tokens;
         }
-
-        const amount = tokens * TOKEN_RATE;
-        document.getElementById('amountPreview').innerHTML = '&#8358;' + amount.toLocaleString();
 
         if (tokens >= 1) {
             selectedTokens = tokens;
@@ -313,6 +310,17 @@
         }
     });
 
+    // Processing fee gross-up (mirrors fees.py gross_up_ngn)
+    const PS_RATE = 0.015, PS_FLAT = 100, PS_THRESHOLD = 2500, PS_CAP = 2000;
+    function grossUp(netNgn) {
+        const noFlat = netNgn / (1 - PS_RATE);
+        if (noFlat < PS_THRESHOLD) return Math.ceil(noFlat);
+        const withFlat = (netNgn + PS_FLAT) / (1 - PS_RATE);
+        const fee = PS_RATE * withFlat + PS_FLAT;
+        return Math.ceil(fee > PS_CAP ? netNgn + PS_CAP : withFlat);
+    }
+    function fmtNgn(v) { return '₦' + v.toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+
     function updateOrderSummary() {
         const orderSummary = document.getElementById('orderSummary');
         const noOrderMessage = document.getElementById('noOrderMessage');
@@ -321,12 +329,19 @@
             orderSummary.classList.remove('d-none');
             noOrderMessage.classList.add('d-none');
 
-            const amount = selectedTokens * TOKEN_RATE;
+            const tokenCost = selectedTokens * TOKEN_RATE;
+            const charged = grossUp(tokenCost);
+            const fee = charged - tokenCost;
+
             document.getElementById('summaryTokens').textContent = selectedTokens + ' SRT';
-            document.getElementById('summaryTotal').innerHTML = '&#8358;' + amount.toLocaleString();
+            document.getElementById('summaryTokenCost').textContent = fmtNgn(tokenCost);
+            document.getElementById('summaryFee').textContent = '+' + fmtNgn(fee);
+            document.getElementById('summaryTotal').innerHTML = fmtNgn(charged);
+            document.getElementById('amountPreview').innerHTML = fmtNgn(charged);
         } else {
             orderSummary.classList.add('d-none');
             noOrderMessage.classList.remove('d-none');
+            document.getElementById('amountPreview').innerHTML = '&#8358;0';
         }
     }
 

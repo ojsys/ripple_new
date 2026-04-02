@@ -53,6 +53,39 @@ def total_fee_ngn(amount_ngn: Decimal, is_international: bool = False) -> Decima
     return paystack_fee_ngn(amount_ngn, is_international) + admin_fee_ngn(amount_ngn)
 
 
+def gross_up_ngn(net_amount_ngn: Decimal, is_international: bool = False) -> Decimal:
+    """
+    Calculate the total amount to charge the payer so that after Paystack
+    deducts its processing fee, exactly net_amount_ngn remains.
+    The payer bears the processing fee; the platform/founder is not affected.
+    """
+    net = Decimal(str(net_amount_ngn))
+
+    if is_international:
+        # fee = 3.9% * charged + ₦100  →  charged = (net + 100) / 0.961
+        charged = (net + PAYSTACK_FLAT_FEE) / (1 - PAYSTACK_INTL_RATE)
+    else:
+        # First try without flat fee (applies when charged < ₦2,500)
+        charged_no_flat = net / (1 - PAYSTACK_LOCAL_RATE)
+        if charged_no_flat < PAYSTACK_FLAT_THRESHOLD:
+            charged = charged_no_flat
+        else:
+            # Flat fee applies: fee = 1.5% * charged + ₦100
+            charged_with_flat = (net + PAYSTACK_FLAT_FEE) / (1 - PAYSTACK_LOCAL_RATE)
+            if PAYSTACK_LOCAL_RATE * charged_with_flat + PAYSTACK_FLAT_FEE > PAYSTACK_LOCAL_CAP:
+                # Fee would exceed cap — just add the capped fee flat
+                charged = net + PAYSTACK_LOCAL_CAP
+            else:
+                charged = charged_with_flat
+
+    return charged.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+
+def processing_fee_for_payer_ngn(net_amount_ngn: Decimal, is_international: bool = False) -> Decimal:
+    """The extra amount the payer will be charged to cover the processing fee."""
+    return gross_up_ngn(net_amount_ngn, is_international) - Decimal(str(net_amount_ngn))
+
+
 def net_ngn(amount_ngn: Decimal, is_international: bool = False) -> Decimal:
     """Net amount founder receives after all fees, in NGN."""
     gross = Decimal(str(amount_ngn))
@@ -106,7 +139,6 @@ def platform_fee_summary():
     except Exception:
         srt_investments = []
 
-    ps_fees   = Decimal('0')
     adm_fees  = Decimal('0')
     gross_direct = Decimal('0')
     gross_srt    = Decimal('0')
@@ -115,20 +147,17 @@ def platform_fee_summary():
     for inv in direct_investments:
         g = investment_ngn(inv)
         gross_direct += g
-        ps_fees  += paystack_fee_ngn(g)
         adm_fees += admin_fee_ngn(g)
         txn_count += 1
 
     for inv in srt_investments:
         g = srt_investment_ngn(inv.tokens_invested)
         gross_srt += g
-        ps_fees  += paystack_fee_ngn(g)
         adm_fees += admin_fee_ngn(g)
         txn_count += 1
 
     gross_total = gross_direct + gross_srt
-    total_fees  = ps_fees + adm_fees
-    net_total   = max(Decimal('0'), gross_total - total_fees)
+    net_total   = max(Decimal('0'), gross_total - adm_fees)
 
     def to_usd(ngn):
         return (ngn / NGN_PER_USD).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
@@ -137,17 +166,15 @@ def platform_fee_summary():
         'gross_direct_ngn':  gross_direct.quantize(Decimal('0.01')),
         'gross_srt_ngn':     gross_srt.quantize(Decimal('0.01')),
         'gross_total_ngn':   gross_total.quantize(Decimal('0.01')),
-        'paystack_fees_ngn': ps_fees.quantize(Decimal('0.01')),
         'admin_fees_ngn':    adm_fees.quantize(Decimal('0.01')),
-        'total_fees_ngn':    total_fees.quantize(Decimal('0.01')),
+        'total_fees_ngn':    adm_fees.quantize(Decimal('0.01')),
         'net_total_ngn':     net_total.quantize(Decimal('0.01')),
         'net_total_usd':     to_usd(net_total),
         'gross_direct_usd':  to_usd(gross_direct),
         'gross_srt_usd':     to_usd(gross_srt),
         'gross_total_usd':   to_usd(gross_total),
         'admin_fees_usd':    to_usd(adm_fees),
-        'paystack_fees_usd': to_usd(ps_fees),
-        'total_fees_usd':    to_usd(total_fees),
+        'total_fees_usd':    to_usd(adm_fees),
         'total_transactions': txn_count,
     }
 
@@ -197,17 +224,15 @@ def summarise_project_fees(project):
     for inv in direct_investments:
         g = investment_ngn(inv)
         gross_direct += g
-        ps_fees  += paystack_fee_ngn(g)
         adm_fees += admin_fee_ngn(g)
 
     for inv in srt_investments:
         g = srt_investment_ngn(inv.tokens_invested)
         gross_srt += g
-        ps_fees  += paystack_fee_ngn(g)
         adm_fees += admin_fee_ngn(g)
 
     gross_total = gross_direct + gross_srt
-    total_fees  = ps_fees + adm_fees
+    total_fees  = adm_fees
     net_total   = max(Decimal('0'), gross_total - total_fees)
 
     def to_usd(ngn):
@@ -217,9 +242,8 @@ def summarise_project_fees(project):
         'gross_direct_ngn':  gross_direct.quantize(Decimal('0.01')),
         'gross_srt_ngn':     gross_srt.quantize(Decimal('0.01')),
         'gross_total_ngn':   gross_total.quantize(Decimal('0.01')),
-        'paystack_fees_ngn': ps_fees.quantize(Decimal('0.01')),
         'admin_fees_ngn':    adm_fees.quantize(Decimal('0.01')),
-        'total_fees_ngn':    total_fees.quantize(Decimal('0.01')),
+        'total_fees_ngn':    adm_fees.quantize(Decimal('0.01')),
         'net_total_ngn':     net_total.quantize(Decimal('0.01')),
         'net_total_usd':     to_usd(net_total),
         'gross_direct_usd':  to_usd(gross_direct),

@@ -135,6 +135,28 @@
                     <form method="post">
                         {% csrf_token %}
                         {{ form|crispy }}
+
+                        <!-- Live fee breakdown -->
+                        <div id="feeBreakdown" style="display:none; background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:14px; margin-top:16px; font-size:0.88rem;">
+                            <div style="font-weight:700; color:#0369a1; margin-bottom:10px;"><i class="fas fa-receipt me-1"></i> Payment Breakdown</div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Investment amount</span>
+                                <span id="feeInvestment" class="fw-bold">-</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1 text-danger">
+                                <span>+ Gateway processing fee <small class="text-muted">(1.5% + ₦100, max ₦2,000)</small></span>
+                                <span id="feeProcessing">-</span>
+                            </div>
+                            <hr style="margin:8px 0; border-color:#bae6fd;">
+                            <div class="d-flex justify-content-between fw-bold" style="color:#0369a1;">
+                                <span>Total charged to you</span>
+                                <span id="feeTotal">-</span>
+                            </div>
+                            <div class="text-muted mt-2" style="font-size:0.78rem;">
+                                <i class="fas fa-info-circle me-1"></i>The processing fee is charged by the payment gateway and added to your payment.
+                            </div>
+                        </div>
+
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-lg text-white" style="background: #2563eb; border-radius: 100px; padding: 12px 32px;">
                                 <i class="fas fa-lock me-2"></i>Proceed to Payment
@@ -257,4 +279,50 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const NGN_RATE = 1600;
+    const PS_RATE = 0.015;
+    const PS_FLAT = 100;
+    const PS_THRESHOLD = 2500;
+    const PS_CAP = 2000;
+
+    function grossUp(netNgn) {
+        let charged;
+        const chargedNoFlat = netNgn / (1 - PS_RATE);
+        if (chargedNoFlat < PS_THRESHOLD) {
+            charged = chargedNoFlat;
+        } else {
+            const chargedWithFlat = (netNgn + PS_FLAT) / (1 - PS_RATE);
+            const fee = PS_RATE * chargedWithFlat + PS_FLAT;
+            charged = fee > PS_CAP ? netNgn + PS_CAP : chargedWithFlat;
+        }
+        return Math.ceil(charged);
+    }
+
+    function fmt(ngn) {
+        return '₦' + ngn.toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    const amountInput = document.getElementById('id_amount');
+    const breakdown = document.getElementById('feeBreakdown');
+    if (!amountInput || !breakdown) return;
+
+    amountInput.addEventListener('input', function () {
+        const usd = parseFloat(this.value);
+        if (isNaN(usd) || usd <= 0) { breakdown.style.display = 'none'; return; }
+        const netNgn = usd * NGN_RATE;
+        const chargedNgn = grossUp(netNgn);
+        const processingFee = chargedNgn - netNgn;
+
+        document.getElementById('feeInvestment').textContent = fmt(netNgn);
+        document.getElementById('feeProcessing').textContent = '+' + fmt(processingFee);
+        document.getElementById('feeTotal').textContent = fmt(chargedNgn);
+        breakdown.style.display = 'block';
+    });
+})();
+</script>
 {% endblock %}

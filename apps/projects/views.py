@@ -399,8 +399,12 @@ def make_pledge(request, project_id):
     if request.method == 'POST':
         form = DonationForm(request.POST, project=project)
         if form.is_valid():
+            from apps.funding.fees import gross_up_ngn
+            from decimal import Decimal as _D
             amount = form.cleaned_data['amount']
             amount_ngn = int(float(amount) * 1600)  # Convert to NGN
+            # Gross up so payer covers the processing fee
+            charged_ngn = int(gross_up_ngn(_D(amount_ngn)))
             reference = f"DON-{uuid.uuid4().hex[:16].upper()}"
 
             # Create a payment attempt (NOT a donation yet)
@@ -408,7 +412,7 @@ def make_pledge(request, project_id):
                 project=project,
                 user=request.user,
                 amount=amount,
-                amount_ngn=amount_ngn,
+                amount_ngn=amount_ngn,  # net donation amount
                 reward=form.cleaned_data.get('reward'),
                 message=form.cleaned_data.get('message'),
                 is_anonymous=form.cleaned_data.get('is_anonymous', False),
@@ -433,7 +437,7 @@ def make_pledge(request, project_id):
             }
             data = {
                 'email': request.user.email,
-                'amount': amount_ngn * 100,  # Paystack uses kobo
+                'amount': charged_ngn * 100,  # grossed-up amount in kobo
                 'reference': reference,
                 'callback_url': request.build_absolute_uri(reverse('projects:donation_callback')),
                 'metadata': {
@@ -586,8 +590,12 @@ def investment_proposal(request, project_id):
     if request.method == 'POST':
         form = InvestmentForm(request.POST, project=project)
         if form.is_valid():
+            from apps.funding.fees import gross_up_ngn
+            from decimal import Decimal as _D
             amount = form.cleaned_data['amount']
             amount_ngn = int(float(amount) * 1600)
+            # Gross up so payer covers the processing fee
+            charged_ngn = int(gross_up_ngn(_D(amount_ngn)))
             reference = f"INVEST-{uuid.uuid4().hex[:14].upper()}"
 
             investment = form.save(commit=False)
@@ -595,7 +603,7 @@ def investment_proposal(request, project_id):
             investment.investor = request.user
             investment.status = 'pending_payment'
             investment.payment_status = 'unpaid'
-            investment.amount_ngn = amount_ngn
+            investment.amount_ngn = amount_ngn  # net investment amount
             investment.paystack_reference = reference
             investment.save()
 
@@ -611,7 +619,7 @@ def investment_proposal(request, project_id):
             }
             data = {
                 'email': request.user.email,
-                'amount': amount_ngn * 100,  # Paystack uses kobo
+                'amount': charged_ngn * 100,  # grossed-up amount in kobo
                 'reference': reference,
                 'callback_url': request.build_absolute_uri(reverse('projects:investment_payment_callback')),
                 'metadata': {

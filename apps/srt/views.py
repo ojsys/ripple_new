@@ -271,6 +271,10 @@ def initialize_token_purchase(request):
     except (ValueError, TypeError):
         return JsonResponse({'error': 'Invalid token amount.'}, status=400)
 
+    # Gross up so payer covers the processing fee
+    from apps.funding.fees import gross_up_ngn
+    charged_ngn = gross_up_ngn(amount_ngn)
+
     # Generate reference
     reference = f"SRT-{uuid.uuid4().hex[:12].upper()}"
 
@@ -281,7 +285,7 @@ def initialize_token_purchase(request):
         package=None,
         tokens=Decimal(tokens),
         bonus_tokens=Decimal('0'),
-        amount_ngn=amount_ngn,
+        amount_ngn=amount_ngn,   # net token cost
         amount_usd=amount_usd,
         paystack_reference=reference
     )
@@ -294,7 +298,7 @@ def initialize_token_purchase(request):
 
     data = {
         'email': request.user.email,
-        'amount': int(amount_ngn * 100),  # Paystack uses kobo
+        'amount': int(charged_ngn * 100),  # grossed-up amount in kobo
         'reference': reference,
         'callback_url': request.build_absolute_uri('/srt/token-purchase-callback/'),
         'metadata': {
