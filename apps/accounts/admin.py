@@ -25,11 +25,10 @@ class CustomUserAdmin(UserAdmin):
             'classes': ('collapse',)
         }),
         ('Status', {
-            'fields': ('is_active', 'email_verified', 'registration_fee_paid', 'profile_completed')
+            'fields': ('is_active', 'is_staff', 'email_verified', 'registration_fee_paid', 'profile_completed')
         }),
         ('Permissions', {
-            'fields': ('is_staff', 'is_superuser', 'groups', 'user_permissions'),
-            'classes': ('collapse',)
+            'fields': ('is_superuser', 'groups', 'user_permissions'),
         }),
         ('Important Dates', {
             'fields': ('last_login', 'date_joined'),
