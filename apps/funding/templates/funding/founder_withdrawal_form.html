@@ -219,7 +219,14 @@
                 <div class="section-title"><i class="fas fa-dollar-sign me-2" style="color: var(--teal-primary);"></i>Withdrawal Amount</div>
                 <div class="mb-4">
                     <label for="{{ form.amount_usd.id_for_label }}" class="form-label">Amount (USD)</label>
-                    {{ form.amount_usd }}
+                    <div class="input-group">
+                        {{ form.amount_usd }}
+                        <button type="button" id="maxBtn" class="btn btn-outline-secondary fw-semibold px-3"
+                                style="border-color: #d1d5db; border-left: none;"
+                                {% if available <= 0 %}disabled{% endif %}>
+                            Max
+                        </button>
+                    </div>
                     {% if form.amount_usd.errors %}
                         <div class="text-danger small mt-1">{{ form.amount_usd.errors.0 }}</div>
                     {% endif %}
@@ -235,15 +242,7 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-12">
                         <label for="{{ form.bank_name.id_for_label }}" class="form-label">Bank Name</label>
-                        <!-- Searchable bank dropdown -->
-                        <div style="position:relative;">
-                            <input type="text" id="bankSearch"
-                                   class="form-control form-control-lg"
-                                   placeholder="Type to search your bank..."
-                                   autocomplete="off"
-                                   style="margin-bottom:4px;">
-                            {{ form.bank_name }}
-                        </div>
+                        {{ form.bank_name }}
                         {% if form.bank_name.errors %}
                             <div class="text-danger small mt-1">{{ form.bank_name.errors.0 }}</div>
                         {% endif %}
@@ -314,35 +313,14 @@
         }
     });
 
-    // Searchable bank dropdown
-    const bankSearch = document.getElementById('bankSearch');
-    const bankSelect = document.getElementById('{{ form.bank_name.id_for_label }}');
-    const allBankOptions = Array.from(bankSelect.options).map(opt => ({
-        value: opt.value,
-        text: opt.text,
-    }));
-
-    bankSearch.addEventListener('input', function () {
-        const query = this.value.toLowerCase().trim();
-        const currentVal = bankSelect.value;
-        bankSelect.innerHTML = '';
-        allBankOptions.forEach(opt => {
-            if (!query || opt.value === '' || opt.text.toLowerCase().includes(query)) {
-                const el = document.createElement('option');
-                el.value = opt.value;
-                el.text = opt.text;
-                if (opt.value === currentVal) el.selected = true;
-                bankSelect.appendChild(el);
-            }
+    // Max button — fills the amount field with the full available balance
+    const maxBtn = document.getElementById('maxBtn');
+    const availableAmount = {{ available|floatformat:2 }};
+    if (maxBtn) {
+        maxBtn.addEventListener('click', function () {
+            amountInput.value = availableAmount.toFixed(2);
+            amountInput.dispatchEvent(new Event('input'));
         });
-    });
-
-    // Clear search when a bank is selected so full list is visible next time
-    bankSelect.addEventListener('change', function () {
-        if (this.value) {
-            const selectedText = this.options[this.selectedIndex].text;
-            bankSearch.value = selectedText;
-        }
-    });
+    }
 </script>
 {% endblock %}
