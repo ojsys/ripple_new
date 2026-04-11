@@ -392,8 +392,9 @@
                 btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
             }
         })
-        .catch(() => {
-            alert('An error occurred. Please try again.');
+        .catch(error => {
+            console.error('Unexpected error during Paystack initialization:', error);
+            alert('An unexpected error occurred during payment initialization. Please check your console for details and try again, or contact support if the issue persists.');
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
         });
