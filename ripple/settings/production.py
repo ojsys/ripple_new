@@ -10,7 +10,7 @@ pymysql.install_as_MySQLdb()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['www.startupripple.com', 'startupripple.com']
+ALLOWED_HOSTS = ['www.startupripple.com', 'startupripple.com', 'mail.startupripple.com']
 
 # Database - MySQL for production
 DATABASES = {
