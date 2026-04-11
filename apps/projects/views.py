@@ -98,9 +98,16 @@ def project_list(request):
     funding_types = FundingType.objects.all()
 
     # Filter by category
-    category_id = request.GET.get('category')
-    if category_id:
-        projects = projects.filter(category_id=category_id)
+    category_name = request.GET.get('category')
+    if category_name:
+        try:
+            category = Category.objects.get(name__iexact=category_name)
+            projects = projects.filter(category=category)
+        except Category.DoesNotExist:
+            # If the category name doesn't exist, just return all projects for now
+            # or handle it as an error/no results.
+            # For this context, we'll just not filter by category.
+            pass
 
     # Filter by funding type
     funding_type_id = request.GET.get('funding_type')
