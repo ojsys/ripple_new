@@ -359,17 +359,23 @@ def token_purchase_callback(request):
         result = response.json()
 
         if result.get('status') and result['data']['status'] == 'success':
-            # Complete the purchase
-            if purchase.complete_purchase():
-                messages.success(
-                    request,
-                    f"Payment successful! {purchase.total_tokens} SRT tokens have been added to your account."
-                )
-                # Send email notifications
-                send_token_purchase_confirmation_to_user(purchase)
-                send_token_purchase_notification_to_admin(purchase)
-            else:
-                messages.info(request, "This purchase has already been processed.")
+            try:
+                if purchase.complete_purchase():
+                    messages.success(
+                        request,
+                        f"Payment successful! {purchase.total_tokens} SRT tokens have been added to your account."
+                    )
+                    # Send email notifications
+                    send_token_purchase_confirmation_to_user(purchase)
+                    send_token_purchase_notification_to_admin(purchase)
+                else:
+                    messages.info(request, "This purchase has already been processed.")
+            except Exception as complete_error:
+                # Log the error for debugging purposes
+                # logger.error(f"Error completing purchase {purchase.id}: {complete_error}")
+                purchase.status = 'failed' # Ensure purchase is marked as failed
+                purchase.save()
+                messages.error(request, f"An internal error occurred while processing your purchase: {str(complete_error)}. Please contact support.")
         else:
             purchase.status = 'failed'
             purchase.save()
