@@ -377,15 +377,22 @@
         .then(response => response.json())
         .then(data => {
             if (data.access_code) {
-                PaystackPop.resumeTransaction(data.access_code, {
-                    onSuccess: function (transaction) {
-                        window.location.href = '/srt/token-purchase-callback/?reference=' + transaction.reference;
-                    },
-                    onCancel: function () {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
-                    },
-                });
+                try {
+                    PaystackPop.resumeTransaction(data.access_code, {
+                        onSuccess: function (transaction) {
+                            window.location.href = '/srt/token-purchase-callback/?reference=' + transaction.reference;
+                        },
+                        onCancel: function () {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+                        },
+                    });
+                } catch (paystackError) {
+                    console.error('Error launching Paystack popup:', paystackError);
+                    alert('Failed to open the payment window. Please try again, or ensure pop-ups are allowed for this site. Details logged to console.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+                }
             } else if (data.error) {
                 alert(data.error);
                 btn.disabled = false;
