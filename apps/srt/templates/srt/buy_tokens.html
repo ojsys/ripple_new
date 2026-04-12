@@ -359,13 +359,13 @@
 
         document.getElementById('formTokens').value = selectedTokens;
 
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
         // Submit form via AJAX
         const formData = new FormData(document.getElementById('paymentForm'));
 
-        this.disabled = true;
-        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
-
-        const btn = this;
         fetch('{% url "srt:initialize_purchase" %}', {
             method: 'POST',
             body: formData,
@@ -377,29 +377,42 @@
         .then(response => response.json())
         .then(data => {
             if (data.access_code) {
-                if (typeof PaystackPop === 'undefined' || typeof PaystackPop.resumeTransaction !== 'function') {
-                    console.error('PaystackPop library or resumeTransaction function is not loaded/available.');
-                    alert('Payment gateway not ready. Please try again or refresh the page.');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
-                    return;
-                }
-                try {
-                    PaystackPop.resumeTransaction(data.access_code, {
-                        onSuccess: function (transaction) {
-                            window.location.href = '/srt/token-purchase-callback/?reference=' + transaction.reference;
-                        },
-                        onCancel: function () {
+                // Polling mechanism to wait for PaystackPop to be ready
+                let paystackPopInterval = setInterval(() => {
+                    if (typeof PaystackPop !== 'undefined' && typeof PaystackPop.resumeTransaction === 'function') {
+                        clearInterval(paystackPopInterval); // Stop polling
+                        try {
+                            PaystackPop.resumeTransaction(data.access_code, {
+                                onSuccess: function (transaction) {
+                                    window.location.href = '/srt/token-purchase-callback/?reference=' + transaction.reference;
+                                },
+                                onCancel: function () {
+                                    btn.disabled = false;
+                                    btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+                                },
+                            });
+                        } catch (paystackError) {
+                            console.error('Error launching Paystack popup:', paystackError);
+                            alert('Failed to open the payment window. Please try again, or ensure pop-ups are allowed for this site. Details logged to console.');
                             btn.disabled = false;
                             btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
-                        },
-                    });
-                } catch (paystackError) {
-                    console.error('Error launching Paystack popup:', paystackError);
-                    alert('Failed to open the payment window. Please try again, or ensure pop-ups are allowed for this site. Details logged to console.');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
-                }
+                        }
+                    } else {
+                        // Keep polling, or log a warning if it takes too long
+                        console.warn('Waiting for PaystackPop.resumeTransaction to be defined...');
+                    }
+                }, 200); // Check every 200ms
+                
+                // Add a timeout to stop polling after a certain period if PaystackPop never loads
+                setTimeout(() => {
+                    if (paystackPopInterval) { // If interval is still active (PaystackPop not loaded)
+                        clearInterval(paystackPopInterval);
+                        console.error('PaystackPop library did not load within expected time.');
+                        alert('Payment gateway failed to load. Please refresh the page and try again.');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+                    }
+                }, 10000); // Stop polling after 10 seconds
             } else if (data.error) {
                 alert(data.error);
                 btn.disabled = false;
