@@ -377,6 +377,13 @@
         .then(response => response.json())
         .then(data => {
             if (data.access_code) {
+                if (typeof PaystackPop === 'undefined' || typeof PaystackPop.resumeTransaction !== 'function') {
+                    console.error('PaystackPop library or resumeTransaction function is not loaded/available.');
+                    alert('Payment gateway not ready. Please try again or refresh the page.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-lock me-2"></i>Proceed to Payment';
+                    return;
+                }
                 try {
                     PaystackPop.resumeTransaction(data.access_code, {
                         onSuccess: function (transaction) {
