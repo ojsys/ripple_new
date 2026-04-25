@@ -153,7 +153,7 @@ def project_list(request):
         'projects': page_obj,
         'categories': categories,
         'funding_types': funding_types,
-        'current_category': category_id,
+        'current_category': category_name,
         'current_funding_type': funding_type_id,
         'current_financing_type': financing_type,
         'search_query': search_query,
