@@ -551,6 +551,7 @@
         box-shadow: 0 24px 60px rgba(0,0,0,0.5);
         background: #000;
         aspect-ratio: 16 / 9;
+        cursor: pointer;
     }
 
     .launchpadi-video-wrap iframe {
@@ -558,6 +559,57 @@
         height: 100%;
         display: block;
         border: none;
+    }
+
+    /* Click-to-play thumbnail state */
+    .launchpadi-video-thumb {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .launchpadi-video-wrap:hover .launchpadi-video-thumb {
+        transform: scale(1.03);
+    }
+
+    .launchpadi-play-btn {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.25);
+        transition: background 0.2s ease;
+    }
+
+    .launchpadi-video-wrap:hover .launchpadi-play-btn {
+        background: rgba(0,0,0,0.15);
+    }
+
+    .launchpadi-play-circle {
+        width: 72px;
+        height: 72px;
+        background: rgba(255,255,255,0.95);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .launchpadi-video-wrap:hover .launchpadi-play-circle {
+        transform: scale(1.1);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+
+    .launchpadi-play-circle i {
+        color: #ff0000;
+        font-size: 1.6rem;
+        margin-left: 4px;
     }
 
     .launchpadi-video-placeholder {
@@ -1438,15 +1490,21 @@
 
             <!-- Left: Video Embed -->
             <div class="col-lg-6">
-                {% if homepage.incubator_youtube_embed_url %}
-                <div class="launchpadi-video-wrap">
-                    <iframe
-                        src="{{ homepage.incubator_youtube_embed_url }}"
-                        title="{{ homepage.incubator_title }}"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen
-                        loading="lazy">
-                    </iframe>
+                {% if homepage.incubator_youtube_video_id %}
+                <div class="launchpadi-video-wrap"
+                     id="yt-player-wrap"
+                     data-video-id="{{ homepage.incubator_youtube_video_id }}"
+                     data-embed-url="{{ homepage.incubator_youtube_embed_url }}"
+                     onclick="launchpadiPlayVideo(this)">
+                    <img class="launchpadi-video-thumb"
+                         src="https://img.youtube.com/vi/{{ homepage.incubator_youtube_video_id }}/maxresdefault.jpg"
+                         alt="{{ homepage.incubator_title }}"
+                         onerror="this.src='https://img.youtube.com/vi/{{ homepage.incubator_youtube_video_id }}/hqdefault.jpg'">
+                    <div class="launchpadi-play-btn">
+                        <div class="launchpadi-play-circle">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                    </div>
                 </div>
                 {% elif homepage.incubator_image %}
                 <div class="launchpadi-video-wrap" style="aspect-ratio:4/3;">
@@ -1689,7 +1747,6 @@
 
 {% block extra_js %}
 <script>
-    // Smooth scroll for hero section
     document.addEventListener('DOMContentLoaded', function() {
         // Pause carousel on hover
         const carousel = document.getElementById('heroCarousel');
@@ -1704,5 +1761,19 @@
             });
         }
     });
+
+    function launchpadiPlayVideo(wrap) {
+        const embedUrl = wrap.dataset.embedUrl + '?autoplay=1&rel=0';
+        const iframe = document.createElement('iframe');
+        iframe.src = embedUrl;
+        iframe.title = 'LaunchPadi Program Video';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.allowFullscreen = true;
+        iframe.style.cssText = 'width:100%;height:100%;display:block;border:none;';
+        wrap.innerHTML = '';
+        wrap.appendChild(iframe);
+        wrap.style.cursor = 'default';
+        wrap.onclick = null;
+    }
 </script>
 {% endblock %}

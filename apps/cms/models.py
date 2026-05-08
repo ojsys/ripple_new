@@ -309,19 +309,24 @@ class HomePage(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
 
     @property
-    def incubator_youtube_embed_url(self):
+    def incubator_youtube_video_id(self):
         url = self.incubator_youtube_url
         if not url:
             return None
-        if 'embed' in url:
-            return url
         if 'youtu.be/' in url:
-            video_id = url.split('youtu.be/')[-1].split('?')[0]
-            return f'https://www.youtube.com/embed/{video_id}'
+            return url.split('youtu.be/')[-1].split('?')[0]
         if 'v=' in url:
-            video_id = url.split('v=')[-1].split('&')[0]
+            return url.split('v=')[-1].split('&')[0]
+        if '/embed/' in url:
+            return url.split('/embed/')[-1].split('?')[0]
+        return None
+
+    @property
+    def incubator_youtube_embed_url(self):
+        video_id = self.incubator_youtube_video_id
+        if video_id:
             return f'https://www.youtube.com/embed/{video_id}'
-        return url
+        return None
 
     def save(self, *args, **kwargs):
         self.pk = 1
