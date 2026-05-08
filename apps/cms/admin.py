@@ -178,10 +178,14 @@ class HomePageAdmin(admin.ModelAdmin):
                 'show_incubator_section', 'incubator_title', 'incubator_subtitle',
                 'incubator_description', 'incubator_image',
                 'incubator_youtube_url',
+                ('incubator_stat_1_value', 'incubator_stat_1_label'),
+                ('incubator_stat_2_value', 'incubator_stat_2_label'),
+                ('incubator_stat_3_value', 'incubator_stat_3_label'),
+                ('incubator_stat_4_value', 'incubator_stat_4_label'),
                 'incubator_cta_text', 'incubator_cta_url'
             ),
             'classes': ('collapse',),
-            'description': 'Add gallery images via the inline table below. YouTube URL format: https://www.youtube.com/watch?v=XXXXX'
+            'description': 'Add gallery images via the inline table below. YouTube URL: https://youtu.be/XXXXX'
         }),
         ('Testimonials Section', {
             'fields': ('show_testimonials', 'testimonials_title', 'testimonials_subtitle'),
