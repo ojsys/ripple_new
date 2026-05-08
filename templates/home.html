@@ -434,43 +434,311 @@
         border: 1px solid rgba(255,255,255,0.1);
     }
 
-    /* Incubator Section */
-    .incubator-section-md {
-        background: var(--md-background);
-    }
-
-    .incubator-card-md {
-        background: var(--md-surface);
-        border-radius: 24px;
+    /* LaunchPadi Accelerator Section */
+    .launchpadi-section {
+        background: linear-gradient(160deg, #0a2418 0%, #0e3320 40%, #133d28 100%);
+        color: #fff;
+        position: relative;
         overflow: hidden;
-        box-shadow: var(--md-elevation-2);
     }
 
-    .incubator-image-md {
-        height: 100%;
-        min-height: 450px;
-        background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
-        display: flex;
+    .launchpadi-section::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        left: -15%;
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(circle, rgba(38,175,89,0.18) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .launchpadi-section::after {
+        content: '';
+        position: absolute;
+        bottom: -20%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(3,218,198,0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .launchpadi-badge {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
+        gap: 8px;
+        padding: 8px 20px;
+        background: rgba(38,175,89,0.2);
+        border: 1px solid rgba(38,175,89,0.4);
+        color: #6ee09a;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+    }
+
+    .launchpadi-title {
+        font-size: 3rem;
+        font-weight: 300;
+        line-height: 1.15;
+        margin-bottom: 16px;
+        color: #fff;
+    }
+
+    .launchpadi-title strong {
+        font-weight: 700;
+        background: linear-gradient(90deg, #26af59, #03DAC6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .launchpadi-subtitle {
+        font-size: 1.1rem;
+        color: rgba(255,255,255,0.7);
+        line-height: 1.7;
+        margin-bottom: 0;
+    }
+
+    /* Stats strip */
+    .launchpadi-stats {
+        display: flex;
+        gap: 0;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        margin: 48px 0;
+    }
+
+    .launchpadi-stat-item {
+        flex: 1;
+        text-align: center;
+        padding: 24px 16px;
+        border-right: 1px solid rgba(255,255,255,0.1);
         position: relative;
     }
 
-    .incubator-image-md img {
+    .launchpadi-stat-item:last-child {
+        border-right: none;
+    }
+
+    .launchpadi-stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #26af59;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .launchpadi-stat-label {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.55);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Video embed */
+    .launchpadi-video-wrap {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+        background: #000;
+        aspect-ratio: 16 / 9;
+    }
+
+    .launchpadi-video-wrap iframe {
+        width: 100%;
+        height: 100%;
+        display: block;
+        border: none;
+    }
+
+    .launchpadi-video-placeholder {
+        aspect-ratio: 16 / 9;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.05);
+        border: 2px dashed rgba(255,255,255,0.15);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.4);
+    }
+
+    /* Benefits */
+    .launchpadi-benefit {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .launchpadi-benefit-icon {
+        width: 36px;
+        height: 36px;
+        background: rgba(38,175,89,0.2);
+        border: 1px solid rgba(38,175,89,0.35);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: #6ee09a;
+        font-size: 0.9rem;
+    }
+
+    .launchpadi-benefit-text strong {
+        display: block;
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .launchpadi-benefit-text span {
+        font-size: 0.875rem;
+        color: rgba(255,255,255,0.6);
+    }
+
+    /* Gallery */
+    .launchpadi-gallery-section {
+        margin-top: 60px;
+        padding-top: 48px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .launchpadi-gallery-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: rgba(255,255,255,0.45);
+        margin-bottom: 24px;
+    }
+
+    .launchpadi-gallery-track {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 12px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(38,175,89,0.4) transparent;
+    }
+
+    .launchpadi-gallery-track::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .launchpadi-gallery-track::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.05);
+        border-radius: 2px;
+    }
+
+    .launchpadi-gallery-track::-webkit-scrollbar-thumb {
+        background: rgba(38,175,89,0.5);
+        border-radius: 2px;
+    }
+
+    .launchpadi-gallery-item {
+        flex: 0 0 280px;
+        scroll-snap-align: start;
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+        aspect-ratio: 4 / 3;
+        background: rgba(255,255,255,0.05);
+    }
+
+    .launchpadi-gallery-item img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
     }
 
-    .incubator-image-md i {
-        font-size: 120px;
-        color: rgba(255,255,255,0.2);
+    .launchpadi-gallery-item:hover img {
+        transform: scale(1.05);
     }
 
-    .incubator-content-md {
-        padding: 48px;
+    .launchpadi-gallery-caption {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 12px 16px;
+        background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.85);
     }
 
+    .launchpadi-gallery-placeholder {
+        flex: 0 0 280px;
+        scroll-snap-align: start;
+        border-radius: 16px;
+        aspect-ratio: 4 / 3;
+        background: rgba(255,255,255,0.04);
+        border: 2px dashed rgba(255,255,255,0.12);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.3);
+        font-size: 0.8rem;
+        gap: 8px;
+    }
+
+    /* CTA buttons for LaunchPadi */
+    .btn-launchpadi-primary {
+        background: linear-gradient(90deg, #26af59, #1e8e48);
+        color: #fff;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 100px;
+        font-weight: 600;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        box-shadow: 0 4px 20px rgba(38,175,89,0.35);
+    }
+
+    .btn-launchpadi-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(38,175,89,0.5);
+        color: #fff;
+    }
+
+    .btn-launchpadi-secondary {
+        background: transparent;
+        color: rgba(255,255,255,0.85);
+        border: 1px solid rgba(255,255,255,0.25);
+        padding: 14px 32px;
+        border-radius: 100px;
+        font-weight: 500;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.25s ease;
+        text-decoration: none;
+    }
+
+    .btn-launchpadi-secondary:hover {
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        border-color: rgba(255,255,255,0.4);
+    }
+
+    /* old incubator (kept for legacy, overridden below) */
     .incubator-badge {
         display: inline-block;
         padding: 8px 16px;
@@ -660,12 +928,25 @@
             font-size: 1rem;
         }
 
-        .incubator-image-md {
-            min-height: 300px;
+        .launchpadi-title {
+            font-size: 2.2rem;
         }
 
-        .incubator-content-md {
-            padding: 32px;
+        .launchpadi-stats {
+            flex-wrap: wrap;
+        }
+
+        .launchpadi-stat-item {
+            flex: 1 1 45%;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .launchpadi-stat-item:nth-child(odd) {
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .launchpadi-stat-item:nth-last-child(-n+2) {
+            border-bottom: none;
         }
     }
 
@@ -1114,57 +1395,174 @@
 </section>
 {% endif %}
 
-<!-- Incubator Section -->
+<!-- LaunchPadi Accelerator Section -->
 {% if homepage.show_incubator_section %}
-<section class="section-material incubator-section-md">
-    <div class="container">
-        <div class="incubator-card-md">
-            <div class="row g-0">
-                <div class="col-lg-5">
-                    <div class="incubator-image-md">
-                        {% if homepage.incubator_image %}
-                        <img src="{{ homepage.incubator_image.url }}" alt="Accelerator Program">
-                        {% else %}
-                        <div class="d-flex align-items-center justify-content-center h-100 bg-light">
-                            <i class="fas fa-rocket fa-4x text-muted"></i>
-                        </div>
-                        {% endif %}
+<section class="launchpadi-section py-5 py-lg-0">
+    <div class="container" style="padding-top:80px; padding-bottom:80px; position:relative; z-index:1;">
+
+        <!-- Section Header -->
+        <div class="row mb-2">
+            <div class="col-lg-8">
+                <span class="launchpadi-badge">
+                    <i class="fas fa-rocket"></i> Accelerator Program
+                </span>
+                <h2 class="launchpadi-title">
+                    <strong>{{ homepage.incubator_title }}</strong>
+                </h2>
+                <p class="launchpadi-subtitle">{{ homepage.incubator_subtitle }}</p>
+            </div>
+        </div>
+
+        <!-- Stats Strip -->
+        <div class="launchpadi-stats">
+            <div class="launchpadi-stat-item">
+                <div class="launchpadi-stat-value">5+</div>
+                <div class="launchpadi-stat-label">Cohorts Completed</div>
+            </div>
+            <div class="launchpadi-stat-item">
+                <div class="launchpadi-stat-value">120+</div>
+                <div class="launchpadi-stat-label">Startups Launched</div>
+            </div>
+            <div class="launchpadi-stat-item">
+                <div class="launchpadi-stat-value">50+</div>
+                <div class="launchpadi-stat-label">Expert Mentors</div>
+            </div>
+            <div class="launchpadi-stat-item">
+                <div class="launchpadi-stat-value">78%</div>
+                <div class="launchpadi-stat-label">Success Rate</div>
+            </div>
+        </div>
+
+        <!-- Main Content: Video + Benefits -->
+        <div class="row g-5 align-items-start">
+
+            <!-- Left: Video Embed -->
+            <div class="col-lg-6">
+                {% if homepage.incubator_youtube_embed_url %}
+                <div class="launchpadi-video-wrap">
+                    <iframe
+                        src="{{ homepage.incubator_youtube_embed_url }}"
+                        title="{{ homepage.incubator_title }}"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        loading="lazy">
+                    </iframe>
+                </div>
+                {% elif homepage.incubator_image %}
+                <div class="launchpadi-video-wrap" style="aspect-ratio:4/3;">
+                    <img src="{{ homepage.incubator_image.url }}" alt="{{ homepage.incubator_title }}" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                {% else %}
+                <div class="launchpadi-video-placeholder">
+                    <i class="fab fa-youtube fa-3x mb-2" style="color:rgba(255,255,255,0.2);"></i>
+                    <span>Program video coming soon</span>
+                </div>
+                {% endif %}
+
+                <!-- Description under video -->
+                {% if homepage.incubator_description %}
+                <div class="mt-4" style="color:rgba(255,255,255,0.65); font-size:0.95rem; line-height:1.75;">
+                    {{ homepage.incubator_description|safe }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right: Benefits + CTA -->
+            <div class="col-lg-6">
+                <h4 class="mb-4" style="color:rgba(255,255,255,0.9); font-weight:400;">What you get in the program</h4>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-user-tie"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>Expert Mentorship</strong>
+                        <span>One-on-one sessions with seasoned founders and industry leaders across Africa</span>
                     </div>
                 </div>
-                <div class="col-lg-7">
-                    <div class="incubator-content-md">
-                        <span class="incubator-badge">For Startups</span>
-                        <h2 class="section-title-md mb-3">{{ homepage.incubator_title }}</h2>
-                        <p class="lead text-muted mb-4">{{ homepage.incubator_subtitle }}</p>
 
-                        <div class="benefit-item-md">
-                            <div class="benefit-check-md"><i class="fas fa-check"></i></div>
-                            <span>Expert mentorship from industry leaders</span>
-                        </div>
-                        <div class="benefit-item-md">
-                            <div class="benefit-check-md"><i class="fas fa-check"></i></div>
-                            <span>Access to seed funding up to $50,000</span>
-                        </div>
-                        <div class="benefit-item-md">
-                            <div class="benefit-check-md"><i class="fas fa-check"></i></div>
-                            <span>12-week intensive program</span>
-                        </div>
-                        <div class="benefit-item-md">
-                            <div class="benefit-check-md"><i class="fas fa-check"></i></div>
-                            <span>Network of investors and partners</span>
-                        </div>
-                        <div class="benefit-item-md">
-                            <div class="benefit-check-md"><i class="fas fa-check"></i></div>
-                            <span>Co-working space and resources</span>
-                        </div>
-
-                        <a href="{{ homepage.incubator_cta_url }}" class="btn btn-md btn-md-filled btn-lg mt-4">
-                            <i class="fas fa-paper-plane me-2"></i>{{ homepage.incubator_cta_text }}
-                        </a>
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>Seed Funding Access</strong>
+                        <span>Connect with investors and unlock funding opportunities up to $50,000</span>
                     </div>
+                </div>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>12-Week Intensive Program</strong>
+                        <span>Structured curriculum covering product, growth, fundraising, and operations</span>
+                    </div>
+                </div>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-network-wired"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>Investor Network</strong>
+                        <span>Demo day pitch to a curated network of VCs, angels, and strategic partners</span>
+                    </div>
+                </div>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-laptop-house"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>Co-Working & Resources</strong>
+                        <span>Dedicated workspace, legal, financial, and technical support throughout</span>
+                    </div>
+                </div>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-globe-africa"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>Pan-African Reach</strong>
+                        <span>Build connections and expand your market across 12+ African countries</span>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-3 mt-5">
+                    <a href="{{ homepage.incubator_cta_url }}" class="btn-launchpadi-primary">
+                        <i class="fas fa-paper-plane"></i> {{ homepage.incubator_cta_text }}
+                    </a>
+                    <a href="/incubator/" class="btn-launchpadi-secondary">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
+
+        <!-- Image Gallery -->
+        {% if accelerator_gallery %}
+        <div class="launchpadi-gallery-section">
+            <p class="launchpadi-gallery-label"><i class="fas fa-images me-2"></i>Program Gallery</p>
+            <div class="launchpadi-gallery-track">
+                {% for item in accelerator_gallery %}
+                <div class="launchpadi-gallery-item">
+                    <img src="{{ item.image.url }}" alt="{{ item.caption|default:'LaunchPadi program' }}" loading="lazy">
+                    {% if item.caption %}
+                    <div class="launchpadi-gallery-caption">{{ item.caption }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="launchpadi-gallery-section">
+            <p class="launchpadi-gallery-label"><i class="fas fa-images me-2"></i>Program Gallery</p>
+            <div class="launchpadi-gallery-track">
+                <div class="launchpadi-gallery-placeholder">
+                    <i class="fas fa-image fa-2x"></i>
+                    <span>Gallery images coming soon</span>
+                </div>
+                <div class="launchpadi-gallery-placeholder">
+                    <i class="fas fa-image fa-2x"></i>
+                </div>
+                <div class="launchpadi-gallery-placeholder">
+                    <i class="fas fa-image fa-2x"></i>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 </section>
 {% endif %}

@@ -15,7 +15,7 @@ from .forms import ProjectForm, RewardForm, RewardFormSet, UpdateForm, DonationF
 from apps.funding.models import Investment, InvestmentTerm, InvestorEscrowBalance
 from apps.cms.models import (
     HeroSlider, Testimonial, HomePage, PartnerLogo,
-    SiteSettings, Announcement, NewsletterSubscriber
+    SiteSettings, Announcement, NewsletterSubscriber, AcceleratorGalleryImage
 )
 
 
@@ -53,6 +53,9 @@ def home(request):
     # Hero sliders (if using slider instead of static hero)
     sliders = HeroSlider.objects.filter(is_active=True)
 
+    # Accelerator gallery images
+    accelerator_gallery = homepage.accelerator_gallery.all() if homepage else []
+
     context = {
         'homepage': homepage,
         'site_settings': site_settings,
@@ -64,6 +67,7 @@ def home(request):
         'categories': categories,
         'sliders': sliders,
         'how_it_works_steps': homepage.how_it_works_steps.all() if homepage else [],
+        'accelerator_gallery': accelerator_gallery,
     }
     return render(request, 'home.html', context)
 

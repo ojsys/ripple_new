@@ -4,7 +4,7 @@ from .models import (
     HeaderLink, FooterSection, ThemeSettings, Announcement,
     SocialMediaLink, SEOSettings, Testimonial, Contact,
     HomePage, HowItWorksStep, PartnerLogo, NewsletterSubscriber,
-    LegalPage, ContactPage, ContactFAQ
+    LegalPage, ContactPage, ContactFAQ, AcceleratorGalleryImage
 )
 
 
@@ -129,9 +129,15 @@ class HowItWorksStepInline(admin.TabularInline):
     fields = ['order', 'icon', 'title', 'description']
 
 
+class AcceleratorGalleryImageInline(admin.TabularInline):
+    model = AcceleratorGalleryImage
+    extra = 2
+    fields = ['order', 'image', 'caption']
+
+
 @admin.register(HomePage)
 class HomePageAdmin(admin.ModelAdmin):
-    inlines = [HowItWorksStepInline]
+    inlines = [HowItWorksStepInline, AcceleratorGalleryImageInline]
 
     fieldsets = (
         ('Hero Section', {
@@ -167,12 +173,15 @@ class HomePageAdmin(admin.ModelAdmin):
             ),
             'classes': ('collapse',)
         }),
-        ('Incubator Section', {
+        ('LaunchPadi Accelerator Section', {
             'fields': (
                 'show_incubator_section', 'incubator_title', 'incubator_subtitle',
-                'incubator_description', 'incubator_image', 'incubator_cta_text', 'incubator_cta_url'
+                'incubator_description', 'incubator_image',
+                'incubator_youtube_url',
+                'incubator_cta_text', 'incubator_cta_url'
             ),
-            'classes': ('collapse',)
+            'classes': ('collapse',),
+            'description': 'Add gallery images via the inline table below. YouTube URL format: https://www.youtube.com/watch?v=XXXXX'
         }),
         ('Testimonials Section', {
             'fields': ('show_testimonials', 'testimonials_title', 'testimonials_subtitle'),

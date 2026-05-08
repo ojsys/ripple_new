@@ -274,10 +274,11 @@ class HomePage(models.Model):
 
     # Incubator Section
     show_incubator_section = models.BooleanField(default=True)
-    incubator_title = models.CharField(max_length=100, default="Accelerator Program")
-    incubator_subtitle = models.TextField(default="Take your startup to the next level")
+    incubator_title = models.CharField(max_length=100, default="LaunchPadi Accelerator Program")
+    incubator_subtitle = models.TextField(default="Africa's premier startup accelerator — turning bold ideas into thriving businesses")
     incubator_description = RichTextField(default="Our 12-week intensive program provides mentorship, funding, and resources to help early-stage startups scale rapidly.")
     incubator_image = models.ImageField(upload_to='homepage/incubator/', blank=True, null=True)
+    incubator_youtube_url = models.URLField(blank=True, null=True, help_text="YouTube video URL (e.g. https://www.youtube.com/watch?v=XXXXX)")
     incubator_cta_text = models.CharField(max_length=50, default="Apply Now")
     incubator_cta_url = models.CharField(max_length=200, default="/incubator/apply/")
 
@@ -306,6 +307,21 @@ class HomePage(models.Model):
 
     # Meta
     last_updated = models.DateTimeField(auto_now=True)
+
+    @property
+    def incubator_youtube_embed_url(self):
+        url = self.incubator_youtube_url
+        if not url:
+            return None
+        if 'embed' in url:
+            return url
+        if 'youtu.be/' in url:
+            video_id = url.split('youtu.be/')[-1].split('?')[0]
+            return f'https://www.youtube.com/embed/{video_id}'
+        if 'v=' in url:
+            video_id = url.split('v=')[-1].split('&')[0]
+            return f'https://www.youtube.com/embed/{video_id}'
+        return url
 
     def save(self, *args, **kwargs):
         self.pk = 1
@@ -352,6 +368,20 @@ class PartnerLogo(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class AcceleratorGalleryImage(models.Model):
+    """Gallery images for the LaunchPadi accelerator section on the homepage."""
+    homepage = models.ForeignKey(HomePage, on_delete=models.CASCADE, related_name='accelerator_gallery')
+    image = models.ImageField(upload_to='homepage/accelerator_gallery/')
+    caption = models.CharField(max_length=150, blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return self.caption or f"Gallery image #{self.pk}"
 
 
 class NewsletterSubscriber(models.Model):
