@@ -49,7 +49,7 @@ class LMSModuleAdmin(admin.ModelAdmin):
     inlines = [LMSLessonInline, LMSExerciseInline, LMSDeliverableInline]
     fieldsets = (
         ('Module Info', {
-            'fields': ('course', 'week_number', 'title', 'order', 'is_published'),
+            'fields': ('course', 'week_number', 'title', 'cover_image', 'order', 'is_published'),
         }),
         ('Content', {
             'fields': ('overview', 'learning_objectives'),

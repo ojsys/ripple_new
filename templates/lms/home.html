@@ -32,18 +32,48 @@
 
     .module-grid { padding: 80px 0; background: #f8fafc; }
     .module-card {
-        background: #fff; border-radius: 20px; padding: 28px 24px;
+        background: #fff; border-radius: 20px; overflow: hidden;
         border: 1px solid #eef2f7; transition: all 0.25s ease;
         height: 100%; display: flex; flex-direction: column;
     }
     .module-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.1); transform: translateY(-4px); }
+    .module-card-image {
+        height: 140px; position: relative; overflow: hidden; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .module-card-image img { width: 100%; height: 100%; object-fit: cover; }
+    .module-card-image .week-overlay {
+        position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.55));
+        display: flex; align-items: flex-end; padding: 12px 16px;
+    }
+    .module-card-image .week-overlay-fallback {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px;
+    }
+    .module-card-image .week-overlay-fallback i { font-size: 2rem; opacity: 0.85; }
+    .module-card-image .week-overlay-fallback span { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.75; }
+    .module-card-body { padding: 20px 20px 24px; flex-grow: 1; display: flex; flex-direction: column; }
     .week-chip {
         display: inline-block; padding: 4px 12px;
         background: rgba(38,175,89,0.1); color: #1a7d40;
         border-radius: 100px; font-size: 0.72rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
     }
     .module-title { font-size: 1rem; font-weight: 600; color: #111827; margin-bottom: 8px; flex-grow: 1; }
+
+    /* Per-week gradient fallbacks */
+    .wk-1  { background: linear-gradient(135deg,#1a3a4a,#0d6e8a); color:#7ecfea; }
+    .wk-2  { background: linear-gradient(135deg,#2a1a4e,#5c23a3); color:#c4a0f0; }
+    .wk-3  { background: linear-gradient(135deg,#0a2e1a,#1a7a40); color:#7eeaaa; }
+    .wk-4  { background: linear-gradient(135deg,#4a1a0a,#c05030); color:#f0b08a; }
+    .wk-5  { background: linear-gradient(135deg,#0a2848,#1a5fa0); color:#7ab8f0; }
+    .wk-6  { background: linear-gradient(135deg,#2e1a00,#8a5000); color:#f0c878; }
+    .wk-7  { background: linear-gradient(135deg,#1a0a2e,#7c1a8c); color:#e09ae8; }
+    .wk-8  { background: linear-gradient(135deg,#001e30,#005c6e); color:#70d0e8; }
+    .wk-9  { background: linear-gradient(135deg,#0e2a0e,#2e6e2e); color:#90d890; }
+    .wk-10 { background: linear-gradient(135deg,#2e0a0a,#8c2020); color:#f08888; }
+    .wk-11 { background: linear-gradient(135deg,#1a1a0a,#4e4e10); color:#d8d870; }
+    .wk-12 { background: linear-gradient(135deg,#0a0a2a,#1a2080); color:#9898f0; }
 
     .access-section { padding: 80px 0; background: #fff; }
     .access-card {
@@ -103,16 +133,46 @@
             {% for module in modules %}
             <div class="col-sm-6 col-lg-4">
                 <div class="module-card">
-                    <span class="week-chip">Week {{ module.week_number }}</span>
-                    <h5 class="module-title">{{ module.title }}</h5>
-                    <p style="font-size:0.82rem;color:#6b7280;line-height:1.6;margin-bottom:16px;">
-                        {{ module.lessons.count }} lesson{{ module.lessons.count|pluralize }} · 1 exercise · 1 deliverable
-                    </p>
-                    {% if enrollment %}
-                    <a href="{% url 'lms:module_detail' module.pk %}" style="font-size:0.85rem;color:#26af59;font-weight:600;text-decoration:none;">
-                        Go to module <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
-                    {% endif %}
+                    <div class="module-card-image">
+                        {% if module.cover_image %}
+                        <img src="{{ module.cover_image.url }}" alt="{{ module.title }}">
+                        <div class="week-overlay">
+                            <span style="color:#fff;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Week {{ module.week_number }}</span>
+                        </div>
+                        {% else %}
+                        {% with week=module.week_number %}
+                        <div class="week-overlay-fallback wk-{{ week }}">
+                            {% if week == 1 %}<i class="fas fa-brain"></i>
+                            {% elif week == 2 %}<i class="fas fa-search"></i>
+                            {% elif week == 3 %}<i class="fas fa-chart-bar"></i>
+                            {% elif week == 4 %}<i class="fas fa-users"></i>
+                            {% elif week == 5 %}<i class="fas fa-drafting-compass"></i>
+                            {% elif week == 6 %}<i class="fas fa-coins"></i>
+                            {% elif week == 7 %}<i class="fas fa-paint-brush"></i>
+                            {% elif week == 8 %}<i class="fas fa-rocket"></i>
+                            {% elif week == 9 %}<i class="fas fa-code"></i>
+                            {% elif week == 10 %}<i class="fas fa-calculator"></i>
+                            {% elif week == 11 %}<i class="fas fa-microphone"></i>
+                            {% elif week == 12 %}<i class="fas fa-flag-checkered"></i>
+                            {% else %}<i class="fas fa-book"></i>
+                            {% endif %}
+                            <span>Week {{ week }}</span>
+                        </div>
+                        {% endwith %}
+                        {% endif %}
+                    </div>
+                    <div class="module-card-body">
+                        <span class="week-chip">Week {{ module.week_number }}</span>
+                        <h5 class="module-title">{{ module.title }}</h5>
+                        <p style="font-size:0.82rem;color:#6b7280;line-height:1.6;margin-bottom:16px;">
+                            {{ module.lessons.count }} lesson{{ module.lessons.count|pluralize }} · 1 exercise · 1 deliverable
+                        </p>
+                        {% if enrollment %}
+                        <a href="{% url 'lms:module_detail' module.pk %}" style="font-size:0.85rem;color:#26af59;font-weight:600;text-decoration:none;margin-top:auto;">
+                            Go to module <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             {% endfor %}

@@ -13,6 +13,37 @@
     .lesson-content ul, .lesson-content ol { margin-bottom:1.25rem; padding-left:1.5rem; }
     .lesson-content li { margin-bottom:0.4rem; }
     .lesson-content blockquote { border-left:4px solid #26af59; padding:12px 20px; background:#f0fdf4; margin:1.5rem 0; border-radius:0 8px 8px 0; color:#374151; font-style:italic; }
+    .lesson-module-band {
+        height:6px; width:100%;
+        background:linear-gradient(90deg,#26af59,#03DAC6);
+    }
+    .lesson-module-band.has-image {
+        height:200px; position:relative; overflow:hidden; background-size:cover; background-position:center;
+    }
+    .lesson-module-band.has-image::after {
+        content:''; position:absolute; inset:0;
+        background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.65));
+    }
+    .lesson-module-band .band-caption {
+        position:absolute; bottom:0; left:0; right:0; z-index:1;
+        padding:20px 24px;
+        font-size:0.8rem; color:rgba(255,255,255,0.85); font-weight:500;
+    }
+
+    /* Week fallback band colors */
+    .wk-band-1  { background:linear-gradient(90deg,#0d6e8a,#1a3a4a); }
+    .wk-band-2  { background:linear-gradient(90deg,#5c23a3,#2a1a4e); }
+    .wk-band-3  { background:linear-gradient(90deg,#26af59,#1a7a40); }
+    .wk-band-4  { background:linear-gradient(90deg,#c05030,#8a2800); }
+    .wk-band-5  { background:linear-gradient(90deg,#1a5fa0,#0a2848); }
+    .wk-band-6  { background:linear-gradient(90deg,#d97706,#8a5000); }
+    .wk-band-7  { background:linear-gradient(90deg,#7c1a8c,#3a0a4e); }
+    .wk-band-8  { background:linear-gradient(90deg,#005c6e,#001e30); }
+    .wk-band-9  { background:linear-gradient(90deg,#2e6e2e,#0e2a0e); }
+    .wk-band-10 { background:linear-gradient(90deg,#8c2020,#2e0a0a); }
+    .wk-band-11 { background:linear-gradient(90deg,#6e6e10,#1a1a0a); }
+    .wk-band-12 { background:linear-gradient(90deg,#1a2080,#0a0a2a); }
+
     .mark-done-btn {
         background:linear-gradient(90deg,#26af59,#1e8e48); color:#fff; border:none;
         padding:14px 40px; border-radius:100px; font-size:1rem; font-weight:600;
@@ -24,6 +55,15 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- Module cover band -->
+{% if module.cover_image %}
+<div class="lesson-module-band has-image" style="background-image:url('{{ module.cover_image.url }}');">
+    <div class="band-caption"><i class="fas fa-layer-group me-1"></i>Week {{ module.week_number }}: {{ module.title }}</div>
+</div>
+{% else %}
+<div class="lesson-module-band wk-band-{{ module.week_number }}" style="height:6px;"></div>
+{% endif %}
 
 <!-- Top nav bar -->
 <div class="lesson-nav-bar">

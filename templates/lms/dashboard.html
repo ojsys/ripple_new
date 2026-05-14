@@ -22,19 +22,35 @@
     .overall-fill { height:100%; background:linear-gradient(90deg,#26af59,#03DAC6); border-radius:4px; transition:width 0.6s ease; }
 
     .mod-card {
-        background:#fff; border-radius:20px; padding:28px 24px;
+        background:#fff; border-radius:20px; overflow:hidden;
         border: 1px solid #eef2f7; transition: all 0.25s ease;
-        height: 100%;
+        height: 100%; display:flex; flex-direction:column;
     }
     .mod-card:hover { box-shadow:0 8px 28px rgba(0,0,0,0.09); transform:translateY(-3px); }
     .mod-card.locked { opacity:0.55; pointer-events:none; }
+    .mod-card-image {
+        height:120px; position:relative; overflow:hidden; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center;
+    }
+    .mod-card-image img { width:100%; height:100%; object-fit:cover; }
+    .mod-card-image .wk-overlay {
+        position:absolute; inset:0; background:linear-gradient(to bottom,rgba(0,0,0,0.05),rgba(0,0,0,0.5));
+        display:flex; align-items:flex-end; padding:10px 14px;
+    }
+    .mod-card-image .wk-fallback {
+        position:absolute; inset:0;
+        display:flex; align-items:center; justify-content:center; flex-direction:column; gap:5px;
+    }
+    .mod-card-image .wk-fallback i { font-size:1.8rem; opacity:0.85; }
+    .mod-card-image .wk-fallback span { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:0.7; }
+    .mod-card-body { padding:20px; flex-grow:1; display:flex; flex-direction:column; }
     .week-pill {
         display:inline-block; padding:3px 12px; background:rgba(38,175,89,0.1);
         color:#1a7d40; border-radius:100px; font-size:0.7rem; font-weight:700;
-        text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;
+        text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;
     }
     .week-pill.done { background:rgba(38,175,89,0.9); color:#fff; }
-    .mod-progress { height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden; margin:12px 0; }
+    .mod-progress { height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden; margin:10px 0; }
     .mod-progress-fill { height:100%; background:#26af59; border-radius:3px; transition:width 0.4s ease; }
     .mod-link { font-size:0.875rem; color:#26af59; font-weight:600; text-decoration:none; }
     .mod-link:hover { color:#1e8e48; }
@@ -45,6 +61,20 @@
     }
     .del-submitted { background:rgba(37,99,235,0.1); color:#2563eb; }
     .del-approved  { background:rgba(38,175,89,0.12); color:#1a7d40; }
+
+    /* Per-week gradient fallbacks */
+    .wk-1  { background:linear-gradient(135deg,#1a3a4a,#0d6e8a); color:#7ecfea; }
+    .wk-2  { background:linear-gradient(135deg,#2a1a4e,#5c23a3); color:#c4a0f0; }
+    .wk-3  { background:linear-gradient(135deg,#0a2e1a,#1a7a40); color:#7eeaaa; }
+    .wk-4  { background:linear-gradient(135deg,#4a1a0a,#c05030); color:#f0b08a; }
+    .wk-5  { background:linear-gradient(135deg,#0a2848,#1a5fa0); color:#7ab8f0; }
+    .wk-6  { background:linear-gradient(135deg,#2e1a00,#8a5000); color:#f0c878; }
+    .wk-7  { background:linear-gradient(135deg,#1a0a2e,#7c1a8c); color:#e09ae8; }
+    .wk-8  { background:linear-gradient(135deg,#001e30,#005c6e); color:#70d0e8; }
+    .wk-9  { background:linear-gradient(135deg,#0e2a0e,#2e6e2e); color:#90d890; }
+    .wk-10 { background:linear-gradient(135deg,#2e0a0a,#8c2020); color:#f08888; }
+    .wk-11 { background:linear-gradient(135deg,#1a1a0a,#4e4e10); color:#d8d870; }
+    .wk-12 { background:linear-gradient(135deg,#0a0a2a,#1a2080); color:#9898f0; }
 </style>
 {% endblock %}
 
@@ -80,29 +110,59 @@
             {% for item in module_data %}
             <div class="col-md-6 col-lg-4">
                 <div class="mod-card">
-                    <span class="week-pill {% if item.percent == 100 %}done{% endif %}">
-                        {% if item.percent == 100 %}<i class="fas fa-check me-1"></i>{% endif %}Week {{ item.module.week_number }}
-                    </span>
-                    <h5 style="font-size:1rem;font-weight:600;color:#111827;margin-bottom:8px;">{{ item.module.title }}</h5>
-                    <p style="font-size:0.8rem;color:#6b7280;margin-bottom:4px;">
-                        {{ item.done }}/{{ item.total }} lessons complete
-                    </p>
-                    <div class="mod-progress">
-                        <div class="mod-progress-fill" style="width:{{ item.percent }}%;"></div>
+                    <div class="mod-card-image">
+                        {% if item.module.cover_image %}
+                        <img src="{{ item.module.cover_image.url }}" alt="{{ item.module.title }}">
+                        <div class="wk-overlay">
+                            <span style="color:#fff;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Week {{ item.module.week_number }}</span>
+                        </div>
+                        {% else %}
+                        {% with week=item.module.week_number %}
+                        <div class="wk-fallback wk-{{ week }}">
+                            {% if week == 1 %}<i class="fas fa-brain"></i>
+                            {% elif week == 2 %}<i class="fas fa-search"></i>
+                            {% elif week == 3 %}<i class="fas fa-chart-bar"></i>
+                            {% elif week == 4 %}<i class="fas fa-users"></i>
+                            {% elif week == 5 %}<i class="fas fa-drafting-compass"></i>
+                            {% elif week == 6 %}<i class="fas fa-coins"></i>
+                            {% elif week == 7 %}<i class="fas fa-paint-brush"></i>
+                            {% elif week == 8 %}<i class="fas fa-rocket"></i>
+                            {% elif week == 9 %}<i class="fas fa-code"></i>
+                            {% elif week == 10 %}<i class="fas fa-calculator"></i>
+                            {% elif week == 11 %}<i class="fas fa-microphone"></i>
+                            {% elif week == 12 %}<i class="fas fa-flag-checkered"></i>
+                            {% else %}<i class="fas fa-book"></i>
+                            {% endif %}
+                            <span>Week {{ week }}</span>
+                        </div>
+                        {% endwith %}
+                        {% endif %}
                     </div>
+                    <div class="mod-card-body">
+                        <span class="week-pill {% if item.percent == 100 %}done{% endif %}">
+                            {% if item.percent == 100 %}<i class="fas fa-check me-1"></i>{% endif %}Week {{ item.module.week_number }}
+                        </span>
+                        <h5 style="font-size:1rem;font-weight:600;color:#111827;margin-bottom:8px;">{{ item.module.title }}</h5>
+                        <p style="font-size:0.8rem;color:#6b7280;margin-bottom:4px;">
+                            {{ item.done }}/{{ item.total }} lessons complete
+                        </p>
+                        <div class="mod-progress">
+                            <div class="mod-progress-fill" style="width:{{ item.percent }}%;"></div>
+                        </div>
 
-                    {% if item.submission %}
-                    <span class="del-badge {% if item.submission.status == 'approved' %}del-approved{% else %}del-submitted{% endif %} mt-1">
-                        <i class="fas fa-{% if item.submission.status == 'approved' %}check-circle{% else %}clock{% endif %}"></i>
-                        Deliverable {{ item.submission.get_status_display }}
-                    </span>
-                    {% endif %}
+                        {% if item.submission %}
+                        <span class="del-badge {% if item.submission.status == 'approved' %}del-approved{% else %}del-submitted{% endif %} mt-1">
+                            <i class="fas fa-{% if item.submission.status == 'approved' %}check-circle{% else %}clock{% endif %}"></i>
+                            Deliverable {{ item.submission.get_status_display }}
+                        </span>
+                        {% endif %}
 
-                    <div class="mt-3">
-                        <a href="{% url 'lms:module_detail' item.module.pk %}" class="mod-link">
-                            {% if item.percent == 100 %}Review{% elif item.done > 0 %}Continue{% else %}Start{% endif %}
-                            <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
+                        <div class="mt-3">
+                            <a href="{% url 'lms:module_detail' item.module.pk %}" class="mod-link">
+                                {% if item.percent == 100 %}Review{% elif item.done > 0 %}Continue{% else %}Start{% endif %}
+                                <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

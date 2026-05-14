@@ -7,6 +7,22 @@
 <style>
     .mod-hero { background:linear-gradient(160deg,#0a2418,#0e3320,#133d28); color:#fff; padding:80px 0 64px; position:relative; overflow:hidden; }
     .mod-hero::before { content:''; position:absolute; top:-30%; right:-10%; width:500px; height:500px; background:radial-gradient(circle,rgba(38,175,89,0.13) 0%,transparent 68%); border-radius:50%; pointer-events:none; }
+    .mod-hero-bg { position:absolute; inset:0; background-size:cover; background-position:center; background-repeat:no-repeat; }
+    .mod-hero-bg::after { content:''; position:absolute; inset:0; background:linear-gradient(160deg,rgba(10,36,24,0.88),rgba(19,61,40,0.82)); }
+
+    /* Week fallback hero gradients */
+    .wk-hero-1  { background:linear-gradient(160deg,#0d2f3d,#0a5068); }
+    .wk-hero-2  { background:linear-gradient(160deg,#1e1038,#3d167a); }
+    .wk-hero-3  { background:linear-gradient(160deg,#0a2418,#0e3320); }
+    .wk-hero-4  { background:linear-gradient(160deg,#3a1006,#8a3820); }
+    .wk-hero-5  { background:linear-gradient(160deg,#081c38,#104080); }
+    .wk-hero-6  { background:linear-gradient(160deg,#221200,#6a3800); }
+    .wk-hero-7  { background:linear-gradient(160deg,#140820,#561060); }
+    .wk-hero-8  { background:linear-gradient(160deg,#001828,#004458); }
+    .wk-hero-9  { background:linear-gradient(160deg,#082008,#205020); }
+    .wk-hero-10 { background:linear-gradient(160deg,#280808,#6c1818); }
+    .wk-hero-11 { background:linear-gradient(160deg,#141400,#383808); }
+    .wk-hero-12 { background:linear-gradient(160deg,#080820,#101060); }
     .lesson-list-item {
         display:flex; align-items:center; gap:14px;
         padding:16px 20px; border-radius:14px; background:#fff;
@@ -36,7 +52,10 @@
 
 {% block content %}
 
-<section class="mod-hero">
+<section class="mod-hero{% if not module.cover_image %} wk-hero-{{ module.week_number }}{% endif %}">
+    {% if module.cover_image %}
+    <div class="mod-hero-bg" style="background-image:url('{{ module.cover_image.url }}');"></div>
+    {% endif %}
     <div class="container position-relative" style="z-index:1;">
         <nav aria-label="breadcrumb" style="margin-bottom:16px;">
             <ol class="breadcrumb" style="background:none;padding:0;margin:0;">

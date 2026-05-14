@@ -24,6 +24,7 @@ class LMSModule(models.Model):
     week_number = models.PositiveIntegerField()
     overview = RichTextField()
     learning_objectives = RichTextField(help_text="List the key things founders will learn")
+    cover_image = models.ImageField(upload_to='lms/modules/', blank=True, null=True, help_text="Optional cover image for module cards")
     is_published = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
 
