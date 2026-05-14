@@ -661,6 +661,45 @@
         </div>
         {% endif %}
 
+        <!-- LaunchPadi LMS card (only when enrolled) -->
+        {% if lms_enrollment %}
+        <div class="dashboard-card mb-4" style="background:linear-gradient(160deg,#0a2418,#0e3320,#133d28);border:none;overflow:hidden;position:relative;">
+            <div style="position:absolute;top:-40px;right:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(38,175,89,0.18) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+            <div class="p-4 position-relative">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div style="width:44px;height:44px;background:rgba(38,175,89,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="fas fa-graduation-cap" style="color:#6ee09a;font-size:1.1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.5);">LaunchPadi Program</div>
+                                <div style="font-weight:600;color:#fff;font-size:1rem;">{{ lms_enrollment.course.title }}</div>
+                            </div>
+                        </div>
+                        <div style="font-size:0.82rem;color:rgba(255,255,255,0.55);margin-bottom:10px;">
+                            Your 12-week founder curriculum · {{ lms_progress }}% complete
+                        </div>
+                        <div style="height:6px;background:rgba(255,255,255,0.12);border-radius:3px;overflow:hidden;">
+                            <div style="height:100%;width:{{ lms_progress }}%;background:linear-gradient(90deg,#26af59,#03dac6);border-radius:3px;transition:width 0.5s ease;"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-2 mt-md-0">
+                        <a href="{% url 'lms:lms_dashboard' %}" style="display:inline-block;padding:10px 24px;background:#26af59;color:#fff;border-radius:100px;font-weight:600;font-size:0.875rem;text-decoration:none;box-shadow:0 4px 14px rgba(38,175,89,0.35);">
+                            {% if lms_progress == 0 %}
+                            <i class="fas fa-play me-2"></i>Start Learning
+                            {% elif lms_progress == 100 %}
+                            <i class="fas fa-trophy me-2"></i>Review Program
+                            {% else %}
+                            <i class="fas fa-arrow-right me-2"></i>Continue Learning
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Founder Stats -->
         <div class="stats-grid">
             <div class="stat-card">

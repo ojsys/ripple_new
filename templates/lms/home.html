@@ -7,7 +7,7 @@
 <style>
     .lms-hero {
         background: linear-gradient(160deg, #0a2418 0%, #0e3320 50%, #133d28 100%);
-        color: #fff; padding: 100px 0 80px; position: relative; overflow: hidden;
+        color: #fff; padding: 140px 0 120px; position: relative; overflow: hidden;
     }
     .lms-hero::before {
         content: ''; position: absolute; top: -30%; right: -15%;
@@ -52,6 +52,7 @@
     }
 
     @media (max-width: 767px) {
+        .lms-hero { padding: 100px 0 80px; }
         .lms-hero h1 { font-size: 2rem; }
         .lms-stats { flex-wrap: wrap; }
         .lms-stat { flex: 1 1 45%; border-bottom: 1px solid rgba(255,255,255,0.1); }

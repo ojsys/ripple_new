@@ -95,13 +95,16 @@ def _provision_student_account(application):
         site_url = getattr(settings, 'SITE_URL', 'https://startupripple.com')
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'LaunchPadi <noreply@startupripple.com>')
 
+        dashboard_path = '/lms/dashboard/'
         context = {
             'first_name': first_name or application.applicant_name,
             'email': application.applicant_email,
             'password': password,
             'user_created': user_created,
             'login_url': f"{site_url}/accounts/login/",
-            'dashboard_url': f"{site_url}/lms/dashboard/",
+            # Link directly to login with ?next= so the user lands on the dashboard
+            # after a single login step, regardless of whether they're already logged in.
+            'dashboard_url': f"{site_url}/accounts/login/?next={dashboard_path}",
             'lms_url': f"{site_url}/lms/",
             'site_url': site_url,
         }

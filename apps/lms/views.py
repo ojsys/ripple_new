@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.urls import reverse
 from .models import LMSCourse, LMSModule, LMSLesson, LMSEnrollment, LMSLessonProgress, LMSDeliverableSubmission
 from apps.incubator.models import IncubatorApplication
 
@@ -12,6 +13,18 @@ def _can_access_lms(user):
     if LMSEnrollment.objects.filter(user=user, is_active=True).exists():
         return True
     return IncubatorApplication.objects.filter(applicant_email=user.email).exists()
+
+
+def _lms_access_denied(request):
+    """Redirect unauthenticated users to login; authenticated users to the LMS home with a message."""
+    if not request.user.is_authenticated:
+        return redirect(f"{reverse('accounts:login')}?next={request.path}")
+    messages.warning(
+        request,
+        "Your account doesn't have access to the LaunchPadi program yet. "
+        "If you've applied and been approved, contact us at info@startupripple.com."
+    )
+    return redirect('lms:lms_home')
 
 
 def lms_home(request):
@@ -31,7 +44,7 @@ def lms_home(request):
 def lms_enroll(request):
     if not _can_access_lms(request.user):
         messages.error(request, "You need to have applied to the LaunchPadi program to access the LMS. Apply first to unlock this content.")
-        return redirect('incubator:apply')
+        return _lms_access_denied(request)
     course = LMSCourse.objects.filter(is_active=True).first()
     if not course:
         messages.error(request, "No active course is available at the moment.")
@@ -46,7 +59,7 @@ def lms_enroll(request):
 def lms_dashboard(request):
     if not _can_access_lms(request.user):
         messages.error(request, "You need to have applied to LaunchPadi to access this program.")
-        return redirect('incubator:apply')
+        return _lms_access_denied(request)
     course = LMSCourse.objects.filter(is_active=True).first()
     if not course:
         return redirect('lms:lms_home')
@@ -84,7 +97,7 @@ def lms_dashboard(request):
 def module_detail(request, pk):
     if not _can_access_lms(request.user):
         messages.error(request, "You need to have applied to LaunchPadi to access this program.")
-        return redirect('incubator:apply')
+        return _lms_access_denied(request)
     module = get_object_or_404(LMSModule, pk=pk, is_published=True)
     course = module.course
     enrollment, _ = LMSEnrollment.objects.get_or_create(user=request.user, course=course)
@@ -112,7 +125,7 @@ def module_detail(request, pk):
 def lesson_detail(request, pk):
     if not _can_access_lms(request.user):
         messages.error(request, "You need to have applied to LaunchPadi to access this program.")
-        return redirect('incubator:apply')
+        return _lms_access_denied(request)
     lesson = get_object_or_404(LMSLesson, pk=pk, is_published=True)
     module = lesson.module
     course = module.course

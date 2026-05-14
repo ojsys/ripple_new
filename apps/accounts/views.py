@@ -562,6 +562,16 @@ def dashboard(request):
     }
 
     if user.user_type == 'founder':
+        # LMS enrollment card
+        try:
+            from apps.lms.models import LMSEnrollment
+            lms_enrollment = LMSEnrollment.objects.filter(user=user, is_active=True).select_related('course').first()
+            if lms_enrollment:
+                context['lms_enrollment'] = lms_enrollment
+                context['lms_progress'] = lms_enrollment.total_progress_percent()
+        except Exception:
+            pass
+
         # Founder-specific context
         from apps.funding.models import FounderWithdrawalRequest
         from apps.funding.fees import summarise_project_fees
