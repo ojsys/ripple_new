@@ -213,7 +213,9 @@ class Command(BaseCommand):
             "and problem, not just a polished deck."
         )
         page.good_fit_items = GOOD_FIT
+        page.not_good_fit_label = "Not a good fit"
         page.not_good_fit_items = NOT_FIT
+        page.look_for_section_title = "What we look for in an application"
 
         page.process_section_subtitle = "Four simple steps. The whole process takes less than 30 minutes."
 

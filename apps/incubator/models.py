@@ -59,10 +59,20 @@ class IncubatorAcceleratorPage(models.Model):
         default="",
         blank=True,
     )
+    not_good_fit_label = models.CharField(
+        max_length=100,
+        default="Not a good fit",
+        help_text="Heading shown above the 'not a good fit' list, e.g. 'Not a good fit'",
+    )
     not_good_fit_items = RichTextField(
         help_text="Bullet list of reasons a founder is NOT a good fit. Use <ul><li> tags.",
         default="",
         blank=True,
+    )
+    look_for_section_title = models.CharField(
+        max_length=200,
+        default="What we look for in an application",
+        help_text="Heading of the criteria card on the right side of the 'Who Should Apply' section.",
     )
 
     # ── Application process ───────────────────────────────────────────────────

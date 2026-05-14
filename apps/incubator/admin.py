@@ -50,8 +50,13 @@ class IncubatorAcceleratorPageAdmin(admin.ModelAdmin):
             'fields': ('curriculum_section_title', 'curriculum_section_subtitle'),
         }),
         ('Who Should Apply Section', {
-            'fields': ('who_section_title', 'who_section_intro', 'good_fit_items', 'not_good_fit_items'),
-            'description': 'Edit the "What We Look For" criteria cards in the inline below.',
+            'fields': (
+                'who_section_title', 'who_section_intro',
+                'good_fit_items',
+                'not_good_fit_label', 'not_good_fit_items',
+                'look_for_section_title',
+            ),
+            'description': 'Edit the "What We Look For" criteria cards in the inline table below.',
         }),
         ('Application Process Section', {
             'fields': ('process_section_subtitle',),
