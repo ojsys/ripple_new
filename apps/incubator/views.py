@@ -5,6 +5,21 @@ from .models import IncubatorAcceleratorPage, IncubatorApplication
 from .forms import IncubatorApplicationForm
 
 
+WEEKS = [
+    (1,  "The Founder Mindset"),
+    (2,  "Problem Discovery"),
+    (3,  "Market Research & Sizing"),
+    (4,  "Customer Segmentation & Personas"),
+    (5,  "Solution Design & MVP Thinking"),
+    (6,  "Business Model Design"),
+    (7,  "Brand Identity & Positioning"),
+    (8,  "Go-to-Market Strategy"),
+    (9,  "Product Development Basics"),
+    (10, "Finance for Founders"),
+    (11, "Pitching & Storytelling"),
+    (12, "Demo Day & What's Next"),
+]
+
 def incubator_page(request):
     """Display the Incubator/Accelerator program page."""
     try:
@@ -14,6 +29,7 @@ def incubator_page(request):
 
     context = {
         'page': page,
+        'weeks': WEEKS,
     }
     return render(request, 'incubator/incubator_accelerator_page.html', context)
 
