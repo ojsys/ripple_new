@@ -8,6 +8,9 @@ from apps.incubator.models import IncubatorApplication
 def _can_access_lms(user):
     if not user.is_authenticated or user.user_type != 'founder':
         return False
+    # Provisioned students have an LMSEnrollment; fall back to checking an application exists
+    if LMSEnrollment.objects.filter(user=user, is_active=True).exists():
+        return True
     return IncubatorApplication.objects.filter(applicant_email=user.email).exists()
 
 

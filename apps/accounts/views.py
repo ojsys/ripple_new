@@ -301,10 +301,18 @@ def user_login(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            # Send enrolled founders straight to their LMS dashboard
+            if user.user_type == 'founder':
+                from apps.lms.models import LMSEnrollment
+                if LMSEnrollment.objects.filter(user=user, is_active=True).exists():
+                    return redirect('lms:lms_dashboard')
             return redirect('projects:home')
     else:
         form = AuthenticationForm()
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, 'accounts/login.html', {'form': form, 'next': request.GET.get('next', '')})
 
 
 @require_GET
