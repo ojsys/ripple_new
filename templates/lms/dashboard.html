@@ -5,10 +5,21 @@
 
 {% block extra_css %}
 <style>
-    .dash-header { background: linear-gradient(160deg,#0a2418,#0e3320,#133d28); color:#fff; padding:60px 0 48px; }
-    .dash-header h1 { font-size:2rem; font-weight:300; }
-    .overall-bar { height:10px; background:rgba(255,255,255,0.15); border-radius:5px; overflow:hidden; margin-top:12px; }
-    .overall-fill { height:100%; background:linear-gradient(90deg,#26af59,#03DAC6); border-radius:5px; transition:width 0.6s ease; }
+    .dash-header {
+        background: linear-gradient(160deg,#0a2418,#0e3320,#133d28);
+        color:#fff; padding:100px 0 80px; position:relative; overflow:hidden;
+    }
+    .dash-header::before {
+        content:''; position:absolute; top:-20%; right:-10%;
+        width:600px; height:600px;
+        background:radial-gradient(circle,rgba(38,175,89,0.15) 0%,transparent 68%);
+        border-radius:50%; pointer-events:none;
+    }
+    .dash-header h1 { font-size:2.2rem; font-weight:300; margin-bottom:10px; }
+    .dash-header .course-title { color:rgba(255,255,255,0.6); font-size:0.95rem; margin-bottom:28px; }
+    .progress-label { font-size:0.82rem; color:rgba(255,255,255,0.55); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+    .overall-bar { height:8px; background:rgba(255,255,255,0.15); border-radius:4px; overflow:hidden; }
+    .overall-fill { height:100%; background:linear-gradient(90deg,#26af59,#03DAC6); border-radius:4px; transition:width 0.6s ease; }
 
     .mod-card {
         background:#fff; border-radius:20px; padding:28px 24px;
@@ -40,21 +51,22 @@
 {% block content %}
 
 <section class="dash-header">
-    <div class="container">
-        <div class="row align-items-center">
+    <div class="container position-relative" style="z-index:1;">
+        <div class="row align-items-end">
             <div class="col-lg-8">
+                <span style="display:inline-block;padding:4px 14px;background:rgba(38,175,89,0.2);color:#6ee09a;border-radius:100px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:18px;">LaunchPadi Program</span>
                 <h1>Welcome back, {{ request.user.first_name|default:request.user.email }}</h1>
-                <p style="color:rgba(255,255,255,0.7);margin-bottom:16px;">{{ course.title }}</p>
-                <div class="d-flex align-items-center gap-3">
-                    <span style="font-size:0.875rem;color:rgba(255,255,255,0.6);">Overall progress</span>
+                <p class="course-title">{{ course.title }}</p>
+                <div class="progress-label">
+                    Overall progress &nbsp;
                     <span style="font-size:1rem;font-weight:700;color:#6ee09a;">{{ overall_percent }}%</span>
                 </div>
-                <div class="overall-bar">
+                <div class="overall-bar" style="max-width:420px;">
                     <div class="overall-fill" style="width:{{ overall_percent }}%;"></div>
                 </div>
             </div>
-            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <a href="{% url 'lms:lms_home' %}" style="color:rgba(255,255,255,0.6);font-size:0.875rem;text-decoration:none;">
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                <a href="{% url 'lms:lms_home' %}" style="color:rgba(255,255,255,0.55);font-size:0.875rem;text-decoration:none;transition:color 0.2s;">
                     <i class="fas fa-book me-1"></i>View full curriculum
                 </a>
             </div>
