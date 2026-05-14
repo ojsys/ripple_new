@@ -188,6 +188,11 @@ class HomePageAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
             'description': 'Add gallery images via the inline table below. YouTube URL: https://youtu.be/XXXXX'
         }),
+        ('Alumni Outcomes Section', {
+            'fields': ('show_alumni_section',),
+            'classes': ('collapse',),
+            'description': 'Toggle the "Where Are They Now?" alumni outcomes section on the homepage.'
+        }),
         ('Testimonials Section', {
             'fields': ('show_testimonials', 'testimonials_title', 'testimonials_subtitle'),
             'classes': ('collapse',)

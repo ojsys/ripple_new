@@ -290,6 +290,9 @@ class HomePage(models.Model):
     incubator_cta_text = models.CharField(max_length=50, default="Apply Now")
     incubator_cta_url = models.CharField(max_length=200, default="/incubator/apply/")
 
+    # Alumni Section
+    show_alumni_section = models.BooleanField(default=False)
+
     # Testimonials Section
     show_testimonials = models.BooleanField(default=True)
     testimonials_title = models.CharField(max_length=100, default="Success Stories")
