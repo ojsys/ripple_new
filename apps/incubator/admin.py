@@ -1,20 +1,95 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import IncubatorAcceleratorPage, IncubatorApplication
+from .models import (
+    IncubatorAcceleratorPage,
+    IncubatorApplication,
+    ProgramPillar,
+    ApplicationStep,
+    WhatWeLookForItem,
+)
+
+
+class ProgramPillarInline(admin.TabularInline):
+    model = ProgramPillar
+    extra = 0
+    fields = ['order', 'title', 'description', 'icon_class', 'icon_color', 'bg_color', 'cta_text', 'cta_url', 'is_active']
+    ordering = ['order']
+
+
+class ApplicationStepInline(admin.TabularInline):
+    model = ApplicationStep
+    extra = 0
+    fields = ['order', 'step_number', 'title', 'description']
+    ordering = ['order']
+
+
+class WhatWeLookForInline(admin.TabularInline):
+    model = WhatWeLookForItem
+    extra = 0
+    fields = ['order', 'title', 'description', 'icon_class', 'icon_color', 'bg_color']
+    ordering = ['order']
 
 
 @admin.register(IncubatorAcceleratorPage)
 class IncubatorAcceleratorPageAdmin(admin.ModelAdmin):
-    list_display = ['title', 'is_accepting_applications', 'application_deadline', 'last_updated']
-    list_editable = ['is_accepting_applications']
+    inlines = [ProgramPillarInline, WhatWeLookForInline, ApplicationStepInline]
+
+    fieldsets = (
+        ('Hero Section', {
+            'fields': ('hero_title', 'hero_subtitle'),
+        }),
+        ('Hero Stats Bar', {
+            'fields': (('stat_weeks', 'stat_lessons', 'stat_mentorship', 'stat_event', 'stat_cost'),),
+            'classes': ('collapse',),
+        }),
+        ('Program Pillars Section', {
+            'fields': ('pillars_section_title', 'pillars_section_subtitle'),
+            'description': 'Edit the section title and subtitle. Add/edit the individual pillar cards in the "Program Pillars" inline below.',
+        }),
+        ('Curriculum Section', {
+            'fields': ('curriculum_section_title', 'curriculum_section_subtitle'),
+        }),
+        ('Who Should Apply Section', {
+            'fields': ('who_section_title', 'who_section_intro', 'good_fit_items', 'not_good_fit_items'),
+            'description': 'Edit the "What We Look For" criteria cards in the inline below.',
+        }),
+        ('Application Process Section', {
+            'fields': ('process_section_subtitle',),
+            'description': 'Edit the individual steps in the "Application Steps" inline below.',
+        }),
+        ('Program Description (Body)', {
+            'fields': ('title', 'program_description', 'image'),
+        }),
+        ('Application Sidebar & Status', {
+            'fields': ('is_accepting_applications', 'application_deadline', 'application_info'),
+        }),
+        ('Bottom CTA', {
+            'fields': (
+                ('cta_title_open', 'cta_body_open'),
+                ('cta_title_closed', 'cta_body_closed'),
+            ),
+        }),
+    )
+
+    def has_add_permission(self, request):
+        return not IncubatorAcceleratorPage.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        obj = IncubatorAcceleratorPage.load()
+        from django.shortcuts import redirect
+        from django.urls import reverse
+        return redirect(reverse('admin:incubator_incubatoracceleratorpage_change', args=[obj.pk]))
 
 
 @admin.register(IncubatorApplication)
 class IncubatorApplicationAdmin(admin.ModelAdmin):
     list_display = ['project', 'applicant_name', 'applicant_email', 'stage',
-                    'industry', 'status', 'reviewed', 'application_date']
+                    'industry', 'status_badge', 'reviewed', 'application_date']
     list_filter = ['status', 'reviewed', 'stage', 'industry', 'application_date']
-    list_editable = ['status', 'reviewed']
+    list_editable = ['reviewed']
     search_fields = ['project', 'applicant_name', 'applicant_email', 'applicant_company']
     readonly_fields = ['application_date']
     date_hierarchy = 'application_date'
@@ -42,17 +117,31 @@ class IncubatorApplicationAdmin(admin.ModelAdmin):
 
     actions = ['mark_approved', 'mark_rejected', 'mark_waitlisted']
 
+    def status_badge(self, obj):
+        colors = {
+            'pending': ('#d97706', '#fffbeb'),
+            'approved': ('#16a34a', '#f0fdf4'),
+            'rejected': ('#dc2626', '#fef2f2'),
+            'waitlisted': ('#7c3aed', '#f5f3ff'),
+        }
+        color, bg = colors.get(obj.status, ('#6b7280', '#f9fafb'))
+        return format_html(
+            '<span style="padding:3px 10px;border-radius:100px;font-size:0.75rem;font-weight:700;color:{};background:{};">{}</span>',
+            color, bg, obj.get_status_display()
+        )
+    status_badge.short_description = "Status"
+
     def mark_approved(self, request, queryset):
         queryset.update(status='approved', reviewed=True)
-        self.message_user(request, f"{queryset.count()} applications marked as approved.")
+        self.message_user(request, f"{queryset.count()} applications marked as Approved.")
     mark_approved.short_description = "Mark selected as Approved"
 
     def mark_rejected(self, request, queryset):
         queryset.update(status='rejected', reviewed=True)
-        self.message_user(request, f"{queryset.count()} applications marked as rejected.")
+        self.message_user(request, f"{queryset.count()} applications marked as Rejected.")
     mark_rejected.short_description = "Mark selected as Rejected"
 
     def mark_waitlisted(self, request, queryset):
         queryset.update(status='waitlisted', reviewed=True)
-        self.message_user(request, f"{queryset.count()} applications marked as waitlisted.")
+        self.message_user(request, f"{queryset.count()} applications marked as Waitlisted.")
     mark_waitlisted.short_description = "Mark selected as Waitlisted"
