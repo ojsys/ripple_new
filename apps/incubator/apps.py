@@ -5,3 +5,6 @@ class IncubatorConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.incubator'
     verbose_name = 'Incubator & Accelerator'
+
+    def ready(self):
+        import apps.incubator.signals  # noqa: F401

@@ -1,0 +1,28 @@
+{% autoescape off %}
+Congratulations, {{ first_name }}! You're in the LaunchPadi Founders Program.
+
+Your application to the LaunchPadi Idea-Stage Founders Program has been approved.
+We're excited to have you on board.
+
+{% if user_created %}
+YOUR LOGIN CREDENTIALS
+──────────────────────
+Email:    {{ email }}
+Password: {{ password }}
+
+Please change your password after your first login.
+{% else %}
+Your LMS access has been added to your existing account ({{ email }}).
+{% endif %}
+
+WHAT'S NEXT
+───────────
+1. Log in to your dashboard: {{ dashboard_url }}
+2. Start Week 1: The Founder Mindset
+3. Change your password in account settings
+
+Questions? Visit {{ site_url }} or reply to this email.
+
+The LaunchPadi Team · StartUpRipple
+© {% now "Y" %} StartUpRipple. All rights reserved.
+{% endautoescape %}

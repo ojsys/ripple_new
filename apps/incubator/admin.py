@@ -92,8 +92,8 @@ class IncubatorAcceleratorPageAdmin(admin.ModelAdmin):
 @admin.register(IncubatorApplication)
 class IncubatorApplicationAdmin(admin.ModelAdmin):
     list_display = ['project', 'applicant_name', 'applicant_email', 'stage',
-                    'industry', 'status_badge', 'reviewed', 'application_date']
-    list_filter = ['status', 'reviewed', 'stage', 'industry', 'application_date']
+                    'industry', 'status_badge', 'lms_status', 'reviewed', 'application_date']
+    list_filter = ['status', 'lms_provisioned', 'reviewed', 'stage', 'industry', 'application_date']
     list_editable = ['reviewed']
     search_fields = ['project', 'applicant_name', 'applicant_email', 'applicant_company']
     readonly_fields = ['application_date']
@@ -116,11 +116,24 @@ class IncubatorApplicationAdmin(admin.ModelAdmin):
             'fields': ('pitch_deck',)
         }),
         ('Admin', {
-            'fields': ('status', 'reviewed', 'application_date')
+            'fields': ('status', 'reviewed', 'lms_provisioned', 'application_date')
         }),
     )
+    readonly_fields = ['application_date', 'lms_provisioned']
 
     actions = ['mark_approved', 'mark_rejected', 'mark_waitlisted']
+
+    def lms_status(self, obj):
+        if obj.lms_provisioned:
+            return format_html(
+                '<span style="padding:3px 10px;border-radius:100px;font-size:0.75rem;font-weight:700;color:#15803d;background:#f0fdf4;">✓ LMS Active</span>'
+            )
+        if obj.status == 'approved':
+            return format_html(
+                '<span style="padding:3px 10px;border-radius:100px;font-size:0.75rem;font-weight:700;color:#d97706;background:#fffbeb;">Pending</span>'
+            )
+        return '—'
+    lms_status.short_description = "LMS"
 
     def status_badge(self, obj):
         colors = {

@@ -251,6 +251,10 @@ class IncubatorApplication(models.Model):
         default='pending',
     )
     reviewed = models.BooleanField(default=False)
+    lms_provisioned = models.BooleanField(
+        default=False,
+        help_text="Set automatically when a student account and LMS enrollment have been created.",
+    )
 
     def __str__(self):
         return f"Application for {self.project} by {self.applicant_name}"
