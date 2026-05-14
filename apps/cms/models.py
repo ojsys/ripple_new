@@ -397,6 +397,37 @@ class AcceleratorGalleryImage(models.Model):
         return self.caption or f"Gallery image #{self.pk}"
 
 
+class AlumniFounder(models.Model):
+    """LaunchPadi alumni for the homepage outcomes section."""
+    OUTCOME_TAGS = [
+        ('raised', 'Raised Funding'),
+        ('launched', 'Product Launched'),
+        ('pivoted', 'Pivoted'),
+        ('building', 'Still Building'),
+        ('acquired', 'Acquired'),
+        ('graduated', 'Graduated Program'),
+    ]
+    name = models.CharField(max_length=100)
+    startup_name = models.CharField(max_length=100)
+    cohort = models.CharField(max_length=50, blank=True, help_text="e.g. Cohort 1, 2024 Batch")
+    industry = models.CharField(max_length=100, blank=True, help_text="e.g. FinTech, AgriTech")
+    photo = models.ImageField(upload_to='alumni/', blank=True, null=True)
+    outcome_tag = models.CharField(max_length=20, choices=OUTCOME_TAGS, default='graduated')
+    outcome = models.CharField(max_length=200, help_text="One-line honest outcome, e.g. 'Raised ₦2M seed funding'")
+    outcome_detail = models.TextField(blank=True, help_text="2-3 sentences about the journey and result")
+    linkedin_url = models.URLField(blank=True)
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', '-id']
+        verbose_name = "Alumni Founder"
+        verbose_name_plural = "Alumni Founders"
+
+    def __str__(self):
+        return f"{self.name} — {self.startup_name}"
+
+
 class NewsletterSubscriber(models.Model):
     """Newsletter subscription model."""
     email = models.EmailField(unique=True)

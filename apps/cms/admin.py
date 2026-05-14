@@ -4,7 +4,8 @@ from .models import (
     HeaderLink, FooterSection, ThemeSettings, Announcement,
     SocialMediaLink, SEOSettings, Testimonial, Contact,
     HomePage, HowItWorksStep, PartnerLogo, NewsletterSubscriber,
-    LegalPage, ContactPage, ContactFAQ, AcceleratorGalleryImage
+    LegalPage, ContactPage, ContactFAQ, AcceleratorGalleryImage,
+    AlumniFounder
 )
 
 
@@ -304,3 +305,26 @@ class ContactPageAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(AlumniFounder)
+class AlumniFounderAdmin(admin.ModelAdmin):
+    list_display = ['name', 'startup_name', 'cohort', 'outcome_tag', 'is_active', 'order']
+    list_filter = ['is_active', 'outcome_tag', 'cohort']
+    list_editable = ['is_active', 'order']
+    search_fields = ['name', 'startup_name', 'outcome']
+    ordering = ['order', '-id']
+    fieldsets = (
+        ('Founder', {
+            'fields': ('name', 'photo', 'linkedin_url'),
+        }),
+        ('Startup', {
+            'fields': ('startup_name', 'cohort', 'industry'),
+        }),
+        ('Outcome', {
+            'fields': ('outcome_tag', 'outcome', 'outcome_detail'),
+        }),
+        ('Display', {
+            'fields': ('is_active', 'order'),
+        }),
+    )

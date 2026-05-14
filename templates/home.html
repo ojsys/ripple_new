@@ -970,6 +970,226 @@
         opacity: 1;
     }
 
+    /* Alumni Outcomes */
+    .alumni-section {
+        background: #f8fafc;
+        padding: 80px 0;
+    }
+
+    .alumni-track {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        padding-bottom: 16px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(38,175,89,0.4) transparent;
+    }
+
+    .alumni-track::-webkit-scrollbar { height: 4px; }
+    .alumni-track::-webkit-scrollbar-track { background: #eee; border-radius: 2px; }
+    .alumni-track::-webkit-scrollbar-thumb { background: rgba(38,175,89,0.5); border-radius: 2px; }
+
+    .alumni-card {
+        flex: 0 0 280px;
+        scroll-snap-align: start;
+        background: #fff;
+        border-radius: 20px;
+        padding: 28px 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        transition: box-shadow 0.25s ease, transform 0.25s ease;
+        border: 1px solid #eef2f7;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .alumni-card:hover {
+        box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+        transform: translateY(-4px);
+    }
+
+    .alumni-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid rgba(38,175,89,0.25);
+    }
+
+    .alumni-avatar-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .alumni-tag {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 100px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .alumni-tag-raised   { background: rgba(38,175,89,0.12); color: #1a7d40; }
+    .alumni-tag-launched { background: rgba(37,99,235,0.1);  color: #2563eb; }
+    .alumni-tag-pivoted  { background: rgba(245,158,11,0.1); color: #d97706; }
+    .alumni-tag-building { background: rgba(107,114,128,0.1);color: #4b5563; }
+    .alumni-tag-acquired { background: rgba(139,92,246,0.1); color: #7c3aed; }
+    .alumni-tag-graduated{ background: rgba(20,184,166,0.1); color: #0d9488; }
+
+    .alumni-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--md-on-surface);
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    .alumni-startup {
+        font-size: 0.85rem;
+        color: var(--md-primary);
+        font-weight: 500;
+    }
+
+    .alumni-outcome {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--md-on-surface);
+        line-height: 1.4;
+    }
+
+    .alumni-detail {
+        font-size: 0.82rem;
+        color: var(--md-outline);
+        line-height: 1.6;
+        flex-grow: 1;
+    }
+
+    .alumni-placeholder-card {
+        flex: 0 0 280px;
+        scroll-snap-align: start;
+        background: #fff;
+        border-radius: 20px;
+        padding: 28px 24px;
+        border: 2px dashed #e0e7ef;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #b0bec5;
+        gap: 12px;
+        min-height: 220px;
+        font-size: 0.85rem;
+        text-align: center;
+    }
+
+    /* Who We Serve */
+    .who-we-serve {
+        background: #fff;
+        padding: 80px 0;
+    }
+
+    .serve-card {
+        border-radius: 24px;
+        padding: 40px 32px;
+        height: 100%;
+        transition: box-shadow 0.25s ease, transform 0.25s ease;
+        border: 1px solid #eef2f7;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .serve-card:hover {
+        box-shadow: 0 12px 36px rgba(0,0,0,0.1);
+        transform: translateY(-6px);
+    }
+
+    .serve-card-founders  { background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 100%); border-color: rgba(38,175,89,0.2); }
+    .serve-card-corporates{ background: linear-gradient(160deg, #eff6ff 0%, #dbeafe 100%); border-color: rgba(37,99,235,0.2); }
+    .serve-card-investors { background: linear-gradient(160deg, #faf5ff 0%, #ede9fe 100%); border-color: rgba(139,92,246,0.2); }
+
+    .serve-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+    }
+
+    .serve-icon-founders   { background: rgba(38,175,89,0.15); color: #1a7d40; }
+    .serve-icon-corporates { background: rgba(37,99,235,0.12); color: #2563eb; }
+    .serve-icon-investors  { background: rgba(139,92,246,0.12); color: #7c3aed; }
+
+    .serve-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: var(--md-on-surface);
+    }
+
+    .serve-desc {
+        font-size: 0.9rem;
+        color: var(--md-outline);
+        line-height: 1.7;
+        flex-grow: 1;
+        margin-bottom: 24px;
+    }
+
+    .serve-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 28px;
+    }
+
+    .serve-list li {
+        font-size: 0.875rem;
+        color: #374151;
+        padding: 5px 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .serve-list li i {
+        margin-top: 3px;
+        flex-shrink: 0;
+    }
+
+    .serve-cta {
+        padding: 12px 24px;
+        border-radius: 100px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        align-self: flex-start;
+    }
+
+    .serve-cta-founders   { background: var(--md-primary); color: #fff; box-shadow: 0 4px 14px rgba(38,175,89,0.3); }
+    .serve-cta-founders:hover { background: var(--md-primary-dark); color: #fff; box-shadow: 0 6px 20px rgba(38,175,89,0.4); }
+    .serve-cta-corporates { background: #2563eb; color: #fff; box-shadow: 0 4px 14px rgba(37,99,235,0.3); }
+    .serve-cta-corporates:hover { background: #1d4ed8; color: #fff; }
+    .serve-cta-investors  { background: #7c3aed; color: #fff; box-shadow: 0 4px 14px rgba(139,92,246,0.3); }
+    .serve-cta-investors:hover { background: #6d28d9; color: #fff; }
+
     /* Responsive */
     @media (max-width: 991px) {
         .hero-slide-title {
@@ -1069,18 +1289,18 @@
                 </div>
             </div>
             {% empty %}
-            <!-- Default slides when no sliders configured -->
+            <!-- Default slides — ecosystem operator positioning -->
             <div class="carousel-item active">
                 <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
                     <div class="hero-slide-content">
-                        <h1 class="hero-slide-title">{{ homepage.hero_title }}</h1>
-                        <p class="hero-slide-subtitle">{{ homepage.hero_subtitle }}</p>
-                        <div class="d-flex gap-3 justify-content-center">
-                            <a href="{{ homepage.hero_cta_primary_url }}" class="btn btn-md btn-md-filled btn-lg">
-                                {{ homepage.hero_cta_primary_text }}
+                        <h1 class="hero-slide-title">Nigeria's Idea-Stage Launchpad</h1>
+                        <p class="hero-slide-subtitle">We source, develop, and connect Africa's earliest founders with the ecosystem they need to succeed</p>
+                        <div class="d-flex gap-3 justify-content-center flex-wrap">
+                            <a href="/incubator/apply/" class="btn btn-md btn-md-filled btn-lg">
+                                Apply to LaunchPadi
                             </a>
-                            <a href="{{ homepage.hero_cta_secondary_url }}" class="btn btn-md btn-md-outlined btn-lg">
-                                {{ homepage.hero_cta_secondary_text }}
+                            <a href="#who-we-serve" class="btn btn-md btn-md-outlined btn-lg">
+                                Partner With Us
                             </a>
                         </div>
                     </div>
@@ -1089,14 +1309,14 @@
             <div class="carousel-item">
                 <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1531482615713-2afd69097998?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
                     <div class="hero-slide-content">
-                        <h1 class="hero-slide-title">Invest in Africa's Future</h1>
-                        <p class="hero-slide-subtitle">Join thousands of investors backing innovative startups across the continent</p>
-                        <div class="d-flex gap-3 justify-content-center">
-                            <a href="{{ homepage.hero_cta_primary_url }}" class="btn btn-md btn-md-filled btn-lg">
-                                {{ homepage.hero_cta_primary_text }}
+                        <h1 class="hero-slide-title">Where Corporates Find Pre-Seed Deal Flow</h1>
+                        <p class="hero-slide-subtitle">Sponsor cohorts, co-design programs, or access our founder pipeline — before the crowd</p>
+                        <div class="d-flex gap-3 justify-content-center flex-wrap">
+                            <a href="#who-we-serve" class="btn btn-md btn-md-filled btn-lg">
+                                Explore Partnerships
                             </a>
-                            <a href="{{ homepage.hero_cta_secondary_url }}" class="btn btn-md btn-md-outlined btn-lg">
-                                {{ homepage.hero_cta_secondary_text }}
+                            <a href="/projects/" class="btn btn-md btn-md-outlined btn-lg">
+                                Browse Founders
                             </a>
                         </div>
                     </div>
@@ -1105,14 +1325,14 @@
             <div class="carousel-item">
                 <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
                     <div class="hero-slide-content">
-                        <h1 class="hero-slide-title">Launch Your Startup Today</h1>
-                        <p class="hero-slide-subtitle">From idea to funding - we provide the platform and support you need</p>
-                        <div class="d-flex gap-3 justify-content-center">
-                            <a href="{{ homepage.hero_cta_primary_url }}" class="btn btn-md btn-md-filled btn-lg">
-                                {{ homepage.hero_cta_primary_text }}
+                        <h1 class="hero-slide-title">Apply to LaunchPadi Accelerator</h1>
+                        <p class="hero-slide-subtitle">Our flagship 12-week program for idea-stage Nigerian founders. Applications open year-round.</p>
+                        <div class="d-flex gap-3 justify-content-center flex-wrap">
+                            <a href="/incubator/apply/" class="btn btn-md btn-md-filled btn-lg">
+                                Apply Now
                             </a>
-                            <a href="{{ homepage.hero_cta_secondary_url }}" class="btn btn-md btn-md-outlined btn-lg">
-                                {{ homepage.hero_cta_secondary_text }}
+                            <a href="/incubator/" class="btn btn-md btn-md-outlined btn-lg">
+                                Learn More
                             </a>
                         </div>
                     </div>
@@ -1129,6 +1349,319 @@
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Next</span>
         </button>
+    </div>
+</section>
+
+<!-- LaunchPadi Accelerator Section -->
+{% if homepage.show_incubator_section %}
+<section class="launchpadi-section py-5 py-lg-0">
+    <div class="container" style="padding-top:80px; padding-bottom:80px; position:relative; z-index:1;">
+
+        <!-- Section Header -->
+        <div class="row mb-2">
+            <div class="col-lg-8">
+                <span class="launchpadi-badge">
+                    <i class="fas fa-rocket"></i> Accelerator Program
+                </span>
+                <h2 class="launchpadi-title">
+                    <strong>{{ homepage.incubator_title }}</strong>
+                </h2>
+                <p class="launchpadi-subtitle">{{ homepage.incubator_subtitle }}</p>
+            </div>
+        </div>
+
+        <!-- Stats Strip -->
+        <div class="launchpadi-stats">
+            <div class="launchpadi-stat-item">
+                <div class="launchpadi-stat-value">{{ homepage.incubator_stat_1_value }}</div>
+                <div class="launchpadi-stat-label">{{ homepage.incubator_stat_1_label }}</div>
+            </div>
+            <div class="launchpadi-stat-item">
+                <div class="launchpadi-stat-value">{{ homepage.incubator_stat_2_value }}</div>
+                <div class="launchpadi-stat-label">{{ homepage.incubator_stat_2_label }}</div>
+            </div>
+            <div class="launchpadi-stat-item">
+                <div class="launchpadi-stat-value">{{ homepage.incubator_stat_3_value }}</div>
+                <div class="launchpadi-stat-label">{{ homepage.incubator_stat_3_label }}</div>
+            </div>
+            <div class="launchpadi-stat-item">
+                <div class="launchpadi-stat-value">{{ homepage.incubator_stat_4_value }}</div>
+                <div class="launchpadi-stat-label">{{ homepage.incubator_stat_4_label }}</div>
+            </div>
+        </div>
+
+        <!-- Main Content: Video + Benefits -->
+        <div class="row g-5 align-items-start">
+
+            <!-- Left: Video Embed -->
+            <div class="col-lg-6">
+                {% if homepage.incubator_youtube_video_id %}
+                <div class="launchpadi-video-wrap"
+                     id="yt-player-wrap"
+                     data-video-id="{{ homepage.incubator_youtube_video_id }}"
+                     data-embed-url="{{ homepage.incubator_youtube_embed_url }}"
+                     onclick="launchpadiPlayVideo(this)">
+                    <img class="launchpadi-video-thumb"
+                         src="https://img.youtube.com/vi/{{ homepage.incubator_youtube_video_id }}/maxresdefault.jpg"
+                         alt="{{ homepage.incubator_title }}"
+                         onerror="this.src='https://img.youtube.com/vi/{{ homepage.incubator_youtube_video_id }}/hqdefault.jpg'">
+                    <div class="launchpadi-play-btn">
+                        <div class="launchpadi-play-circle">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                    </div>
+                </div>
+                {% elif homepage.incubator_image %}
+                <div class="launchpadi-video-wrap" style="aspect-ratio:4/3;">
+                    <img src="{{ homepage.incubator_image.url }}" alt="{{ homepage.incubator_title }}" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                {% else %}
+                <div class="launchpadi-video-placeholder">
+                    <i class="fab fa-youtube fa-3x mb-2" style="color:rgba(255,255,255,0.2);"></i>
+                    <span>Program video coming soon</span>
+                </div>
+                {% endif %}
+
+                <!-- Description under video -->
+                {% if homepage.incubator_description %}
+                <div class="mt-4" style="color:rgba(255,255,255,0.65); font-size:0.95rem; line-height:1.75;">
+                    {{ homepage.incubator_description|safe }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right: Benefits + CTA -->
+            <div class="col-lg-6">
+                <h4 class="mb-4" style="color:rgba(255,255,255,0.9); font-weight:400;">What you get in the program</h4>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-user-tie"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>Expert Mentorship</strong>
+                        <span>One-on-one sessions with seasoned founders and industry leaders across Africa</span>
+                    </div>
+                </div>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>Seed Funding Access</strong>
+                        <span>Connect with investors and unlock funding opportunities up to $50,000</span>
+                    </div>
+                </div>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>12-Week Intensive Program</strong>
+                        <span>Structured curriculum covering product, growth, fundraising, and operations</span>
+                    </div>
+                </div>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-network-wired"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>Investor Network</strong>
+                        <span>Demo day pitch to a curated network of VCs, angels, and strategic partners</span>
+                    </div>
+                </div>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-laptop-house"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>Co-Working & Resources</strong>
+                        <span>Dedicated workspace, legal, financial, and technical support throughout</span>
+                    </div>
+                </div>
+
+                <div class="launchpadi-benefit">
+                    <div class="launchpadi-benefit-icon"><i class="fas fa-globe-africa"></i></div>
+                    <div class="launchpadi-benefit-text">
+                        <strong>Pan-African Reach</strong>
+                        <span>Build connections and expand your market across 12+ African countries</span>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-3 mt-5">
+                    <a href="{{ homepage.incubator_cta_url }}" class="btn-launchpadi-primary">
+                        <i class="fas fa-paper-plane"></i> {{ homepage.incubator_cta_text }}
+                    </a>
+                    <a href="/incubator/" class="btn-launchpadi-secondary">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Gallery -->
+        {% if accelerator_gallery %}
+        <div class="launchpadi-gallery-section">
+            <p class="launchpadi-gallery-label"><i class="fas fa-images me-2"></i>Program Gallery</p>
+            <div class="launchpadi-gallery-track">
+                {% for item in accelerator_gallery %}
+                <div class="launchpadi-gallery-item">
+                    <img src="{{ item.image.url }}" alt="{{ item.caption|default:'LaunchPadi program' }}" loading="lazy">
+                    {% if item.caption %}
+                    <div class="launchpadi-gallery-caption">{{ item.caption }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="launchpadi-gallery-section">
+            <p class="launchpadi-gallery-label"><i class="fas fa-images me-2"></i>Program Gallery</p>
+            <div class="launchpadi-gallery-track">
+                <div class="launchpadi-gallery-placeholder">
+                    <i class="fas fa-image fa-2x"></i>
+                    <span>Gallery images coming soon</span>
+                </div>
+                <div class="launchpadi-gallery-placeholder">
+                    <i class="fas fa-image fa-2x"></i>
+                </div>
+                <div class="launchpadi-gallery-placeholder">
+                    <i class="fas fa-image fa-2x"></i>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endif %}
+
+<!-- Alumni Outcomes -->
+<section class="alumni-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title-md">Where Are They Now?</h2>
+            <p class="section-subtitle-md">Honest outcomes from LaunchPadi alumni — not just the unicorns, but the real journeys that matter to corporates, donors, and partners.</p>
+        </div>
+
+        <div class="alumni-track">
+            {% for alumni in alumni_founders %}
+            <div class="alumni-card">
+                <div class="d-flex align-items-center gap-3">
+                    {% if alumni.photo %}
+                    <img src="{{ alumni.photo.url }}" alt="{{ alumni.name }}" class="alumni-avatar">
+                    {% else %}
+                    <div class="alumni-avatar-placeholder">{{ alumni.name|slice:":1" }}</div>
+                    {% endif %}
+                    <div>
+                        <p class="alumni-name">{{ alumni.name }}</p>
+                        <p class="alumni-startup">{{ alumni.startup_name }}</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="alumni-tag alumni-tag-{{ alumni.outcome_tag }}">{{ alumni.get_outcome_tag_display }}</span>
+                    {% if alumni.cohort %}<span class="alumni-tag" style="background:#f1f5f9;color:#64748b;">{{ alumni.cohort }}</span>{% endif %}
+                    {% if alumni.industry %}<span class="alumni-tag" style="background:#f1f5f9;color:#64748b;">{{ alumni.industry }}</span>{% endif %}
+                </div>
+
+                <p class="alumni-outcome">{{ alumni.outcome }}</p>
+                {% if alumni.outcome_detail %}
+                <p class="alumni-detail">{{ alumni.outcome_detail }}</p>
+                {% endif %}
+
+                {% if alumni.linkedin_url %}
+                <a href="{{ alumni.linkedin_url }}" target="_blank" rel="noopener" class="d-flex align-items-center gap-1 mt-auto" style="font-size:0.8rem;color:#0077b5;text-decoration:none;">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </a>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="alumni-placeholder-card">
+                <i class="fas fa-user-graduate fa-2x" style="color:#cbd5e1;"></i>
+                <strong style="color:#94a3b8;">Alumni profiles coming soon</strong>
+                <span style="color:#b0bec5;">We're documenting our LaunchPadi cohort outcomes. Check back shortly.</span>
+            </div>
+            <div class="alumni-placeholder-card">
+                <i class="fas fa-seedling fa-2x" style="color:#cbd5e1;"></i>
+            </div>
+            <div class="alumni-placeholder-card">
+                <i class="fas fa-chart-line fa-2x" style="color:#cbd5e1;"></i>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/incubator/" class="btn btn-md btn-md-tonal btn-lg">
+                Meet All Our Alumni <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Who We Serve -->
+<section class="who-we-serve" id="who-we-serve">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title-md">Who We Serve</h2>
+            <p class="section-subtitle-md">StartUp Ripple is not a fund — we are an ecosystem operator. We monetize the ecosystem around founders, not the founders themselves.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Founders -->
+            <div class="col-md-4">
+                <div class="serve-card serve-card-founders">
+                    <div class="serve-icon serve-icon-founders">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3 class="serve-title">Idea-Stage Founders</h3>
+                    <p class="serve-desc">You have a bold idea and need structure, mentorship, and a network to turn it into a real business. LaunchPadi is built for you.</p>
+                    <ul class="serve-list">
+                        <li><i class="fas fa-check-circle text-success"></i> 12-week structured program</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Expert mentors from across Africa</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Investor demo day exposure</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Access to funding connections</li>
+                    </ul>
+                    <a href="/incubator/apply/" class="serve-cta serve-cta-founders">
+                        <i class="fas fa-paper-plane"></i> Apply to LaunchPadi
+                    </a>
+                </div>
+            </div>
+
+            <!-- Corporates & NGOs -->
+            <div class="col-md-4">
+                <div class="serve-card serve-card-corporates">
+                    <div class="serve-icon serve-icon-corporates">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3 class="serve-title">Corporates & NGOs</h3>
+                    <p class="serve-desc">You want to reach Nigeria's next generation of entrepreneurs for CSR, innovation scouting, or development programs. We give you curated access.</p>
+                    <ul class="serve-list">
+                        <li><i class="fas fa-check-circle" style="color:#2563eb;"></i> Sponsor a cohort under your brand</li>
+                        <li><i class="fas fa-check-circle" style="color:#2563eb;"></i> Co-design sector-specific programs</li>
+                        <li><i class="fas fa-check-circle" style="color:#2563eb;"></i> Access verified founder deal flow</li>
+                        <li><i class="fas fa-check-circle" style="color:#2563eb;"></i> Impact reporting for development partners</li>
+                    </ul>
+                    <a href="/contact/" class="serve-cta serve-cta-corporates">
+                        <i class="fas fa-handshake"></i> Explore Sponsorship
+                    </a>
+                </div>
+            </div>
+
+            <!-- Angels & Funds -->
+            <div class="col-md-4">
+                <div class="serve-card serve-card-investors">
+                    <div class="serve-icon serve-icon-investors">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h3 class="serve-title">Angels & Funds</h3>
+                    <p class="serve-desc">You want early access to Nigeria's most promising pre-seed founders — before the deal gets crowded. Join our investor syndicate or scout network.</p>
+                    <ul class="serve-list">
+                        <li><i class="fas fa-check-circle" style="color:#7c3aed;"></i> Pre-vetted deal flow from our cohorts</li>
+                        <li><i class="fas fa-check-circle" style="color:#7c3aed;"></i> Attend demo days as a syndicate member</li>
+                        <li><i class="fas fa-check-circle" style="color:#7c3aed;"></i> Sourcing fee arrangements available</li>
+                        <li><i class="fas fa-check-circle" style="color:#7c3aed;"></i> SRT token investment pathway</li>
+                    </ul>
+                    <a href="/accounts/signup/" class="serve-cta serve-cta-investors">
+                        <i class="fas fa-chart-line"></i> Join as Investor
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -1158,30 +1691,30 @@
                 <div class="step-card-md">
                     <span class="step-number-md">1</span>
                     <div class="step-icon-md">
-                        <i class="fas fa-user-plus"></i>
+                        <i class="fas fa-paper-plane"></i>
                     </div>
-                    <h4 class="step-title-md">Create Account</h4>
-                    <p class="step-desc-md">Sign up as a founder, investor, donor, or partner</p>
+                    <h4 class="step-title-md">Founders Apply</h4>
+                    <p class="step-desc-md">Idea-stage Nigerian founders apply to LaunchPadi year-round. We select for drive, not polish.</p>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
                 <div class="step-card-md">
                     <span class="step-number-md">2</span>
                     <div class="step-icon-md">
-                        <i class="fas fa-lightbulb"></i>
+                        <i class="fas fa-chalkboard-teacher"></i>
                     </div>
-                    <h4 class="step-title-md">Launch or Discover</h4>
-                    <p class="step-desc-md">Create your project or explore innovative startups</p>
+                    <h4 class="step-title-md">We Develop</h4>
+                    <p class="step-desc-md">12 weeks of mentorship, curriculum, and structure. Sponsored by corporates and development partners.</p>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
                 <div class="step-card-md">
                     <span class="step-number-md">3</span>
                     <div class="step-icon-md">
-                        <i class="fas fa-hand-holding-usd"></i>
+                        <i class="fas fa-handshake"></i>
                     </div>
-                    <h4 class="step-title-md">Fund & Invest</h4>
-                    <p class="step-desc-md">Support through donations, equity, or SRT tokens</p>
+                    <h4 class="step-title-md">Partners Engage</h4>
+                    <p class="step-desc-md">Corporates, angels, and funds access our vetted deal flow through demo days, syndicates, and sourcing arrangements.</p>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
@@ -1190,8 +1723,8 @@
                     <div class="step-icon-md">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h4 class="step-title-md">Grow Together</h4>
-                    <p class="step-desc-md">Track progress and earn returns as startups succeed</p>
+                    <h4 class="step-title-md">Startups Scale</h4>
+                    <p class="step-desc-md">Alumni continue raising, building, and contributing back to the ecosystem — documented honestly as case studies.</p>
                 </div>
             </div>
             {% endfor %}
@@ -1443,184 +1976,6 @@
                 </div>
             </div>
         </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- LaunchPadi Accelerator Section -->
-{% if homepage.show_incubator_section %}
-<section class="launchpadi-section py-5 py-lg-0">
-    <div class="container" style="padding-top:80px; padding-bottom:80px; position:relative; z-index:1;">
-
-        <!-- Section Header -->
-        <div class="row mb-2">
-            <div class="col-lg-8">
-                <span class="launchpadi-badge">
-                    <i class="fas fa-rocket"></i> Accelerator Program
-                </span>
-                <h2 class="launchpadi-title">
-                    <strong>{{ homepage.incubator_title }}</strong>
-                </h2>
-                <p class="launchpadi-subtitle">{{ homepage.incubator_subtitle }}</p>
-            </div>
-        </div>
-
-        <!-- Stats Strip -->
-        <div class="launchpadi-stats">
-            <div class="launchpadi-stat-item">
-                <div class="launchpadi-stat-value">{{ homepage.incubator_stat_1_value }}</div>
-                <div class="launchpadi-stat-label">{{ homepage.incubator_stat_1_label }}</div>
-            </div>
-            <div class="launchpadi-stat-item">
-                <div class="launchpadi-stat-value">{{ homepage.incubator_stat_2_value }}</div>
-                <div class="launchpadi-stat-label">{{ homepage.incubator_stat_2_label }}</div>
-            </div>
-            <div class="launchpadi-stat-item">
-                <div class="launchpadi-stat-value">{{ homepage.incubator_stat_3_value }}</div>
-                <div class="launchpadi-stat-label">{{ homepage.incubator_stat_3_label }}</div>
-            </div>
-            <div class="launchpadi-stat-item">
-                <div class="launchpadi-stat-value">{{ homepage.incubator_stat_4_value }}</div>
-                <div class="launchpadi-stat-label">{{ homepage.incubator_stat_4_label }}</div>
-            </div>
-        </div>
-
-        <!-- Main Content: Video + Benefits -->
-        <div class="row g-5 align-items-start">
-
-            <!-- Left: Video Embed -->
-            <div class="col-lg-6">
-                {% if homepage.incubator_youtube_video_id %}
-                <div class="launchpadi-video-wrap"
-                     id="yt-player-wrap"
-                     data-video-id="{{ homepage.incubator_youtube_video_id }}"
-                     data-embed-url="{{ homepage.incubator_youtube_embed_url }}"
-                     onclick="launchpadiPlayVideo(this)">
-                    <img class="launchpadi-video-thumb"
-                         src="https://img.youtube.com/vi/{{ homepage.incubator_youtube_video_id }}/maxresdefault.jpg"
-                         alt="{{ homepage.incubator_title }}"
-                         onerror="this.src='https://img.youtube.com/vi/{{ homepage.incubator_youtube_video_id }}/hqdefault.jpg'">
-                    <div class="launchpadi-play-btn">
-                        <div class="launchpadi-play-circle">
-                            <i class="fab fa-youtube"></i>
-                        </div>
-                    </div>
-                </div>
-                {% elif homepage.incubator_image %}
-                <div class="launchpadi-video-wrap" style="aspect-ratio:4/3;">
-                    <img src="{{ homepage.incubator_image.url }}" alt="{{ homepage.incubator_title }}" style="width:100%;height:100%;object-fit:cover;">
-                </div>
-                {% else %}
-                <div class="launchpadi-video-placeholder">
-                    <i class="fab fa-youtube fa-3x mb-2" style="color:rgba(255,255,255,0.2);"></i>
-                    <span>Program video coming soon</span>
-                </div>
-                {% endif %}
-
-                <!-- Description under video -->
-                {% if homepage.incubator_description %}
-                <div class="mt-4" style="color:rgba(255,255,255,0.65); font-size:0.95rem; line-height:1.75;">
-                    {{ homepage.incubator_description|safe }}
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Right: Benefits + CTA -->
-            <div class="col-lg-6">
-                <h4 class="mb-4" style="color:rgba(255,255,255,0.9); font-weight:400;">What you get in the program</h4>
-
-                <div class="launchpadi-benefit">
-                    <div class="launchpadi-benefit-icon"><i class="fas fa-user-tie"></i></div>
-                    <div class="launchpadi-benefit-text">
-                        <strong>Expert Mentorship</strong>
-                        <span>One-on-one sessions with seasoned founders and industry leaders across Africa</span>
-                    </div>
-                </div>
-
-                <div class="launchpadi-benefit">
-                    <div class="launchpadi-benefit-icon"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="launchpadi-benefit-text">
-                        <strong>Seed Funding Access</strong>
-                        <span>Connect with investors and unlock funding opportunities up to $50,000</span>
-                    </div>
-                </div>
-
-                <div class="launchpadi-benefit">
-                    <div class="launchpadi-benefit-icon"><i class="fas fa-calendar-check"></i></div>
-                    <div class="launchpadi-benefit-text">
-                        <strong>12-Week Intensive Program</strong>
-                        <span>Structured curriculum covering product, growth, fundraising, and operations</span>
-                    </div>
-                </div>
-
-                <div class="launchpadi-benefit">
-                    <div class="launchpadi-benefit-icon"><i class="fas fa-network-wired"></i></div>
-                    <div class="launchpadi-benefit-text">
-                        <strong>Investor Network</strong>
-                        <span>Demo day pitch to a curated network of VCs, angels, and strategic partners</span>
-                    </div>
-                </div>
-
-                <div class="launchpadi-benefit">
-                    <div class="launchpadi-benefit-icon"><i class="fas fa-laptop-house"></i></div>
-                    <div class="launchpadi-benefit-text">
-                        <strong>Co-Working & Resources</strong>
-                        <span>Dedicated workspace, legal, financial, and technical support throughout</span>
-                    </div>
-                </div>
-
-                <div class="launchpadi-benefit">
-                    <div class="launchpadi-benefit-icon"><i class="fas fa-globe-africa"></i></div>
-                    <div class="launchpadi-benefit-text">
-                        <strong>Pan-African Reach</strong>
-                        <span>Build connections and expand your market across 12+ African countries</span>
-                    </div>
-                </div>
-
-                <div class="d-flex flex-wrap gap-3 mt-5">
-                    <a href="{{ homepage.incubator_cta_url }}" class="btn-launchpadi-primary">
-                        <i class="fas fa-paper-plane"></i> {{ homepage.incubator_cta_text }}
-                    </a>
-                    <a href="/incubator/" class="btn-launchpadi-secondary">
-                        Learn More <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Image Gallery -->
-        {% if accelerator_gallery %}
-        <div class="launchpadi-gallery-section">
-            <p class="launchpadi-gallery-label"><i class="fas fa-images me-2"></i>Program Gallery</p>
-            <div class="launchpadi-gallery-track">
-                {% for item in accelerator_gallery %}
-                <div class="launchpadi-gallery-item">
-                    <img src="{{ item.image.url }}" alt="{{ item.caption|default:'LaunchPadi program' }}" loading="lazy">
-                    {% if item.caption %}
-                    <div class="launchpadi-gallery-caption">{{ item.caption }}</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% else %}
-        <div class="launchpadi-gallery-section">
-            <p class="launchpadi-gallery-label"><i class="fas fa-images me-2"></i>Program Gallery</p>
-            <div class="launchpadi-gallery-track">
-                <div class="launchpadi-gallery-placeholder">
-                    <i class="fas fa-image fa-2x"></i>
-                    <span>Gallery images coming soon</span>
-                </div>
-                <div class="launchpadi-gallery-placeholder">
-                    <i class="fas fa-image fa-2x"></i>
-                </div>
-                <div class="launchpadi-gallery-placeholder">
-                    <i class="fas fa-image fa-2x"></i>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
     </div>
 </section>
 {% endif %}

@@ -15,7 +15,8 @@ from .forms import ProjectForm, RewardForm, RewardFormSet, UpdateForm, DonationF
 from apps.funding.models import Investment, InvestmentTerm, InvestorEscrowBalance
 from apps.cms.models import (
     HeroSlider, Testimonial, HomePage, PartnerLogo,
-    SiteSettings, Announcement, NewsletterSubscriber, AcceleratorGalleryImage
+    SiteSettings, Announcement, NewsletterSubscriber, AcceleratorGalleryImage,
+    AlumniFounder
 )
 
 
@@ -56,6 +57,9 @@ def home(request):
     # Accelerator gallery images
     accelerator_gallery = homepage.accelerator_gallery.all() if homepage else []
 
+    # LaunchPadi alumni founders
+    alumni_founders = AlumniFounder.objects.filter(is_active=True)[:8]
+
     context = {
         'homepage': homepage,
         'site_settings': site_settings,
@@ -68,6 +72,7 @@ def home(request):
         'sliders': sliders,
         'how_it_works_steps': homepage.how_it_works_steps.all() if homepage else [],
         'accelerator_gallery': accelerator_gallery,
+        'alumni_founders': alumni_founders,
     }
     return render(request, 'home.html', context)
 
