@@ -70,6 +70,8 @@ LOCAL_APPS = [
     'apps.payments',
     'apps.srt',
     'apps.incubator',
+    'apps.sponsorship',
+    'apps.lms',
 ]
 
 INSTALLED_APPS = ['jazzmin'] + DJANGO_APPS + THIRD_PARTY_APPS[1:] + LOCAL_APPS

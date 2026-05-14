@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Week {{ module.week_number }}: {{ module.title }} — LaunchPadi Program{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mod-hero { background:linear-gradient(160deg,#0a2418,#0e3320,#133d28); color:#fff; padding:60px 0 48px; }
+    .lesson-list-item {
+        display:flex; align-items:center; gap:14px;
+        padding:16px 20px; border-radius:14px; background:#fff;
+        border:1px solid #eef2f7; margin-bottom:10px;
+        text-decoration:none; color:inherit;
+        transition:all 0.2s ease;
+    }
+    .lesson-list-item:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); transform:translateX(4px); color:inherit; }
+    .lesson-dot {
+        width:36px; height:36px; border-radius:50%; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center;
+        font-size:0.8rem; font-weight:700;
+    }
+    .lesson-dot.done { background:#26af59; color:#fff; }
+    .lesson-dot.pending { background:#f1f5f9; color:#94a3b8; border:2px solid #e2e8f0; }
+    .section-card { background:#fff; border-radius:20px; padding:32px; border:1px solid #eef2f7; margin-bottom:24px; }
+    .section-label {
+        display:inline-flex; align-items:center; gap:8px;
+        font-size:0.75rem; font-weight:700; text-transform:uppercase;
+        letter-spacing:1px; margin-bottom:20px; padding:6px 14px;
+        border-radius:100px;
+    }
+    .label-exercise { background:rgba(217,119,6,0.1); color:#d97706; }
+    .label-deliverable { background:rgba(124,58,237,0.1); color:#7c3aed; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="mod-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb" style="margin-bottom:16px;">
+            <ol class="breadcrumb" style="background:none;padding:0;margin:0;">
+                <li class="breadcrumb-item"><a href="{% url 'lms:lms_dashboard' %}" style="color:rgba(255,255,255,0.6);">Dashboard</a></li>
+                <li class="breadcrumb-item active" style="color:rgba(255,255,255,0.9);">Week {{ module.week_number }}</li>
+            </ol>
+        </nav>
+        <span style="display:inline-block;padding:4px 14px;background:rgba(38,175,89,0.2);color:#6ee09a;border-radius:100px;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:16px;">Week {{ module.week_number }}</span>
+        <h1 style="font-size:2.2rem;font-weight:300;margin-bottom:12px;">{{ module.title }}</h1>
+        <p style="color:rgba(255,255,255,0.65);max-width:600px;line-height:1.7;">
+            {{ lessons.count }} lesson{{ lessons.count|pluralize }} · 1 exercise · 1 deliverable
+        </p>
+    </div>
+</section>
+
+<section style="padding:60px 0;background:#f8fafc;">
+    <div class="container">
+        <div class="row g-5">
+
+            <!-- Left: Overview + Lessons -->
+            <div class="col-lg-8">
+
+                <!-- Overview -->
+                <div class="section-card">
+                    <h4 style="font-weight:600;margin-bottom:16px;">Module Overview</h4>
+                    <div style="color:#374151;line-height:1.8;">{{ module.overview|safe }}</div>
+                    {% if module.learning_objectives %}
+                    <div style="margin-top:24px;padding-top:20px;border-top:1px solid #f1f5f9;">
+                        <h6 style="font-weight:600;color:#111827;margin-bottom:12px;">By the end of this module you will:</h6>
+                        <div style="color:#374151;line-height:1.8;">{{ module.learning_objectives|safe }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Lessons -->
+                <h5 style="font-weight:600;margin-bottom:16px;color:#111827;">Lessons</h5>
+                {% for lesson in lessons %}
+                <a href="{% url 'lms:lesson_detail' lesson.pk %}" class="lesson-list-item">
+                    <div class="lesson-dot {% if lesson.pk in completed_ids %}done{% else %}pending{% endif %}">
+                        {% if lesson.pk in completed_ids %}<i class="fas fa-check"></i>{% else %}{{ forloop.counter }}{% endif %}
+                    </div>
+                    <div style="flex-grow:1;">
+                        <div style="font-weight:600;font-size:0.95rem;color:#111827;">{{ lesson.title }}</div>
+                        <div style="font-size:0.8rem;color:#6b7280;">~{{ lesson.estimated_minutes }} min read</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:#d1d5db;"></i>
+                </a>
+                {% empty %}
+                <p class="text-muted">Lessons coming soon.</p>
+                {% endfor %}
+
+            </div>
+
+            <!-- Right: Exercise + Deliverable -->
+            <div class="col-lg-4">
+
+                {% for exercise in exercises %}
+                <div class="section-card">
+                    <span class="section-label label-exercise"><i class="fas fa-pen"></i>Exercise</span>
+                    <h5 style="font-weight:600;font-size:1rem;margin-bottom:14px;">{{ exercise.title }}</h5>
+                    <div style="font-size:0.875rem;color:#374151;line-height:1.7;">{{ exercise.instructions|safe }}</div>
+                    {% if exercise.tips %}
+                    <div style="margin-top:16px;padding:14px 16px;background:#fffbeb;border-radius:10px;border:1px solid #fde68a;">
+                        <span style="font-size:0.75rem;font-weight:700;color:#d97706;text-transform:uppercase;">Tips</span>
+                        <div style="font-size:0.825rem;color:#374151;line-height:1.7;margin-top:8px;">{{ exercise.tips|safe }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                {% if deliverable %}
+                <div class="section-card">
+                    <span class="section-label label-deliverable"><i class="fas fa-file-alt"></i>Deliverable</span>
+                    <h5 style="font-weight:600;font-size:1rem;margin-bottom:14px;">{{ deliverable.title }}</h5>
+                    <div style="font-size:0.875rem;color:#374151;line-height:1.7;margin-bottom:16px;">{{ deliverable.description|safe }}</div>
+                    <p style="font-size:0.8rem;color:#7c3aed;font-weight:600;">
+                        <i class="fas fa-file me-1"></i>Format: {{ deliverable.format_guidance }}
+                    </p>
+                    {% if deliverable.example_link %}
+                    <a href="{{ deliverable.example_link }}" target="_blank" style="font-size:0.8rem;color:#2563eb;">
+                        <i class="fas fa-external-link-alt me-1"></i>View Example
+                    </a>
+                    {% endif %}
+
+                    {% if submission %}
+                    <div style="margin-top:20px;padding:14px;background:#f0fdf4;border-radius:12px;border:1px solid rgba(38,175,89,0.2);">
+                        <span style="font-size:0.75rem;font-weight:700;color:#26af59;text-transform:uppercase;">Submitted — {{ submission.get_status_display }}</span>
+                        {% if submission.feedback %}
+                        <div style="margin-top:10px;font-size:0.825rem;color:#374151;line-height:1.6;"><strong>Feedback:</strong> {{ submission.feedback }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'lms:submit_deliverable' deliverable.pk %}" enctype="multipart/form-data" style="margin-top:20px;">
+                        {% csrf_token %}
+                        <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;">
+                            {% if submission %}Update your submission{% else %}Submit your deliverable{% endif %}
+                        </label>
+                        <textarea name="submission_text" rows="3" class="form-control" style="border-radius:10px;font-size:0.85rem;margin-bottom:10px;" placeholder="Paste a link, notes, or summary...">{% if submission %}{{ submission.submission_text }}{% endif %}</textarea>
+                        <input type="file" name="file_upload" class="form-control" style="border-radius:10px;font-size:0.85rem;margin-bottom:12px;" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt">
+                        <button type="submit" style="width:100%;padding:10px;background:#7c3aed;color:#fff;border:none;border-radius:100px;font-weight:600;font-size:0.875rem;cursor:pointer;">
+                            <i class="fas fa-upload me-1"></i>{% if submission %}Update{% else %}Submit{% endif %}
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

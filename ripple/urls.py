@@ -16,6 +16,8 @@ urlpatterns = [
     path('payments/', include('apps.payments.urls')),
     path('srt/', include('apps.srt.urls')),
     path('ckeditor/', include('ckeditor_uploader.urls')),
+    path('sponsorship/', include('apps.sponsorship.urls')),
+    path('lms/', include('apps.lms.urls')),
 ]
 
 # Add static and media URL patterns for development

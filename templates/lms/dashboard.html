@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Learning Dashboard — LaunchPadi Program{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dash-header { background: linear-gradient(160deg,#0a2418,#0e3320,#133d28); color:#fff; padding:60px 0 48px; }
+    .dash-header h1 { font-size:2rem; font-weight:300; }
+    .overall-bar { height:10px; background:rgba(255,255,255,0.15); border-radius:5px; overflow:hidden; margin-top:12px; }
+    .overall-fill { height:100%; background:linear-gradient(90deg,#26af59,#03DAC6); border-radius:5px; transition:width 0.6s ease; }
+
+    .mod-card {
+        background:#fff; border-radius:20px; padding:28px 24px;
+        border: 1px solid #eef2f7; transition: all 0.25s ease;
+        height: 100%;
+    }
+    .mod-card:hover { box-shadow:0 8px 28px rgba(0,0,0,0.09); transform:translateY(-3px); }
+    .mod-card.locked { opacity:0.55; pointer-events:none; }
+    .week-pill {
+        display:inline-block; padding:3px 12px; background:rgba(38,175,89,0.1);
+        color:#1a7d40; border-radius:100px; font-size:0.7rem; font-weight:700;
+        text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;
+    }
+    .week-pill.done { background:rgba(38,175,89,0.9); color:#fff; }
+    .mod-progress { height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden; margin:12px 0; }
+    .mod-progress-fill { height:100%; background:#26af59; border-radius:3px; transition:width 0.4s ease; }
+    .mod-link { font-size:0.875rem; color:#26af59; font-weight:600; text-decoration:none; }
+    .mod-link:hover { color:#1e8e48; }
+    .del-badge {
+        display:inline-flex; align-items:center; gap:5px;
+        padding:3px 10px; border-radius:100px;
+        font-size:0.7rem; font-weight:600;
+    }
+    .del-submitted { background:rgba(37,99,235,0.1); color:#2563eb; }
+    .del-approved  { background:rgba(38,175,89,0.12); color:#1a7d40; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="dash-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1>Welcome back, {{ request.user.first_name|default:request.user.email }}</h1>
+                <p style="color:rgba(255,255,255,0.7);margin-bottom:16px;">{{ course.title }}</p>
+                <div class="d-flex align-items-center gap-3">
+                    <span style="font-size:0.875rem;color:rgba(255,255,255,0.6);">Overall progress</span>
+                    <span style="font-size:1rem;font-weight:700;color:#6ee09a;">{{ overall_percent }}%</span>
+                </div>
+                <div class="overall-bar">
+                    <div class="overall-fill" style="width:{{ overall_percent }}%;"></div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="{% url 'lms:lms_home' %}" style="color:rgba(255,255,255,0.6);font-size:0.875rem;text-decoration:none;">
+                    <i class="fas fa-book me-1"></i>View full curriculum
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section style="padding:60px 0;background:#f8fafc;">
+    <div class="container">
+        <div class="row g-4">
+            {% for item in module_data %}
+            <div class="col-md-6 col-lg-4">
+                <div class="mod-card">
+                    <span class="week-pill {% if item.percent == 100 %}done{% endif %}">
+                        {% if item.percent == 100 %}<i class="fas fa-check me-1"></i>{% endif %}Week {{ item.module.week_number }}
+                    </span>
+                    <h5 style="font-size:1rem;font-weight:600;color:#111827;margin-bottom:8px;">{{ item.module.title }}</h5>
+                    <p style="font-size:0.8rem;color:#6b7280;margin-bottom:4px;">
+                        {{ item.done }}/{{ item.total }} lessons complete
+                    </p>
+                    <div class="mod-progress">
+                        <div class="mod-progress-fill" style="width:{{ item.percent }}%;"></div>
+                    </div>
+
+                    {% if item.submission %}
+                    <span class="del-badge {% if item.submission.status == 'approved' %}del-approved{% else %}del-submitted{% endif %} mt-1">
+                        <i class="fas fa-{% if item.submission.status == 'approved' %}check-circle{% else %}clock{% endif %}"></i>
+                        Deliverable {{ item.submission.get_status_display }}
+                    </span>
+                    {% endif %}
+
+                    <div class="mt-3">
+                        <a href="{% url 'lms:module_detail' item.module.pk %}" class="mod-link">
+                            {% if item.percent == 100 %}Review{% elif item.done > 0 %}Continue{% else %}Start{% endif %}
+                            <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No modules available yet. Check back soon.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

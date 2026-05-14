@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}LaunchPadi Idea-Stage Program — 12-Week Founder Curriculum{% endblock %}
+
+{% block extra_css %}
+<style>
+    .lms-hero {
+        background: linear-gradient(160deg, #0a2418 0%, #0e3320 50%, #133d28 100%);
+        color: #fff; padding: 100px 0 80px; position: relative; overflow: hidden;
+    }
+    .lms-hero::before {
+        content: ''; position: absolute; top: -30%; right: -15%;
+        width: 700px; height: 700px;
+        background: radial-gradient(circle, rgba(38,175,89,0.18) 0%, transparent 70%);
+        border-radius: 50%; pointer-events: none;
+    }
+    .lms-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 20px; background: rgba(38,175,89,0.2);
+        border: 1px solid rgba(38,175,89,0.4); color: #6ee09a;
+        border-radius: 100px; font-size: 0.8rem; font-weight: 600;
+        letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px;
+    }
+    .lms-hero h1 { font-size: 3rem; font-weight: 300; line-height: 1.15; margin-bottom: 20px; }
+    .lms-hero h1 strong { font-weight: 700; background: linear-gradient(90deg, #26af59, #03DAC6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .lms-stats { display: flex; gap: 0; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; overflow: hidden; margin-top: 48px; }
+    .lms-stat { flex: 1; text-align: center; padding: 20px 16px; border-right: 1px solid rgba(255,255,255,0.1); }
+    .lms-stat:last-child { border-right: none; }
+    .lms-stat-val { font-size: 1.75rem; font-weight: 700; color: #26af59; }
+    .lms-stat-lbl { font-size: 0.75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .module-grid { padding: 80px 0; background: #f8fafc; }
+    .module-card {
+        background: #fff; border-radius: 20px; padding: 28px 24px;
+        border: 1px solid #eef2f7; transition: all 0.25s ease;
+        height: 100%; display: flex; flex-direction: column;
+    }
+    .module-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.1); transform: translateY(-4px); }
+    .week-chip {
+        display: inline-block; padding: 4px 12px;
+        background: rgba(38,175,89,0.1); color: #1a7d40;
+        border-radius: 100px; font-size: 0.72rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+    }
+    .module-title { font-size: 1rem; font-weight: 600; color: #111827; margin-bottom: 8px; flex-grow: 1; }
+
+    .access-section { padding: 80px 0; background: #fff; }
+    .access-card {
+        background: linear-gradient(160deg, #f0fdf4, #dcfce7); border-radius: 24px;
+        padding: 48px 40px; border: 1px solid rgba(38,175,89,0.2);
+    }
+
+    @media (max-width: 767px) {
+        .lms-hero h1 { font-size: 2rem; }
+        .lms-stats { flex-wrap: wrap; }
+        .lms-stat { flex: 1 1 45%; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="lms-hero">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row">
+            <div class="col-lg-8">
+                <span class="lms-badge"><i class="fas fa-graduation-cap"></i> LaunchPadi Program</span>
+                <h1>The 12-Week <strong>Idea-Stage</strong> Founders Program</h1>
+                <p style="font-size:1.1rem;color:rgba(255,255,255,0.75);max-width:580px;line-height:1.7;">
+                    A self-paced curriculum built specifically for Nigerian founders at the idea stage. Twelve modules. Real exercises. Actionable deliverables. No fluff.
+                </p>
+                {% if enrollment %}
+                <a href="{% url 'lms:lms_dashboard' %}" class="btn btn-lg mt-3" style="background:#26af59;color:#fff;border-radius:100px;padding:14px 36px;font-weight:600;box-shadow:0 4px 20px rgba(38,175,89,0.35);">
+                    <i class="fas fa-play me-2"></i>Continue Learning
+                </a>
+                {% else %}
+                <a href="{% url 'lms:lms_enroll' %}" class="btn btn-lg mt-3" style="background:#26af59;color:#fff;border-radius:100px;padding:14px 36px;font-weight:600;box-shadow:0 4px 20px rgba(38,175,89,0.35);">
+                    <i class="fas fa-rocket me-2"></i>Start the Program
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="lms-stats">
+            <div class="lms-stat"><div class="lms-stat-val">12</div><div class="lms-stat-lbl">Modules</div></div>
+            <div class="lms-stat"><div class="lms-stat-val">48+</div><div class="lms-stat-lbl">Lessons</div></div>
+            <div class="lms-stat"><div class="lms-stat-val">12</div><div class="lms-stat-lbl">Deliverables</div></div>
+            <div class="lms-stat"><div class="lms-stat-val">Self-Paced</div><div class="lms-stat-lbl">Go at your speed</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- Module Grid -->
+{% if modules %}
+<section class="module-grid">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-light" style="font-size:2.2rem;">The <strong>Full Curriculum</strong></h2>
+            <p class="text-muted mt-2" style="max-width:560px;margin:0 auto;">One module per week. Each has lessons, a practical exercise, and a deliverable you'll keep after the program.</p>
+        </div>
+        <div class="row g-4">
+            {% for module in modules %}
+            <div class="col-sm-6 col-lg-4">
+                <div class="module-card">
+                    <span class="week-chip">Week {{ module.week_number }}</span>
+                    <h5 class="module-title">{{ module.title }}</h5>
+                    <p style="font-size:0.82rem;color:#6b7280;line-height:1.6;margin-bottom:16px;">
+                        {{ module.lessons.count }} lesson{{ module.lessons.count|pluralize }} · 1 exercise · 1 deliverable
+                    </p>
+                    {% if enrollment %}
+                    <a href="{% url 'lms:module_detail' module.pk %}" style="font-size:0.85rem;color:#26af59;font-weight:600;text-decoration:none;">
+                        Go to module <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Access CTA -->
+<section class="access-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="access-card text-center">
+                    <i class="fas fa-lock-open fa-3x mb-4" style="color:#26af59;"></i>
+                    <h2 class="fw-semibold mb-3">Ready to start?</h2>
+                    <p style="color:#374151;font-size:1rem;line-height:1.7;max-width:500px;margin:0 auto 32px;">
+                        This program is free for all LaunchPadi applicants. If you've applied to the LaunchPadi accelerator, you already have access.
+                    </p>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        {% if enrollment %}
+                        <a href="{% url 'lms:lms_dashboard' %}" class="btn btn-lg" style="background:#26af59;color:#fff;border-radius:100px;padding:14px 36px;font-weight:600;">
+                            <i class="fas fa-play me-2"></i>Go to Dashboard
+                        </a>
+                        {% elif user.is_authenticated %}
+                        <a href="{% url 'lms:lms_enroll' %}" class="btn btn-lg" style="background:#26af59;color:#fff;border-radius:100px;padding:14px 36px;font-weight:600;">
+                            <i class="fas fa-rocket me-2"></i>Enrol Now
+                        </a>
+                        {% else %}
+                        <a href="{% url 'incubator:apply' %}" class="btn btn-lg" style="background:#26af59;color:#fff;border-radius:100px;padding:14px 36px;font-weight:600;">
+                            <i class="fas fa-paper-plane me-2"></i>Apply to LaunchPadi First
+                        </a>
+                        {% endif %}
+                        <a href="/incubator/" class="btn btn-lg btn-outline-secondary" style="border-radius:100px;padding:14px 36px;">
+                            Learn About the Program
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ lesson.title }} — {{ module.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .lesson-nav-bar { background:#fff; border-bottom:1px solid #eef2f7; padding:14px 0; position:sticky; top:64px; z-index:100; }
+    .lesson-content-wrap { max-width:780px; margin:0 auto; padding:60px 24px 80px; }
+    .lesson-content { font-size:1rem; line-height:1.9; color:#1f2937; }
+    .lesson-content h2, .lesson-content h3 { font-weight:600; margin-top:2rem; margin-bottom:1rem; color:#111827; }
+    .lesson-content p { margin-bottom:1.25rem; }
+    .lesson-content ul, .lesson-content ol { margin-bottom:1.25rem; padding-left:1.5rem; }
+    .lesson-content li { margin-bottom:0.4rem; }
+    .lesson-content blockquote { border-left:4px solid #26af59; padding:12px 20px; background:#f0fdf4; margin:1.5rem 0; border-radius:0 8px 8px 0; color:#374151; font-style:italic; }
+    .mark-done-btn {
+        background:linear-gradient(90deg,#26af59,#1e8e48); color:#fff; border:none;
+        padding:14px 40px; border-radius:100px; font-size:1rem; font-weight:600;
+        box-shadow:0 4px 20px rgba(38,175,89,0.35); cursor:pointer; transition:all 0.25s ease;
+    }
+    .mark-done-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(38,175,89,0.5); }
+    .done-badge { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; background:#f0fdf4; border:1px solid rgba(38,175,89,0.3); border-radius:100px; color:#15803d; font-weight:600; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Top nav bar -->
+<div class="lesson-nav-bar">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+        <a href="{% url 'lms:module_detail' module.pk %}" style="font-size:0.875rem;color:#6b7280;text-decoration:none;">
+            <i class="fas fa-arrow-left me-1"></i> Week {{ module.week_number }}: {{ module.title }}
+        </a>
+        <span style="font-size:0.8rem;color:#94a3b8;">~{{ lesson.estimated_minutes }} min read</span>
+    </div>
+</div>
+
+<div class="lesson-content-wrap">
+    <h1 style="font-size:2rem;font-weight:700;color:#111827;margin-bottom:8px;">{{ lesson.title }}</h1>
+    <p style="font-size:0.875rem;color:#94a3b8;margin-bottom:40px;">Week {{ module.week_number }}: {{ module.title }}</p>
+
+    <div class="lesson-content">
+        {{ lesson.content|safe }}
+    </div>
+
+    <!-- Mark Complete -->
+    <div style="margin-top:60px;padding-top:40px;border-top:1px solid #f1f5f9;text-align:center;">
+        {% if is_completed %}
+        <div class="done-badge mx-auto mb-4" style="display:inline-flex;">
+            <i class="fas fa-check-circle text-success"></i> Lesson completed
+        </div>
+        {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="mark-done-btn">
+                <i class="fas fa-check me-2"></i>Mark as Complete
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Prev / Next navigation -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:40px;gap:16px;">
+        {% if prev_lesson %}
+        <a href="{% url 'lms:lesson_detail' prev_lesson.pk %}" style="display:flex;align-items:center;gap:8px;padding:12px 20px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;text-decoration:none;color:#374151;font-size:0.875rem;font-weight:500;">
+            <i class="fas fa-arrow-left" style="color:#94a3b8;"></i>
+            <span>{{ prev_lesson.title }}</span>
+        </a>
+        {% else %}<div></div>{% endif %}
+
+        {% if next_lesson %}
+        <a href="{% url 'lms:lesson_detail' next_lesson.pk %}" style="display:flex;align-items:center;gap:8px;padding:12px 20px;background:#26af59;border-radius:12px;text-decoration:none;color:#fff;font-size:0.875rem;font-weight:600;">
+            <span>{{ next_lesson.title }}</span>
+            <i class="fas fa-arrow-right"></i>
+        </a>
+        {% else %}
+        <a href="{% url 'lms:module_detail' module.pk %}" style="display:flex;align-items:center;gap:8px;padding:12px 20px;background:#7c3aed;border-radius:12px;text-decoration:none;color:#fff;font-size:0.875rem;font-weight:600;">
+            <span>Back to Module</span>
+            <i class="fas fa-arrow-right"></i>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
