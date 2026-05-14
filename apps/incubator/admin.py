@@ -121,7 +121,7 @@ class IncubatorApplicationAdmin(admin.ModelAdmin):
     )
     readonly_fields = ['application_date', 'lms_provisioned']
 
-    actions = ['mark_approved', 'mark_rejected', 'mark_waitlisted']
+    actions = ['mark_approved', 'mark_rejected', 'mark_waitlisted', 'reprovision_lms']
 
     def lms_status(self, obj):
         if obj.lms_provisioned:
@@ -150,16 +150,33 @@ class IncubatorApplicationAdmin(admin.ModelAdmin):
     status_badge.short_description = "Status"
 
     def mark_approved(self, request, queryset):
-        queryset.update(status='approved', reviewed=True)
-        self.message_user(request, f"{queryset.count()} applications marked as Approved.")
-    mark_approved.short_description = "Mark selected as Approved"
+        count = 0
+        for application in queryset.filter(status__in=['pending', 'waitlisted']):
+            application.status = 'approved'
+            application.reviewed = True
+            application.save()  # must use save() so signals fire for provisioning
+            count += 1
+        self.message_user(request, f"{count} application(s) approved and accounts provisioned.")
+    mark_approved.short_description = "Approve & provision LMS accounts"
 
     def mark_rejected(self, request, queryset):
-        queryset.update(status='rejected', reviewed=True)
+        queryset.exclude(status='rejected').update(status='rejected', reviewed=True)
         self.message_user(request, f"{queryset.count()} applications marked as Rejected.")
     mark_rejected.short_description = "Mark selected as Rejected"
 
     def mark_waitlisted(self, request, queryset):
-        queryset.update(status='waitlisted', reviewed=True)
+        queryset.exclude(status='waitlisted').update(status='waitlisted', reviewed=True)
         self.message_user(request, f"{queryset.count()} applications marked as Waitlisted.")
     mark_waitlisted.short_description = "Mark selected as Waitlisted"
+
+    def reprovision_lms(self, request, queryset):
+        from apps.incubator.signals import _provision_student_account
+        count = 0
+        for application in queryset.filter(status='approved'):
+            # Reset the flag so provisioning runs again
+            application.lms_provisioned = False
+            application.save(update_fields=['lms_provisioned'])
+            _provision_student_account(application)
+            count += 1
+        self.message_user(request, f"Re-provisioned LMS accounts for {count} application(s).")
+    reprovision_lms.short_description = "Re-provision LMS accounts (resend credentials)"
