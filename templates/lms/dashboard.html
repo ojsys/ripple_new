@@ -5,9 +5,10 @@
 
 {% block extra_css %}
 <style>
+    /* ── Header ── */
     .dash-header {
         background: linear-gradient(160deg,#0a2418,#0e3320,#133d28);
-        color:#fff; padding:100px 0 80px; position:relative; overflow:hidden;
+        color:#fff; padding:80px 0 60px; position:relative; overflow:hidden;
     }
     .dash-header::before {
         content:''; position:absolute; top:-20%; right:-10%;
@@ -15,109 +16,165 @@
         background:radial-gradient(circle,rgba(38,175,89,0.15) 0%,transparent 68%);
         border-radius:50%; pointer-events:none;
     }
-    .dash-header h1 { font-size:2.2rem; font-weight:300; margin-bottom:10px; }
-    .dash-header .course-title { color:rgba(255,255,255,0.6); font-size:0.95rem; margin-bottom:28px; }
-    .progress-label { font-size:0.82rem; color:rgba(255,255,255,0.55); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
-    .overall-bar { height:8px; background:rgba(255,255,255,0.15); border-radius:4px; overflow:hidden; }
-    .overall-fill { height:100%; background:linear-gradient(90deg,#26af59,#03DAC6); border-radius:4px; transition:width 0.6s ease; }
+    .dash-header h1 { font-size:2rem; font-weight:300; margin-bottom:8px; }
+    .dash-header .course-title { color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:24px; }
+    .progress-label { font-size:0.78rem; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+    .overall-bar { height:6px; background:rgba(255,255,255,0.15); border-radius:3px; overflow:hidden; }
+    .overall-fill { height:100%; background:linear-gradient(90deg,#26af59,#03DAC6); border-radius:3px; transition:width 0.6s ease; }
 
-    /* ── Card base ── */
+    /* ── Spotlight stage ── */
+    .spotlight-section { padding:60px 0 40px; background:#f0f4f8; }
+    .spotlight-wrapper {
+        position:relative; display:flex; align-items:center; justify-content:center;
+    }
+    .spotlight-track {
+        position:relative; width:100%; height:440px; overflow:hidden;
+    }
+
+    /* ── Individual slides ── */
+    .spotlight-slide {
+        position:absolute; top:0; left:50%;
+        width:420px; max-width:90vw;
+        transition: transform 0.48s cubic-bezier(0.25,0.46,0.45,0.94),
+                    opacity 0.48s ease,
+                    filter 0.48s ease;
+        pointer-events:none;
+    }
+    .spotlight-slide.is-active {
+        transform: translateX(-50%) scale(1);
+        opacity:1; filter:none; z-index:3; pointer-events:all;
+    }
+    .spotlight-slide.is-prev {
+        transform: translateX(calc(-50% - 340px)) scale(0.8);
+        opacity:0.45; filter:blur(2px); z-index:2; pointer-events:all; cursor:pointer;
+    }
+    .spotlight-slide.is-next {
+        transform: translateX(calc(-50% + 340px)) scale(0.8);
+        opacity:0.45; filter:blur(2px); z-index:2; pointer-events:all; cursor:pointer;
+    }
+    .spotlight-slide.is-far-left {
+        transform: translateX(calc(-50% - 640px)) scale(0.65);
+        opacity:0; z-index:1; pointer-events:none;
+    }
+    .spotlight-slide.is-far-right {
+        transform: translateX(calc(-50% + 640px)) scale(0.65);
+        opacity:0; z-index:1; pointer-events:none;
+    }
+
+    /* ── Card ── */
     .mod-card {
-        background:#fff; border-radius:20px; overflow:hidden;
-        border: 1px solid #eef2f7; transition: all 0.25s ease;
-        height: 100%; display:flex; flex-direction:column; position:relative;
+        background:#fff; border-radius:22px; overflow:hidden;
+        border:1px solid #eef2f7;
+        display:flex; flex-direction:column; position:relative;
+        height:420px;
     }
-    .mod-card:hover { box-shadow:0 8px 28px rgba(0,0,0,0.09); transform:translateY(-3px); }
-
-    /* ── DONE state ── */
-    .mod-card.done { border-color: rgba(38,175,89,0.3); }
-
-    /* ── CURRENT (active) state ── */
-    .mod-card.current {
-        border: 2px solid #26af59;
-        box-shadow: 0 0 0 4px rgba(38,175,89,0.15), 0 8px 32px rgba(38,175,89,0.2);
+    .mod-card.card-current {
+        border:2px solid #26af59;
+        box-shadow:0 0 0 5px rgba(38,175,89,0.12), 0 16px 48px rgba(38,175,89,0.18);
     }
-    .mod-card.current:hover { transform:translateY(-3px); box-shadow: 0 0 0 4px rgba(38,175,89,0.2), 0 12px 36px rgba(38,175,89,0.25); }
+    .mod-card.card-done { border-color:rgba(38,175,89,0.25); }
+    .mod-card.card-locked { background:#f9fafb; border-color:#e5e7eb; }
+
     .current-badge {
-        position:absolute; top:12px; right:12px; z-index:10;
+        position:absolute; top:14px; right:14px; z-index:10;
         background:#26af59; color:#fff;
-        padding:4px 12px; border-radius:100px;
-        font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px;
+        padding:5px 13px; border-radius:100px;
+        font-size:0.63rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px;
         display:flex; align-items:center; gap:5px;
-        animation: pulse-badge 2s ease-in-out infinite;
+        animation: badge-pulse 2.2s ease-in-out infinite;
     }
-    @keyframes pulse-badge {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(38,175,89,0.5); }
-        50%       { box-shadow: 0 0 0 6px rgba(38,175,89,0); }
-    }
-
-    /* ── LOCKED state ── */
-    .mod-card.locked {
-        border-color: #e5e7eb;
-        background: #f9fafb;
-        cursor: not-allowed;
-    }
-    .mod-card.locked:hover { transform: none; box-shadow: none; }
-    .lock-overlay {
-        position:absolute; inset:0; z-index:10;
-        background: rgba(248,250,252,0.6);
-        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
-        backdrop-filter: blur(1px);
-        border-radius:20px;
-    }
-    .lock-overlay .lock-icon {
-        width:48px; height:48px; border-radius:50%;
-        background:#e5e7eb; display:flex; align-items:center; justify-content:center;
-        font-size:1.2rem; color:#9ca3af;
-    }
-    .lock-overlay .lock-label {
-        font-size:0.75rem; font-weight:600; color:#6b7280; text-align:center; padding:0 16px;
+    @keyframes badge-pulse {
+        0%,100% { box-shadow:0 0 0 0 rgba(38,175,89,0.5); }
+        50%      { box-shadow:0 0 0 7px rgba(38,175,89,0); }
     }
 
-    /* ── Card internals ── */
+    /* ── Card image area ── */
     .mod-card-image {
-        height:120px; position:relative; overflow:hidden; flex-shrink:0;
+        height:150px; position:relative; overflow:hidden; flex-shrink:0;
         display:flex; align-items:center; justify-content:center;
     }
-    .mod-card.locked .mod-card-image { filter: grayscale(1); opacity:0.5; }
+    .mod-card.card-locked .mod-card-image { filter:grayscale(1); opacity:0.45; }
     .mod-card-image img { width:100%; height:100%; object-fit:cover; }
-    .mod-card-image .wk-overlay {
-        position:absolute; inset:0; background:linear-gradient(to bottom,rgba(0,0,0,0.05),rgba(0,0,0,0.5));
-        display:flex; align-items:flex-end; padding:10px 14px;
-    }
-    .mod-card-image .wk-fallback {
+    .wk-overlay {
         position:absolute; inset:0;
-        display:flex; align-items:center; justify-content:center; flex-direction:column; gap:5px;
+        background:linear-gradient(to bottom,rgba(0,0,0,0.05),rgba(0,0,0,0.55));
+        display:flex; align-items:flex-end; padding:12px 16px;
     }
-    .mod-card-image .wk-fallback i { font-size:1.8rem; opacity:0.85; }
-    .mod-card-image .wk-fallback span { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:0.7; }
-    .mod-card-body { padding:20px; flex-grow:1; display:flex; flex-direction:column; }
+    .wk-fallback {
+        position:absolute; inset:0;
+        display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px;
+    }
+    .wk-fallback i { font-size:2.2rem; opacity:0.9; }
+    .wk-fallback span { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:0.75; }
+
+    /* ── Card body ── */
+    .mod-card-body { padding:22px 22px 20px; flex-grow:1; display:flex; flex-direction:column; }
     .week-pill {
-        display:inline-block; padding:3px 12px; background:rgba(38,175,89,0.1);
-        color:#1a7d40; border-radius:100px; font-size:0.7rem; font-weight:700;
+        display:inline-block; padding:3px 12px;
+        background:rgba(38,175,89,0.1); color:#1a7d40;
+        border-radius:100px; font-size:0.68rem; font-weight:700;
         text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;
     }
-    .week-pill.done { background:rgba(38,175,89,0.9); color:#fff; }
+    .week-pill.done  { background:rgba(38,175,89,0.9); color:#fff; }
     .week-pill.locked-pill { background:#f1f5f9; color:#9ca3af; }
-    .mod-progress { height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden; margin:10px 0; }
+    .mod-progress { height:5px; background:#f1f5f9; border-radius:3px; overflow:hidden; margin:10px 0; }
     .mod-progress-fill { height:100%; background:#26af59; border-radius:3px; transition:width 0.4s ease; }
-    .mod-link { font-size:0.875rem; color:#26af59; font-weight:600; text-decoration:none; }
-    .mod-link:hover { color:#1e8e48; }
+    .mod-link {
+        display:inline-flex; align-items:center; gap:8px;
+        padding:10px 22px; border-radius:100px;
+        background:#26af59; color:#fff;
+        font-size:0.82rem; font-weight:600; text-decoration:none;
+        transition:background 0.2s; margin-top:auto;
+    }
+    .mod-link:hover { background:#1e8e48; color:#fff; }
     .del-badge {
         display:inline-flex; align-items:center; gap:5px;
-        padding:3px 10px; border-radius:100px;
-        font-size:0.7rem; font-weight:600;
+        padding:3px 10px; border-radius:100px; font-size:0.68rem; font-weight:600;
     }
     .del-submitted { background:rgba(37,99,235,0.1); color:#2563eb; }
     .del-approved  { background:rgba(38,175,89,0.12); color:#1a7d40; }
 
-    /* ── Section header ── */
-    .section-eyebrow {
-        font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;
-        color:#26af59; margin-bottom:6px;
+    /* ── Lock overlay (inside card) ── */
+    .lock-overlay {
+        position:absolute; inset:0; z-index:5;
+        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+        background:rgba(248,250,252,0.55); backdrop-filter:blur(3px); border-radius:22px;
     }
+    .lock-icon-wrap {
+        width:52px; height:52px; border-radius:50%;
+        background:#e5e7eb; display:flex; align-items:center; justify-content:center;
+        font-size:1.25rem; color:#9ca3af;
+    }
+    .lock-label { font-size:0.75rem; font-weight:600; color:#6b7280; text-align:center; padding:0 20px; }
 
-    /* ── Per-week gradient fallbacks ── */
+    /* ── Nav arrows ── */
+    .nav-btn {
+        position:absolute; top:50%; z-index:10;
+        width:44px; height:44px; border-radius:50%; border:none;
+        background:#fff; box-shadow:0 2px 12px rgba(0,0,0,0.12);
+        color:#374151; font-size:1rem; cursor:pointer;
+        display:flex; align-items:center; justify-content:center;
+        transform:translateY(-50%); transition:all 0.2s;
+    }
+    .nav-btn:hover { background:#26af59; color:#fff; box-shadow:0 4px 16px rgba(38,175,89,0.3); }
+    .nav-btn:disabled { opacity:0.3; cursor:not-allowed; }
+    .nav-btn:disabled:hover { background:#fff; color:#374151; box-shadow:0 2px 12px rgba(0,0,0,0.12); }
+    .nav-prev { left:12px; }
+    .nav-next { right:12px; }
+
+    /* ── Week dots ── */
+    .week-dots { display:flex; justify-content:center; align-items:center; gap:8px; padding:24px 0 48px; flex-wrap:wrap; }
+    .week-dot {
+        width:30px; height:30px; border-radius:50%; border:2px solid #d1d5db;
+        background:#fff; color:#9ca3af; font-size:0.65rem; font-weight:700;
+        cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center;
+    }
+    .week-dot.dot-done { background:#26af59; border-color:#26af59; color:#fff; }
+    .week-dot.dot-active { background:#fff; border-color:#26af59; color:#26af59; box-shadow:0 0 0 3px rgba(38,175,89,0.2); }
+    .week-dot.dot-locked { background:#f9fafb; border-color:#e5e7eb; color:#d1d5db; cursor:default; }
+    .week-dot.dot-focused { transform:scale(1.18); }
+
+    /* ── Per-week gradients ── */
     .wk-1  { background:linear-gradient(135deg,#1a3a4a,#0d6e8a); color:#7ecfea; }
     .wk-2  { background:linear-gradient(135deg,#2a1a4e,#5c23a3); color:#c4a0f0; }
     .wk-3  { background:linear-gradient(135deg,#0a2e1a,#1a7a40); color:#7eeaaa; }
@@ -130,28 +187,35 @@
     .wk-10 { background:linear-gradient(135deg,#2e0a0a,#8c2020); color:#f08888; }
     .wk-11 { background:linear-gradient(135deg,#1a1a0a,#4e4e10); color:#d8d870; }
     .wk-12 { background:linear-gradient(135deg,#0a0a2a,#1a2080); color:#9898f0; }
+
+    @media (max-width:600px) {
+        .spotlight-track { height:420px; }
+        .spotlight-slide { width:82vw; }
+        .spotlight-slide.is-prev { transform:translateX(calc(-50% - 75vw)) scale(0.78); }
+        .spotlight-slide.is-next { transform:translateX(calc(-50% + 75vw)) scale(0.78); }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 
+<!-- ── Header ── -->
 <section class="dash-header">
     <div class="container position-relative" style="z-index:1;">
         <div class="row align-items-end">
             <div class="col-lg-8">
-                <span style="display:inline-block;padding:4px 14px;background:rgba(38,175,89,0.2);color:#6ee09a;border-radius:100px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:18px;">LaunchPadi Program</span>
+                <span style="display:inline-block;padding:4px 14px;background:rgba(38,175,89,0.2);color:#6ee09a;border-radius:100px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">LaunchPadi Program</span>
                 <h1>Welcome back, {{ request.user.first_name|default:request.user.email }}</h1>
                 <p class="course-title">{{ course.title }}</p>
                 <div class="progress-label">
-                    Overall progress &nbsp;
-                    <span style="font-size:1rem;font-weight:700;color:#6ee09a;">{{ overall_percent }}%</span>
+                    Overall progress &nbsp;<span style="font-size:0.95rem;font-weight:700;color:#6ee09a;">{{ overall_percent }}%</span>
                 </div>
-                <div class="overall-bar" style="max-width:420px;">
+                <div class="overall-bar" style="max-width:400px;">
                     <div class="overall-fill" style="width:{{ overall_percent }}%;"></div>
                 </div>
             </div>
             <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
-                <a href="{% url 'lms:lms_home' %}" style="color:rgba(255,255,255,0.55);font-size:0.875rem;text-decoration:none;transition:color 0.2s;">
+                <a href="{% url 'lms:lms_home' %}" style="color:rgba(255,255,255,0.5);font-size:0.85rem;text-decoration:none;">
                     <i class="fas fa-book me-1"></i>View full curriculum
                 </a>
             </div>
@@ -159,117 +223,204 @@
     </div>
 </section>
 
-<section style="padding:60px 0;background:#f8fafc;">
-    <div class="container">
+<!-- ── Spotlight Carousel ── -->
+<section class="spotlight-section">
+    <div class="container-fluid px-4 px-lg-5">
 
-        <div class="row g-4">
-            {% for item in module_data %}
-            <div class="col-md-6 col-lg-4">
-                {% if item.is_current %}
-                <div class="mod-card current">
-                    <div class="current-badge"><i class="fas fa-bolt"></i> Your current week</div>
-                {% elif item.percent == 100 %}
-                <div class="mod-card done">
-                {% elif not item.is_unlocked %}
-                <div class="mod-card locked">
-                    <div class="lock-overlay">
-                        <div class="lock-icon"><i class="fas fa-lock"></i></div>
-                        {% with prev_idx=forloop.counter0|add:"-1" %}
-                        <div class="lock-label">Complete Week {{ item.module.week_number|add:"-1" }} to unlock</div>
-                        {% endwith %}
-                    </div>
-                {% else %}
-                <div class="mod-card">
-                {% endif %}
+        <div class="spotlight-wrapper">
+            <button class="nav-btn nav-prev" id="navPrev" aria-label="Previous week">
+                <i class="fas fa-chevron-left"></i>
+            </button>
 
-                    <div class="mod-card-image">
-                        {% if item.module.cover_image %}
-                        <img src="{{ item.module.cover_image.url }}" alt="{{ item.module.title }}">
-                        <div class="wk-overlay">
-                            <span style="color:#fff;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Week {{ item.module.week_number }}</span>
-                        </div>
-                        {% else %}
-                        {% with week=item.module.week_number %}
-                        <div class="wk-fallback wk-{{ week }}">
-                            {% if week == 1 %}<i class="fas fa-brain"></i>
-                            {% elif week == 2 %}<i class="fas fa-search"></i>
-                            {% elif week == 3 %}<i class="fas fa-chart-bar"></i>
-                            {% elif week == 4 %}<i class="fas fa-users"></i>
-                            {% elif week == 5 %}<i class="fas fa-drafting-compass"></i>
-                            {% elif week == 6 %}<i class="fas fa-coins"></i>
-                            {% elif week == 7 %}<i class="fas fa-paint-brush"></i>
-                            {% elif week == 8 %}<i class="fas fa-rocket"></i>
-                            {% elif week == 9 %}<i class="fas fa-code"></i>
-                            {% elif week == 10 %}<i class="fas fa-calculator"></i>
-                            {% elif week == 11 %}<i class="fas fa-microphone"></i>
-                            {% elif week == 12 %}<i class="fas fa-flag-checkered"></i>
-                            {% else %}<i class="fas fa-book"></i>
-                            {% endif %}
-                            <span>Week {{ week }}</span>
-                        </div>
-                        {% endwith %}
-                        {% endif %}
-                    </div>
+            <div class="spotlight-track" id="spotlightTrack">
+                {% for item in module_data %}
+                <div class="spotlight-slide"
+                     data-index="{{ forloop.counter0 }}"
+                     data-unlocked="{% if item.is_unlocked %}1{% else %}0{% endif %}"
+                     data-current="{% if item.is_current %}1{% else %}0{% endif %}">
 
-                    <div class="mod-card-body">
-                        {% if item.percent == 100 %}
-                        <span class="week-pill done"><i class="fas fa-check me-1"></i>Week {{ item.module.week_number }}</span>
-                        {% elif not item.is_unlocked %}
-                        <span class="week-pill locked-pill"><i class="fas fa-lock me-1"></i>Week {{ item.module.week_number }}</span>
-                        {% else %}
-                        <span class="week-pill">Week {{ item.module.week_number }}</span>
+                    <div class="mod-card {% if item.is_current %}card-current{% elif item.percent == 100 %}card-done{% elif not item.is_unlocked %}card-locked{% endif %}">
+
+                        {% if item.is_current %}
+                        <div class="current-badge"><i class="fas fa-bolt"></i> Your current week</div>
                         {% endif %}
 
-                        <h5 style="font-size:1rem;font-weight:600;color:{% if not item.is_unlocked %}#9ca3af{% else %}#111827{% endif %};margin-bottom:8px;">
-                            {{ item.module.title }}
-                        </h5>
-
-                        {% if item.is_unlocked %}
-                        <p style="font-size:0.8rem;color:#6b7280;margin-bottom:4px;">
-                            {{ item.done }}/{{ item.total }} lessons complete
-                        </p>
-                        <div class="mod-progress">
-                            <div class="mod-progress-fill" style="width:{{ item.percent }}%;"></div>
-                        </div>
-                        {% else %}
-                        <p style="font-size:0.8rem;color:#d1d5db;margin-bottom:4px;">
-                            {{ item.total }} lesson{{ item.total|pluralize }} · locked
-                        </p>
-                        <div class="mod-progress">
-                            <div class="mod-progress-fill" style="width:0%;"></div>
+                        {% if not item.is_unlocked %}
+                        <div class="lock-overlay">
+                            <div class="lock-icon-wrap"><i class="fas fa-lock"></i></div>
+                            <div class="lock-label">Complete Week {{ item.module.week_number|add:"-1" }} to unlock</div>
                         </div>
                         {% endif %}
 
-                        {% if item.submission %}
-                        <span class="del-badge {% if item.submission.status == 'approved' %}del-approved{% else %}del-submitted{% endif %} mt-1">
-                            <i class="fas fa-{% if item.submission.status == 'approved' %}check-circle{% else %}clock{% endif %}"></i>
-                            Deliverable {{ item.submission.get_status_display }}
-                        </span>
-                        {% endif %}
-
-                        <div class="mt-3">
-                            {% if item.is_unlocked %}
-                            <a href="{% url 'lms:module_detail' item.module.pk %}" class="mod-link">
-                                {% if item.percent == 100 %}Review{% elif item.done > 0 %}Continue{% else %}Start{% endif %}
-                                <i class="fas fa-arrow-right ms-1"></i>
-                            </a>
+                        <!-- Card image -->
+                        <div class="mod-card-image">
+                            {% if item.module.cover_image %}
+                            <img src="{{ item.module.cover_image.url }}" alt="{{ item.module.title }}">
+                            <div class="wk-overlay">
+                                <span style="color:#fff;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Week {{ item.module.week_number }}</span>
+                            </div>
                             {% else %}
-                            <span style="font-size:0.875rem;color:#d1d5db;">
-                                <i class="fas fa-lock me-1"></i>Locked
+                            {% with week=item.module.week_number %}
+                            <div class="wk-fallback wk-{{ week }}">
+                                {% if week == 1 %}<i class="fas fa-brain"></i>
+                                {% elif week == 2 %}<i class="fas fa-search"></i>
+                                {% elif week == 3 %}<i class="fas fa-chart-bar"></i>
+                                {% elif week == 4 %}<i class="fas fa-users"></i>
+                                {% elif week == 5 %}<i class="fas fa-drafting-compass"></i>
+                                {% elif week == 6 %}<i class="fas fa-coins"></i>
+                                {% elif week == 7 %}<i class="fas fa-paint-brush"></i>
+                                {% elif week == 8 %}<i class="fas fa-rocket"></i>
+                                {% elif week == 9 %}<i class="fas fa-code"></i>
+                                {% elif week == 10 %}<i class="fas fa-calculator"></i>
+                                {% elif week == 11 %}<i class="fas fa-microphone"></i>
+                                {% elif week == 12 %}<i class="fas fa-flag-checkered"></i>
+                                {% else %}<i class="fas fa-book"></i>
+                                {% endif %}
+                                <span>Week {{ week }}</span>
+                            </div>
+                            {% endwith %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Card body -->
+                        <div class="mod-card-body">
+                            {% if item.percent == 100 %}
+                            <span class="week-pill done"><i class="fas fa-check me-1"></i>Week {{ item.module.week_number }}</span>
+                            {% elif not item.is_unlocked %}
+                            <span class="week-pill locked-pill"><i class="fas fa-lock me-1"></i>Week {{ item.module.week_number }}</span>
+                            {% else %}
+                            <span class="week-pill">Week {{ item.module.week_number }}</span>
+                            {% endif %}
+
+                            <h5 style="font-size:1.05rem;font-weight:600;color:{% if not item.is_unlocked %}#9ca3af{% else %}#111827{% endif %};margin-bottom:6px;line-height:1.35;">
+                                {{ item.module.title }}
+                            </h5>
+
+                            {% if item.is_unlocked %}
+                            <p style="font-size:0.78rem;color:#6b7280;margin-bottom:2px;">
+                                {{ item.done }}/{{ item.total }} lessons complete
+                            </p>
+                            <div class="mod-progress">
+                                <div class="mod-progress-fill" style="width:{{ item.percent }}%;"></div>
+                            </div>
+                            {% else %}
+                            <p style="font-size:0.78rem;color:#d1d5db;margin-bottom:2px;">{{ item.total }} lesson{{ item.total|pluralize }} · locked</p>
+                            <div class="mod-progress"><div class="mod-progress-fill" style="width:0%;"></div></div>
+                            {% endif %}
+
+                            {% if item.submission %}
+                            <span class="del-badge {% if item.submission.status == 'approved' %}del-approved{% else %}del-submitted{% endif %} mb-2">
+                                <i class="fas fa-{% if item.submission.status == 'approved' %}check-circle{% else %}clock{% endif %}"></i>
+                                Deliverable {{ item.submission.get_status_display }}
                             </span>
                             {% endif %}
+
+                            {% if item.is_unlocked %}
+                            <a href="{% url 'lms:module_detail' item.module.pk %}" class="mod-link">
+                                {% if item.percent == 100 %}<i class="fas fa-redo"></i> Review
+                                {% elif item.done > 0 %}<i class="fas fa-play"></i> Continue
+                                {% else %}<i class="fas fa-rocket"></i> Start
+                                {% endif %}
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
+
                 </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div class="col-12 text-center py-5">
-                <p class="text-muted">No modules available yet. Check back soon.</p>
-            </div>
+
+            <button class="nav-btn nav-next" id="navNext" aria-label="Next week">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Week dots -->
+        <div class="week-dots" id="weekDots">
+            {% for item in module_data %}
+            <button class="week-dot {% if item.percent == 100 %}dot-done{% elif item.is_current %}dot-active{% elif not item.is_unlocked %}dot-locked{% endif %}"
+                    data-idx="{{ forloop.counter0 }}"
+                    {% if not item.is_unlocked %}disabled{% endif %}
+                    title="Week {{ item.module.week_number }}: {{ item.module.title }}">
+                {{ item.module.week_number }}
+            </button>
             {% endfor %}
         </div>
 
     </div>
 </section>
+
+<script>
+(function () {
+    const slides = Array.from(document.querySelectorAll('.spotlight-slide'));
+    const dots   = Array.from(document.querySelectorAll('.week-dot'));
+    const prevBtn = document.getElementById('navPrev');
+    const nextBtn = document.getElementById('navNext');
+
+    // Determine starting index: prefer the "current" slide, else first
+    let activeIdx = slides.findIndex(s => s.dataset.current === '1');
+    if (activeIdx < 0) activeIdx = 0;
+
+    function applyClasses() {
+        slides.forEach((slide, i) => {
+            slide.classList.remove('is-active','is-prev','is-next','is-far-left','is-far-right');
+            const diff = i - activeIdx;
+            if      (diff ===  0) slide.classList.add('is-active');
+            else if (diff === -1) slide.classList.add('is-prev');
+            else if (diff ===  1) slide.classList.add('is-next');
+            else if (diff  <  0) slide.classList.add('is-far-left');
+            else                  slide.classList.add('is-far-right');
+        });
+
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('dot-focused', i === activeIdx);
+        });
+
+        prevBtn.disabled = (activeIdx === 0);
+        nextBtn.disabled = (activeIdx === slides.length - 1);
+    }
+
+    function goTo(idx) {
+        if (idx < 0 || idx >= slides.length) return;
+        activeIdx = idx;
+        applyClasses();
+    }
+
+    // Click on adjacent slide to navigate to it
+    slides.forEach((slide, i) => {
+        slide.addEventListener('click', () => {
+            if (slide.classList.contains('is-prev') || slide.classList.contains('is-next')) {
+                goTo(i);
+            }
+        });
+    });
+
+    prevBtn.addEventListener('click', () => goTo(activeIdx - 1));
+    nextBtn.addEventListener('click', () => goTo(activeIdx + 1));
+
+    dots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            if (!dot.disabled) goTo(parseInt(dot.dataset.idx, 10));
+        });
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft')  goTo(activeIdx - 1);
+        if (e.key === 'ArrowRight') goTo(activeIdx + 1);
+    });
+
+    // Touch / swipe support
+    let touchStartX = 0;
+    const track = document.getElementById('spotlightTrack');
+    track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', e => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) goTo(activeIdx + (diff > 0 ? 1 : -1));
+    });
+
+    applyClasses();
+})();
+</script>
 
 {% endblock %}
