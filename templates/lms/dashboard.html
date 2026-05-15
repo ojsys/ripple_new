@@ -21,17 +21,65 @@
     .overall-bar { height:8px; background:rgba(255,255,255,0.15); border-radius:4px; overflow:hidden; }
     .overall-fill { height:100%; background:linear-gradient(90deg,#26af59,#03DAC6); border-radius:4px; transition:width 0.6s ease; }
 
+    /* ── Card base ── */
     .mod-card {
         background:#fff; border-radius:20px; overflow:hidden;
         border: 1px solid #eef2f7; transition: all 0.25s ease;
-        height: 100%; display:flex; flex-direction:column;
+        height: 100%; display:flex; flex-direction:column; position:relative;
     }
     .mod-card:hover { box-shadow:0 8px 28px rgba(0,0,0,0.09); transform:translateY(-3px); }
-    .mod-card.locked { opacity:0.55; pointer-events:none; }
+
+    /* ── DONE state ── */
+    .mod-card.done { border-color: rgba(38,175,89,0.3); }
+
+    /* ── CURRENT (active) state ── */
+    .mod-card.current {
+        border: 2px solid #26af59;
+        box-shadow: 0 0 0 4px rgba(38,175,89,0.15), 0 8px 32px rgba(38,175,89,0.2);
+    }
+    .mod-card.current:hover { transform:translateY(-3px); box-shadow: 0 0 0 4px rgba(38,175,89,0.2), 0 12px 36px rgba(38,175,89,0.25); }
+    .current-badge {
+        position:absolute; top:12px; right:12px; z-index:10;
+        background:#26af59; color:#fff;
+        padding:4px 12px; border-radius:100px;
+        font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px;
+        display:flex; align-items:center; gap:5px;
+        animation: pulse-badge 2s ease-in-out infinite;
+    }
+    @keyframes pulse-badge {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(38,175,89,0.5); }
+        50%       { box-shadow: 0 0 0 6px rgba(38,175,89,0); }
+    }
+
+    /* ── LOCKED state ── */
+    .mod-card.locked {
+        border-color: #e5e7eb;
+        background: #f9fafb;
+        cursor: not-allowed;
+    }
+    .mod-card.locked:hover { transform: none; box-shadow: none; }
+    .lock-overlay {
+        position:absolute; inset:0; z-index:10;
+        background: rgba(248,250,252,0.6);
+        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+        backdrop-filter: blur(1px);
+        border-radius:20px;
+    }
+    .lock-overlay .lock-icon {
+        width:48px; height:48px; border-radius:50%;
+        background:#e5e7eb; display:flex; align-items:center; justify-content:center;
+        font-size:1.2rem; color:#9ca3af;
+    }
+    .lock-overlay .lock-label {
+        font-size:0.75rem; font-weight:600; color:#6b7280; text-align:center; padding:0 16px;
+    }
+
+    /* ── Card internals ── */
     .mod-card-image {
         height:120px; position:relative; overflow:hidden; flex-shrink:0;
         display:flex; align-items:center; justify-content:center;
     }
+    .mod-card.locked .mod-card-image { filter: grayscale(1); opacity:0.5; }
     .mod-card-image img { width:100%; height:100%; object-fit:cover; }
     .mod-card-image .wk-overlay {
         position:absolute; inset:0; background:linear-gradient(to bottom,rgba(0,0,0,0.05),rgba(0,0,0,0.5));
@@ -50,6 +98,7 @@
         text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;
     }
     .week-pill.done { background:rgba(38,175,89,0.9); color:#fff; }
+    .week-pill.locked-pill { background:#f1f5f9; color:#9ca3af; }
     .mod-progress { height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden; margin:10px 0; }
     .mod-progress-fill { height:100%; background:#26af59; border-radius:3px; transition:width 0.4s ease; }
     .mod-link { font-size:0.875rem; color:#26af59; font-weight:600; text-decoration:none; }
@@ -62,7 +111,13 @@
     .del-submitted { background:rgba(37,99,235,0.1); color:#2563eb; }
     .del-approved  { background:rgba(38,175,89,0.12); color:#1a7d40; }
 
-    /* Per-week gradient fallbacks */
+    /* ── Section header ── */
+    .section-eyebrow {
+        font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+        color:#26af59; margin-bottom:6px;
+    }
+
+    /* ── Per-week gradient fallbacks ── */
     .wk-1  { background:linear-gradient(135deg,#1a3a4a,#0d6e8a); color:#7ecfea; }
     .wk-2  { background:linear-gradient(135deg,#2a1a4e,#5c23a3); color:#c4a0f0; }
     .wk-3  { background:linear-gradient(135deg,#0a2e1a,#1a7a40); color:#7eeaaa; }
@@ -106,10 +161,27 @@
 
 <section style="padding:60px 0;background:#f8fafc;">
     <div class="container">
+
         <div class="row g-4">
             {% for item in module_data %}
             <div class="col-md-6 col-lg-4">
+                {% if item.is_current %}
+                <div class="mod-card current">
+                    <div class="current-badge"><i class="fas fa-bolt"></i> Your current week</div>
+                {% elif item.percent == 100 %}
+                <div class="mod-card done">
+                {% elif not item.is_unlocked %}
+                <div class="mod-card locked">
+                    <div class="lock-overlay">
+                        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+                        {% with prev_idx=forloop.counter0|add:"-1" %}
+                        <div class="lock-label">Complete Week {{ item.module.week_number|add:"-1" }} to unlock</div>
+                        {% endwith %}
+                    </div>
+                {% else %}
                 <div class="mod-card">
+                {% endif %}
+
                     <div class="mod-card-image">
                         {% if item.module.cover_image %}
                         <img src="{{ item.module.cover_image.url }}" alt="{{ item.module.title }}">
@@ -138,17 +210,35 @@
                         {% endwith %}
                         {% endif %}
                     </div>
+
                     <div class="mod-card-body">
-                        <span class="week-pill {% if item.percent == 100 %}done{% endif %}">
-                            {% if item.percent == 100 %}<i class="fas fa-check me-1"></i>{% endif %}Week {{ item.module.week_number }}
-                        </span>
-                        <h5 style="font-size:1rem;font-weight:600;color:#111827;margin-bottom:8px;">{{ item.module.title }}</h5>
+                        {% if item.percent == 100 %}
+                        <span class="week-pill done"><i class="fas fa-check me-1"></i>Week {{ item.module.week_number }}</span>
+                        {% elif not item.is_unlocked %}
+                        <span class="week-pill locked-pill"><i class="fas fa-lock me-1"></i>Week {{ item.module.week_number }}</span>
+                        {% else %}
+                        <span class="week-pill">Week {{ item.module.week_number }}</span>
+                        {% endif %}
+
+                        <h5 style="font-size:1rem;font-weight:600;color:{% if not item.is_unlocked %}#9ca3af{% else %}#111827{% endif %};margin-bottom:8px;">
+                            {{ item.module.title }}
+                        </h5>
+
+                        {% if item.is_unlocked %}
                         <p style="font-size:0.8rem;color:#6b7280;margin-bottom:4px;">
                             {{ item.done }}/{{ item.total }} lessons complete
                         </p>
                         <div class="mod-progress">
                             <div class="mod-progress-fill" style="width:{{ item.percent }}%;"></div>
                         </div>
+                        {% else %}
+                        <p style="font-size:0.8rem;color:#d1d5db;margin-bottom:4px;">
+                            {{ item.total }} lesson{{ item.total|pluralize }} · locked
+                        </p>
+                        <div class="mod-progress">
+                            <div class="mod-progress-fill" style="width:0%;"></div>
+                        </div>
+                        {% endif %}
 
                         {% if item.submission %}
                         <span class="del-badge {% if item.submission.status == 'approved' %}del-approved{% else %}del-submitted{% endif %} mt-1">
@@ -158,10 +248,16 @@
                         {% endif %}
 
                         <div class="mt-3">
+                            {% if item.is_unlocked %}
                             <a href="{% url 'lms:module_detail' item.module.pk %}" class="mod-link">
                                 {% if item.percent == 100 %}Review{% elif item.done > 0 %}Continue{% else %}Start{% endif %}
                                 <i class="fas fa-arrow-right ms-1"></i>
                             </a>
+                            {% else %}
+                            <span style="font-size:0.875rem;color:#d1d5db;">
+                                <i class="fas fa-lock me-1"></i>Locked
+                            </span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -172,6 +268,7 @@
             </div>
             {% endfor %}
         </div>
+
     </div>
 </section>
 

@@ -116,6 +116,15 @@ class LMSEnrollment(models.Model):
         done = self.lesson_progress.count()
         return int((done / total) * 100)
 
+    def is_module_unlocked(self, module, all_modules=None):
+        if all_modules is None:
+            all_modules = list(module.course.modules.filter(is_published=True))
+        idx = next((i for i, m in enumerate(all_modules) if m.pk == module.pk), None)
+        if idx is None or idx == 0:
+            return True
+        prev = all_modules[idx - 1]
+        return self.module_progress_percent(prev) == 100
+
 
 class LMSLessonProgress(models.Model):
     enrollment = models.ForeignKey(LMSEnrollment, on_delete=models.CASCADE, related_name='lesson_progress')

@@ -64,13 +64,19 @@ def lms_dashboard(request):
     if not course:
         return redirect('lms:lms_home')
     enrollment, _ = LMSEnrollment.objects.get_or_create(user=request.user, course=course)
-    modules = course.modules.filter(is_published=True)
+    all_modules = list(course.modules.filter(is_published=True))
     module_data = []
     completed_ids = enrollment.completed_lesson_ids()
-    for module in modules:
+    found_current = False
+    for module in all_modules:
         lessons = module.lessons.filter(is_published=True)
         total = lessons.count()
         done = sum(1 for l in lessons if l.id in completed_ids)
+        percent = int((done / total * 100)) if total else 0
+        is_unlocked = enrollment.is_module_unlocked(module, all_modules)
+        is_current = is_unlocked and percent < 100 and not found_current
+        if is_current:
+            found_current = True
         has_deliverable = hasattr(module, 'deliverable')
         submission = None
         if has_deliverable:
@@ -82,8 +88,10 @@ def lms_dashboard(request):
             'lessons': lessons,
             'total': total,
             'done': done,
-            'percent': int((done / total * 100)) if total else 0,
+            'percent': percent,
             'submission': submission,
+            'is_unlocked': is_unlocked,
+            'is_current': is_current,
         })
     return render(request, 'lms/dashboard.html', {
         'course': course,
@@ -101,6 +109,13 @@ def module_detail(request, pk):
     module = get_object_or_404(LMSModule, pk=pk, is_published=True)
     course = module.course
     enrollment, _ = LMSEnrollment.objects.get_or_create(user=request.user, course=course)
+    all_modules = list(course.modules.filter(is_published=True))
+    if not enrollment.is_module_unlocked(module, all_modules):
+        prev_idx = next((i for i, m in enumerate(all_modules) if m.pk == module.pk), 1) - 1
+        prev_module = all_modules[prev_idx] if prev_idx >= 0 else None
+        if prev_module:
+            messages.warning(request, f"Complete Week {prev_module.week_number} first to unlock this module.")
+        return redirect('lms:lms_dashboard')
     lessons = module.lessons.filter(is_published=True)
     completed_ids = enrollment.completed_lesson_ids()
     exercises = module.exercises.all()
@@ -130,6 +145,10 @@ def lesson_detail(request, pk):
     module = lesson.module
     course = module.course
     enrollment, _ = LMSEnrollment.objects.get_or_create(user=request.user, course=course)
+    all_modules = list(course.modules.filter(is_published=True))
+    if not enrollment.is_module_unlocked(module, all_modules):
+        messages.warning(request, "Complete the previous module first to unlock this content.")
+        return redirect('lms:lms_dashboard')
 
     if request.method == 'POST':
         LMSLessonProgress.objects.get_or_create(enrollment=enrollment, lesson=lesson)
