@@ -9,13 +9,19 @@ urlpatterns = [
     path('subscribe-newsletter/', views.subscribe_newsletter, name='subscribe_newsletter'),
     path('projects/', views.project_list, name='project_list'),
     path('ventures/', views.project_list, name='venture_list'),
-    path('projects/<slug:slug>/', views.project_detail, name='project_detail'),
-    path('projects/<int:project_id>/', views.project_detail_by_id, name='project_detail_by_id'),
     path('about/', views.about_page, name='about_page'),
 
     # Project management (founders)
+    # NOTE: These specific routes must come BEFORE the '<slug:slug>' catch-all
+    # below, otherwise 'create' would be matched as a project slug (404).
     path('projects/create/', views.create_project, name='create_project'),
     path('api/categories/create/', views.create_category, name='create_category'),
+
+    # Detail views: the '<int>' route must come before the '<slug>' catch-all,
+    # since numeric ids also match the slug pattern.
+    path('projects/<int:project_id>/', views.project_detail_by_id, name='project_detail_by_id'),
+    path('projects/<slug:slug>/', views.project_detail, name='project_detail'),
+
     path('projects/<int:project_id>/edit/', views.edit_project, name='edit_project'),
     path('projects/<int:project_id>/delete/', views.delete_project, name='delete_project'),
     path('my-projects/', views.my_projects, name='my_projects'),
