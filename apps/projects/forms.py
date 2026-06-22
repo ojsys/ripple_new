@@ -143,7 +143,10 @@ class ProjectForm(forms.ModelForm):
         self.fields['category'].empty_label = "Select Category"
         self.fields['funding_type'].empty_label = "Select Funding Type"
         # Venture fields are optional at the form level; validated in clean()
+        # funding_type only applies to projects, so it is also validated in clean()
+        # rather than being a hard requirement (it is hidden for ventures).
         optional_fields = [
+            'funding_type',
             'company_name', 'financing_type', 'equity_offered', 'valuation',
             'interest_rate', 'repayment_period_months', 'use_of_funds',
             'srt_enabled', 'srt_funding_goal', 'expected_return_rate',
@@ -155,6 +158,11 @@ class ProjectForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         listing_type = cleaned_data.get('listing_type')
+
+        if listing_type == 'project':
+            # Funding type is required for donation-based projects
+            if not cleaned_data.get('funding_type'):
+                self.add_error('funding_type', 'Please select a funding type.')
 
         if listing_type == 'venture':
             # Validate required venture fields
