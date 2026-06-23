@@ -567,6 +567,10 @@
                             </li>
                             <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}"><i class="fas fa-tachometer-alt text-primary"></i>Dashboard</a></li>
                             <li><a class="dropdown-item" href="{% url 'accounts:edit_profile' %}"><i class="fas fa-user-edit text-info"></i>Edit Profile</a></li>
+                            {% if user.is_staff %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'core:analytics_dashboard' %}"><i class="fas fa-chart-line text-primary"></i>Analytics Dashboard</a></li>
+                            {% endif %}
                             {% if user.user_type == 'founder' %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'projects:my_projects' %}"><i class="fas fa-folder text-warning"></i>My Projects</a></li>
