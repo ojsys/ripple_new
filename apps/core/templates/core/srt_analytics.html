@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}SRT Analytics - StartUpRipple{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    :root {
+        --srt-primary: #f59e0b;
+        --srt-dark: #b45309;
+        --teal-primary: #0d9488;
+        --teal-50: #f0fdfa;
+    }
+
+    .dashboard-container { background: #f3f4f6; min-height: 100vh; padding: 100px 0 40px; }
+    .dashboard-header h1 { font-size: 2rem; font-weight: 700; color: #1f2937; margin-bottom: 8px; }
+    .dashboard-header p { color: #6b7280; }
+
+    .stat-card {
+        background: #fff; border-radius: 16px; padding: 24px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+    .stat-card .stat-icon {
+        width: 56px; height: 56px; border-radius: 14px; display: flex;
+        align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 16px;
+    }
+    .stat-icon.teal { background: var(--teal-50); color: var(--teal-primary); }
+    .stat-icon.blue { background: #eff6ff; color: #3b82f6; }
+    .stat-icon.purple { background: #f5f3ff; color: #8b5cf6; }
+    .stat-icon.orange { background: #fff7ed; color: #f97316; }
+    .stat-icon.green { background: #f0fdf4; color: #22c55e; }
+    .stat-icon.yellow { background: #fefce8; color: #eab308; }
+    .stat-icon.red { background: #fef2f2; color: #ef4444; }
+    .stat-icon.pink { background: #fdf2f8; color: #ec4899; }
+    .stat-card .stat-value { font-size: 1.9rem; font-weight: 700; color: #1f2937; line-height: 1; margin-bottom: 4px; }
+    .stat-card .stat-label { font-size: 0.9rem; color: #6b7280; margin-bottom: 8px; }
+    .stat-card .stat-sub { font-size: 0.8rem; color: #9ca3af; }
+
+    .section-card { background: #fff; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 24px; }
+    .section-card .section-header {
+        padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex;
+        align-items: center; justify-content: space-between;
+    }
+    .section-card .section-header h3 {
+        font-size: 1.1rem; font-weight: 600; color: #1f2937; margin: 0;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .section-card .section-header h3 i { color: var(--srt-primary); }
+    .section-card .section-body { padding: 24px; }
+
+    .chart-container { position: relative; height: 300px; width: 100%; }
+
+    .mini-stat { text-align: center; padding: 16px; border-radius: 12px; background: #f9fafb; height: 100%; }
+    .mini-stat .value { font-size: 1.4rem; font-weight: 700; color: #1f2937; }
+    .mini-stat .label { font-size: 0.78rem; color: #6b7280; margin-top: 4px; }
+
+    .data-table { width: 100%; font-size: 0.9rem; }
+    .data-table th { text-align: left; padding: 12px 8px; font-weight: 600; color: #6b7280; border-bottom: 2px solid #e5e7eb; }
+    .data-table td { padding: 12px 8px; border-bottom: 1px solid #f3f4f6; color: #4b5563; }
+    .data-table tr:hover td { background: #f9fafb; }
+
+    .status-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 500; text-transform: capitalize; }
+    .status-badge.purchase, .status-badge.successful, .status-badge.completed, .status-badge.active, .status-badge.return { background: #d1fae5; color: #059669; }
+    .status-badge.pending, .status-badge.processing, .status-badge.bonus { background: #fef3c7; color: #d97706; }
+    .status-badge.investment, .status-badge.matured { background: #eff6ff; color: #2563eb; }
+    .status-badge.withdrawal, .status-badge.failed, .status-badge.rejected, .status-badge.cancelled { background: #fee2e2; color: #dc2626; }
+
+    @media (max-width: 768px) {
+        .dashboard-container { padding: 80px 16px 32px; }
+        .stat-card .stat-value { font-size: 1.5rem; }
+        .chart-container { height: 250px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container-fluid px-4">
+        <!-- Header -->
+        <div class="dashboard-header d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1><i class="fas fa-coins me-2" style="color: var(--srt-primary);"></i>SRT Analytics</h1>
+                <p>StartUpRipple Token economy — supply, circulation, investments &amp; withdrawals</p>
+            </div>
+            <a href="{% url 'core:analytics_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Main Dashboard
+            </a>
+        </div>
+
+        <!-- Hero banner -->
+        <div class="mb-4 p-4" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); border-radius: 20px; box-shadow: 0 10px 40px rgba(245,158,11,0.3);">
+            <div class="row align-items-center g-4">
+                <div class="col-md-4">
+                    <div class="text-white">
+                        <div style="font-size:0.85rem; opacity:0.85; margin-bottom:4px;">
+                            <i class="fas fa-coins me-1"></i>TOTAL SRT TOKENS ISSUED
+                        </div>
+                        <div style="font-size:2.6rem; font-weight:800; line-height:1;">{{ total_tokens_issued|floatformat:0|intcomma }}</div>
+                        <div style="font-size:0.85rem; opacity:0.85; margin-top:6px;">
+                            {{ total_tokens_purchased|floatformat:0|intcomma }} purchased + {{ total_bonus_tokens|floatformat:0|intcomma }} bonus
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="row g-3">
+                        <div class="col-sm-4">
+                            <div style="background:rgba(255,255,255,0.15); border-radius:12px; padding:16px; color:white; text-align:center;">
+                                <div style="font-size:1.5rem; font-weight:700;">${{ total_purchase_usd|floatformat:2|intcomma }}</div>
+                                <div style="font-size:0.78rem; opacity:0.85; margin-top:2px;">Token Sales Revenue</div>
+                                <div style="font-size:0.72rem; opacity:0.65;">₦{{ total_purchase_ngn|floatformat:0|intcomma }}</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div style="background:rgba(255,255,255,0.15); border-radius:12px; padding:16px; color:white; text-align:center;">
+                                <div style="font-size:1.5rem; font-weight:700;">{{ total_tokens_invested|floatformat:0|intcomma }}</div>
+                                <div style="font-size:0.78rem; opacity:0.85; margin-top:2px;">Tokens Invested</div>
+                                <div style="font-size:0.72rem; opacity:0.65;">{{ total_investment_count }} investments</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div style="background:rgba(255,255,255,0.15); border-radius:12px; padding:16px; color:white; text-align:center;">
+                                <div style="font-size:1.5rem; font-weight:700;">{{ tokens_in_circulation|floatformat:0|intcomma }}</div>
+                                <div style="font-size:0.78rem; opacity:0.85; margin-top:2px;">In Circulation</div>
+                                <div style="font-size:0.72rem; opacity:0.65;">{{ funded_accounts }} funded wallets</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="row g-4 mb-2">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-value">{{ successful_purchase_count|intcomma }}</div>
+                    <div class="stat-label">Successful Purchases</div>
+                    <div class="stat-sub">{{ pending_purchase_count }} pending · {{ failed_purchase_count }} failed</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-value">{{ active_invested_tokens|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Active Invested Tokens</div>
+                    <div class="stat-sub">{{ active_investment_count }} active · {{ unique_investors }} investors</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-hand-holding-usd"></i></div>
+                    <div class="stat-value">{{ total_expected_return|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Expected Returns (SRT)</div>
+                    <div class="stat-sub">{{ total_expected_interest|floatformat:0|intcomma }} interest owed</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon yellow"><i class="fas fa-lock"></i></div>
+                    <div class="stat-value">{{ tokens_locked|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Locked Tokens</div>
+                    <div class="stat-sub">{{ tokens_available|floatformat:0|intcomma }} available</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon red"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="stat-value">{{ wd_completed_tokens|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Tokens Withdrawn (Partners)</div>
+                    <div class="stat-sub">₦{{ wd_completed_ngn|floatformat:0|intcomma }} paid · {{ wd_pending_count }} pending</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-building"></i></div>
+                    <div class="stat-value">{{ vtw_completed_tokens|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Tokens Withdrawn (Founders)</div>
+                    <div class="stat-sub">₦{{ vtw_completed_ngn|floatformat:0|intcomma }} paid · {{ vtw_pending_count }} pending</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon teal"><i class="fas fa-coins"></i></div>
+                    <div class="stat-value">{{ wd_fees_collected|add:vtw_fees|floatformat:0|intcomma }}</div>
+                    <div class="stat-label">Withdrawal Fees (₦)</div>
+                    <div class="stat-sub">4% on all cash-outs</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon pink"><i class="fas fa-users"></i></div>
+                    <div class="stat-value">{{ total_partners|intcomma }}</div>
+                    <div class="stat-label">SRT Partners</div>
+                    <div class="stat-sub">{{ verified_partners }} verified · {{ total_accounts }} wallets</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts row 1 -->
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="section-card">
+                    <div class="section-header"><h3><i class="fas fa-shopping-cart"></i>Token Purchases vs Investments (30 days)</h3></div>
+                    <div class="section-body"><div class="chart-container"><canvas id="purchaseInvestChart"></canvas></div></div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-header"><h3><i class="fas fa-stream"></i>Token Flow</h3></div>
+                    <div class="section-body"><div class="chart-container"><canvas id="flowChart"></canvas></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts row 2 -->
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="section-card">
+                    <div class="section-header"><h3><i class="fas fa-calendar-alt"></i>Monthly Token Sales Revenue</h3></div>
+                    <div class="section-body"><div class="chart-container"><canvas id="monthlyRevenueChart"></canvas></div></div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="section-card">
+                    <div class="section-header"><h3><i class="fas fa-list"></i>Transaction Types</h3></div>
+                    <div class="section-body"><div class="chart-container"><canvas id="txTypeChart"></canvas></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investment status breakdown -->
+        <div class="section-card">
+            <div class="section-header"><h3><i class="fas fa-chart-pie"></i>Investments by Status</h3></div>
+            <div class="section-body">
+                <div class="row g-3">
+                    {% for status, data in investments_by_status.items %}
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="mini-stat">
+                            <div class="value">{{ data.count }}</div>
+                            <div class="label text-capitalize">{{ status }}</div>
+                            <div class="label">{{ data.tokens|floatformat:0|intcomma }} SRT</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center text-muted py-3">No investments yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables -->
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="section-card">
+                    <div class="section-header"><h3><i class="fas fa-trophy"></i>Top Partners by Balance</h3></div>
+                    <div class="section-body">
+                        <table class="data-table">
+                            <thead><tr><th>Partner</th><th class="text-end">Balance</th><th class="text-end">Invested</th></tr></thead>
+                            <tbody>
+                                {% for acct in top_partners %}
+                                <tr>
+                                    <td>{{ acct.partner.get_full_name|default:acct.partner.email }}</td>
+                                    <td class="text-end fw-semibold">{{ acct.token_balance|floatformat:0|intcomma }}</td>
+                                    <td class="text-end">{{ acct.total_tokens_invested|floatformat:0|intcomma }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" class="text-center text-muted py-3">No partner accounts yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="section-card">
+                    <div class="section-header"><h3><i class="fas fa-briefcase"></i>Top Ventures by SRT Raised</h3></div>
+                    <div class="section-body">
+                        <table class="data-table">
+                            <thead><tr><th>Venture / Project</th><th class="text-end">SRT Raised</th></tr></thead>
+                            <tbody>
+                                {% for p in top_projects_srt %}
+                                <tr>
+                                    <td>{{ p.company_name|default:p.title }}</td>
+                                    <td class="text-end fw-semibold">{{ p.srt_amount_raised|floatformat:0|intcomma }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="2" class="text-center text-muted py-3">No ventures have raised SRT yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent transactions -->
+        <div class="section-card">
+            <div class="section-header"><h3><i class="fas fa-history"></i>Recent SRT Transactions</h3></div>
+            <div class="section-body">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Partner</th><th>Type</th><th class="text-end">Amount</th><th class="text-end">Balance</th><th>Reference</th><th>Date</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in recent_transactions %}
+                        <tr>
+                            <td>{{ tx.account.partner.get_full_name|default:tx.account.partner.email }}</td>
+                            <td><span class="status-badge {{ tx.transaction_type }}">{{ tx.get_transaction_type_display }}</span></td>
+                            <td class="text-end fw-semibold {% if tx.amount < 0 %}text-danger{% else %}text-success{% endif %}">
+                                {{ tx.amount|floatformat:2|intcomma }}
+                            </td>
+                            <td class="text-end">{{ tx.balance_after|floatformat:2|intcomma }}</td>
+                            <td><small class="text-muted">{{ tx.reference }}</small></td>
+                            <td><small class="text-muted">{{ tx.created_at|date:"M d, Y H:i" }}</small></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted py-3">No transactions yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const fmt = (v) => new Intl.NumberFormat().format(v);
+
+    // Purchases vs Investments (30d)
+    const purchaseData   = JSON.parse('{{ purchase_chart|escapejs }}');
+    const investmentData = JSON.parse('{{ investment_chart|escapejs }}');
+
+    // Build a unified, sorted set of date labels
+    const labelSet = new Set([
+        ...purchaseData.map(d => d.date),
+        ...investmentData.map(d => d.date),
+    ]);
+    const labels = Array.from(labelSet).sort();
+    const pMap = Object.fromEntries(purchaseData.map(d => [d.date, d.tokens]));
+    const iMap = Object.fromEntries(investmentData.map(d => [d.date, d.tokens]));
+
+    const piCtx = document.getElementById('purchaseInvestChart');
+    if (piCtx) {
+        new Chart(piCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Tokens Purchased',
+                        data: labels.map(l => pMap[l] || 0),
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245,158,11,0.1)',
+                        fill: true, tension: 0.3,
+                    },
+                    {
+                        label: 'Tokens Invested',
+                        data: labels.map(l => iMap[l] || 0),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,0.1)',
+                        fill: true, tension: 0.3,
+                    },
+                ],
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { beginAtZero: true, ticks: { callback: fmt } } },
+            },
+        });
+    }
+
+    // Token flow doughnut
+    const flowData = JSON.parse('{{ flow_chart|escapejs }}');
+    const flowCtx = document.getElementById('flowChart');
+    if (flowCtx) {
+        new Chart(flowCtx, {
+            type: 'doughnut',
+            data: {
+                labels: flowData.map(d => d.label),
+                datasets: [{
+                    data: flowData.map(d => d.value),
+                    backgroundColor: ['#22c55e', '#eab308', '#ef4444'],
+                    borderWidth: 0,
+                }],
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+            },
+        });
+    }
+
+    // Monthly revenue bar
+    const monthlyData = JSON.parse('{{ monthly_purchase_chart|escapejs }}');
+    const mCtx = document.getElementById('monthlyRevenueChart');
+    if (mCtx) {
+        new Chart(mCtx, {
+            type: 'bar',
+            data: {
+                labels: monthlyData.map(d => d.month),
+                datasets: [{
+                    label: 'Revenue (₦)',
+                    data: monthlyData.map(d => d.ngn),
+                    backgroundColor: '#0d9488',
+                    borderRadius: 6,
+                }],
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { callback: fmt } } },
+            },
+        });
+    }
+
+    // Transaction type breakdown
+    const txData = JSON.parse('{{ tx_type_chart|escapejs }}');
+    const txCtx = document.getElementById('txTypeChart');
+    if (txCtx) {
+        new Chart(txCtx, {
+            type: 'bar',
+            data: {
+                labels: txData.map(d => d.type),
+                datasets: [{
+                    label: 'Transactions',
+                    data: txData.map(d => d.count),
+                    backgroundColor: ['#f59e0b', '#3b82f6', '#22c55e', '#8b5cf6', '#ec4899', '#ef4444', '#6b7280'],
+                    borderRadius: 6,
+                }],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { callback: fmt } } },
+            },
+        });
+    }
+})();
+</script>
+{% endblock %}

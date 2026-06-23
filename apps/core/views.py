@@ -390,3 +390,308 @@ def analytics_dashboard(request):
     }
 
     return render(request, 'core/superadmin_dashboard.html', context)
+
+
+@staff_member_required
+def srt_analytics(request):
+    """
+    Dedicated analytics page for the SRT (StartUpRipple Token) economy.
+
+    Surfaces a complete picture of token activity: supply purchased, tokens in
+    circulation, amounts invested, returns owed, withdrawals paid out, fees
+    collected, plus per-partner and per-venture breakdowns and time-series
+    charts.
+    """
+    from apps.accounts.models import PartnerProfile
+    from apps.srt.models import (
+        PartnerCapitalAccount, TokenPurchase, TokenPackage, Venture,
+        VentureInvestment, SRTTransaction, TokenWithdrawal, VentureTokenWithdrawal,
+    )
+    from apps.projects.models import Project
+
+    now = timezone.now()
+    thirty_days_ago = now - timedelta(days=30)
+
+    # ------------------------------------------------------------------
+    # TOKEN SUPPLY & PURCHASES
+    # ------------------------------------------------------------------
+    successful_purchases = TokenPurchase.objects.filter(status='successful')
+    purchase_totals = successful_purchases.aggregate(
+        tokens=Sum('tokens'),
+        bonus=Sum('bonus_tokens'),
+        ngn=Sum('amount_ngn'),
+        usd=Sum('amount_usd'),
+        count=Count('id'),
+    )
+    total_tokens_purchased = purchase_totals['tokens'] or Decimal('0')
+    total_bonus_tokens     = purchase_totals['bonus'] or Decimal('0')
+    total_tokens_issued    = total_tokens_purchased + total_bonus_tokens
+    total_purchase_ngn     = purchase_totals['ngn'] or Decimal('0')
+    total_purchase_usd     = purchase_totals['usd'] or Decimal('0')
+    successful_purchase_count = purchase_totals['count'] or 0
+
+    pending_purchase_count = TokenPurchase.objects.filter(status__in=['pending', 'processing']).count()
+    failed_purchase_count  = TokenPurchase.objects.filter(status='failed').count()
+    avg_purchase_tokens = (total_tokens_issued / successful_purchase_count) if successful_purchase_count else Decimal('0')
+
+    purchases_30d = successful_purchases.filter(created_at__gte=thirty_days_ago).aggregate(
+        tokens=Sum('tokens'), ngn=Sum('amount_ngn'), count=Count('id'),
+    )
+
+    # ------------------------------------------------------------------
+    # CAPITAL ACCOUNTS  (tokens currently held by partners)
+    # ------------------------------------------------------------------
+    account_totals = PartnerCapitalAccount.objects.aggregate(
+        balance=Sum('token_balance'),
+        locked=Sum('locked_tokens'),
+        invested=Sum('total_tokens_invested'),
+        earned=Sum('total_tokens_earned'),
+        purchased=Sum('total_tokens_purchased'),
+        count=Count('id'),
+    )
+    tokens_in_circulation = account_totals['balance'] or Decimal('0')
+    tokens_locked         = account_totals['locked'] or Decimal('0')
+    tokens_available      = tokens_in_circulation - tokens_locked
+    total_tokens_earned   = account_totals['earned'] or Decimal('0')
+    total_accounts        = account_totals['count'] or 0
+    funded_accounts       = PartnerCapitalAccount.objects.filter(token_balance__gt=0).count()
+
+    total_partners    = PartnerProfile.objects.count()
+    verified_partners = PartnerProfile.objects.filter(accreditation_status='verified').count()
+
+    # ------------------------------------------------------------------
+    # INVESTMENTS  (tokens deployed into ventures / projects)
+    # ------------------------------------------------------------------
+    invest_all = VentureInvestment.objects.aggregate(
+        tokens=Sum('tokens_invested'),
+        expected=Sum('expected_return'),
+        count=Count('id'),
+    )
+    total_tokens_invested   = invest_all['tokens'] or Decimal('0')
+    total_expected_return   = invest_all['expected'] or Decimal('0')
+    total_investment_count  = invest_all['count'] or 0
+    total_expected_interest = total_expected_return - total_tokens_invested
+
+    active_invest = VentureInvestment.objects.filter(status='active').aggregate(
+        tokens=Sum('tokens_invested'), count=Count('id'),
+    )
+    active_invested_tokens = active_invest['tokens'] or Decimal('0')
+    active_investment_count = active_invest['count'] or 0
+
+    matured_invest = VentureInvestment.objects.filter(status='matured').aggregate(
+        tokens=Sum('tokens_invested'), actual=Sum('actual_return'), count=Count('id'),
+    )
+    matured_tokens = matured_invest['tokens'] or Decimal('0')
+    matured_actual_return = matured_invest['actual'] or Decimal('0')
+    matured_count = matured_invest['count'] or 0
+
+    unique_investors = VentureInvestment.objects.values('partner_id').distinct().count()
+    avg_investment_size = (total_tokens_invested / total_investment_count) if total_investment_count else Decimal('0')
+
+    investments_by_status = {
+        item['status']: {'count': item['c'], 'tokens': item['t'] or 0}
+        for item in VentureInvestment.objects.values('status').annotate(
+            c=Count('id'), t=Sum('tokens_invested')
+        )
+    }
+
+    # ------------------------------------------------------------------
+    # PARTNER WITHDRAWALS  (tokens cashed out to NGN)
+    # ------------------------------------------------------------------
+    completed_wd = TokenWithdrawal.objects.filter(status='completed').aggregate(
+        tokens=Sum('tokens'), ngn=Sum('amount_ngn'), fee=Sum('fee'), count=Count('id'),
+    )
+    wd_completed_tokens = completed_wd['tokens'] or Decimal('0')
+    wd_completed_ngn    = completed_wd['ngn'] or Decimal('0')
+    wd_fees_collected   = completed_wd['fee'] or Decimal('0')
+    wd_completed_count  = completed_wd['count'] or 0
+
+    pending_wd = TokenWithdrawal.objects.filter(status__in=['pending', 'approved', 'processing']).aggregate(
+        tokens=Sum('tokens'), ngn=Sum('amount_ngn'), count=Count('id'),
+    )
+    wd_pending_tokens = pending_wd['tokens'] or Decimal('0')
+    wd_pending_count  = pending_wd['count'] or 0
+
+    # ------------------------------------------------------------------
+    # VENTURE-FOUNDER WITHDRAWALS  (founders cashing out raised SRT)
+    # ------------------------------------------------------------------
+    vtw_completed = VentureTokenWithdrawal.objects.filter(status='completed').aggregate(
+        tokens=Sum('tokens'), ngn=Sum('amount_ngn'), fee=Sum('fee'), count=Count('id'),
+    )
+    vtw_completed_tokens = vtw_completed['tokens'] or Decimal('0')
+    vtw_completed_ngn    = vtw_completed['ngn'] or Decimal('0')
+    vtw_fees             = vtw_completed['fee'] or Decimal('0')
+    vtw_pending_count    = VentureTokenWithdrawal.objects.filter(
+        status__in=['pending', 'approved', 'processing']
+    ).count()
+
+    # ------------------------------------------------------------------
+    # VENTURES / PROJECTS RAISING SRT
+    # ------------------------------------------------------------------
+    project_srt = Project.objects.filter(srt_amount_raised__gt=0).aggregate(
+        raised=Sum('srt_amount_raised'), count=Count('id'),
+    )
+    total_srt_raised_projects = project_srt['raised'] or Decimal('0')
+    projects_raising_srt = project_srt['count'] or 0
+
+    legacy_ventures_total = Venture.objects.count()
+    legacy_ventures_by_status = {
+        item['status']: item['c']
+        for item in Venture.objects.values('status').annotate(c=Count('id'))
+    }
+    legacy_raised = Venture.objects.aggregate(t=Sum('amount_raised'))['t'] or Decimal('0')
+
+    # ------------------------------------------------------------------
+    # TOP TABLES
+    # ------------------------------------------------------------------
+    top_partners = PartnerCapitalAccount.objects.select_related('partner').order_by('-token_balance')[:10]
+
+    top_projects_srt = (
+        Project.objects.filter(srt_amount_raised__gt=0)
+        .order_by('-srt_amount_raised')[:10]
+    )
+
+    recent_transactions = SRTTransaction.objects.select_related(
+        'account__partner', 'venture', 'project'
+    ).order_by('-created_at')[:15]
+
+    recent_purchases = TokenPurchase.objects.select_related('partner', 'package').order_by('-created_at')[:8]
+
+    # ------------------------------------------------------------------
+    # CHART DATA
+    # ------------------------------------------------------------------
+    # Token purchases (tokens issued) over last 30 days
+    purchase_series = (
+        successful_purchases.filter(created_at__gte=thirty_days_ago)
+        .annotate(date=TruncDate('created_at'))
+        .values('date')
+        .annotate(tokens=Sum('tokens'), bonus=Sum('bonus_tokens'))
+        .order_by('date')
+    )
+    purchase_chart = json.dumps([
+        {'date': i['date'].strftime('%Y-%m-%d'),
+         'tokens': float((i['tokens'] or 0) + (i['bonus'] or 0))}
+        for i in purchase_series
+    ])
+
+    # Investments over last 30 days
+    investment_series = (
+        VentureInvestment.objects.filter(created_at__gte=thirty_days_ago)
+        .annotate(date=TruncDate('created_at'))
+        .values('date')
+        .annotate(tokens=Sum('tokens_invested'))
+        .order_by('date')
+    )
+    investment_chart = json.dumps([
+        {'date': i['date'].strftime('%Y-%m-%d'), 'tokens': float(i['tokens'] or 0)}
+        for i in investment_series
+    ])
+
+    # Token flow distribution (where the tokens are)
+    flow_chart = json.dumps([
+        {'label': 'Available (idle)', 'value': float(max(tokens_available, Decimal('0')))},
+        {'label': 'Locked in investments', 'value': float(tokens_locked)},
+        {'label': 'Withdrawn (cashed out)', 'value': float(wd_completed_tokens + vtw_completed_tokens)},
+    ])
+
+    # Transaction type breakdown (absolute token volume)
+    tx_type_series = (
+        SRTTransaction.objects.values('transaction_type')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    tx_type_chart = json.dumps([
+        {'type': dict(SRTTransaction.TRANSACTION_TYPES).get(i['transaction_type'], i['transaction_type']),
+         'count': i['count']}
+        for i in tx_type_series
+    ])
+
+    # Monthly token purchase revenue (last 6 months)
+    monthly_purchase_series = (
+        successful_purchases.filter(created_at__gte=now - timedelta(days=180))
+        .annotate(month=TruncMonth('created_at'))
+        .values('month')
+        .annotate(ngn=Sum('amount_ngn'), usd=Sum('amount_usd'), count=Count('id'))
+        .order_by('month')
+    )
+    monthly_purchase_chart = json.dumps([
+        {'month': i['month'].strftime('%b %Y'),
+         'ngn': float(i['ngn'] or 0), 'usd': float(i['usd'] or 0), 'count': i['count']}
+        for i in monthly_purchase_series
+    ])
+
+    context = {
+        # Supply / purchases
+        'total_tokens_purchased':   total_tokens_purchased,
+        'total_bonus_tokens':       total_bonus_tokens,
+        'total_tokens_issued':      total_tokens_issued,
+        'total_purchase_ngn':       total_purchase_ngn,
+        'total_purchase_usd':       total_purchase_usd,
+        'successful_purchase_count': successful_purchase_count,
+        'pending_purchase_count':   pending_purchase_count,
+        'failed_purchase_count':    failed_purchase_count,
+        'avg_purchase_tokens':      avg_purchase_tokens,
+        'purchases_30d_tokens':     purchases_30d['tokens'] or 0,
+        'purchases_30d_ngn':        purchases_30d['ngn'] or 0,
+        'purchases_30d_count':      purchases_30d['count'] or 0,
+
+        # Circulation
+        'tokens_in_circulation':    tokens_in_circulation,
+        'tokens_locked':            tokens_locked,
+        'tokens_available':         tokens_available,
+        'total_tokens_earned':      total_tokens_earned,
+        'total_accounts':           total_accounts,
+        'funded_accounts':          funded_accounts,
+        'total_partners':           total_partners,
+        'verified_partners':        verified_partners,
+
+        # Investments
+        'total_tokens_invested':    total_tokens_invested,
+        'total_expected_return':    total_expected_return,
+        'total_expected_interest':  total_expected_interest,
+        'total_investment_count':   total_investment_count,
+        'active_invested_tokens':   active_invested_tokens,
+        'active_investment_count':  active_investment_count,
+        'matured_tokens':           matured_tokens,
+        'matured_actual_return':    matured_actual_return,
+        'matured_count':            matured_count,
+        'unique_investors':         unique_investors,
+        'avg_investment_size':      avg_investment_size,
+        'investments_by_status':    investments_by_status,
+
+        # Partner withdrawals
+        'wd_completed_tokens':      wd_completed_tokens,
+        'wd_completed_ngn':         wd_completed_ngn,
+        'wd_fees_collected':        wd_fees_collected,
+        'wd_completed_count':       wd_completed_count,
+        'wd_pending_tokens':        wd_pending_tokens,
+        'wd_pending_count':         wd_pending_count,
+
+        # Venture-founder withdrawals
+        'vtw_completed_tokens':     vtw_completed_tokens,
+        'vtw_completed_ngn':        vtw_completed_ngn,
+        'vtw_fees':                 vtw_fees,
+        'vtw_pending_count':        vtw_pending_count,
+
+        # Ventures / projects
+        'total_srt_raised_projects': total_srt_raised_projects,
+        'projects_raising_srt':     projects_raising_srt,
+        'legacy_ventures_total':    legacy_ventures_total,
+        'legacy_ventures_by_status': legacy_ventures_by_status,
+        'legacy_raised':            legacy_raised,
+
+        # Tables
+        'top_partners':             top_partners,
+        'top_projects_srt':         top_projects_srt,
+        'recent_transactions':      recent_transactions,
+        'recent_purchases':         recent_purchases,
+
+        # Charts
+        'purchase_chart':           purchase_chart,
+        'investment_chart':         investment_chart,
+        'flow_chart':               flow_chart,
+        'tx_type_chart':            tx_type_chart,
+        'monthly_purchase_chart':   monthly_purchase_chart,
+    }
+
+    return render(request, 'core/srt_analytics.html', context)

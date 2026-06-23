@@ -5,4 +5,5 @@ app_name = 'core'
 
 urlpatterns = [
     path('superadmin/', views.analytics_dashboard, name='analytics_dashboard'),
+    path('superadmin/srt/', views.srt_analytics, name='srt_analytics'),
 ]
