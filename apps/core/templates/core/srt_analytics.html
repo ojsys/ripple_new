@@ -100,7 +100,7 @@
                         </div>
                         <div style="font-size:2.6rem; font-weight:800; line-height:1;">{{ total_tokens_issued|floatformat:0|intcomma }}</div>
                         <div style="font-size:0.85rem; opacity:0.85; margin-top:6px;">
-                            {{ total_tokens_purchased|floatformat:0|intcomma }} purchased + {{ total_bonus_tokens|floatformat:0|intcomma }} bonus
+                            {{ total_tokens_purchased|floatformat:0|intcomma }} purchased + {{ total_tokens_earned|floatformat:0|intcomma }} earned
                         </div>
                     </div>
                 </div>
@@ -137,8 +137,8 @@
             <div class="col-lg-3 col-md-6">
                 <div class="stat-card">
                     <div class="stat-icon green"><i class="fas fa-shopping-cart"></i></div>
-                    <div class="stat-value">{{ successful_purchase_count|intcomma }}</div>
-                    <div class="stat-label">Successful Purchases</div>
+                    <div class="stat-value">{{ paid_purchase_count|intcomma }}</div>
+                    <div class="stat-label">Paid Purchases (Paystack)</div>
                     <div class="stat-sub">{{ pending_purchase_count }} pending · {{ failed_purchase_count }} failed</div>
                 </div>
             </div>
@@ -233,9 +233,8 @@
                     <i class="fas fa-lightbulb me-1 text-warning"></i>
                     Investing <strong>locks</strong> tokens but doesn't remove them from a partner's balance — they only leave circulation on <strong>withdrawal</strong>.
                     So <strong>{{ total_tokens_issued|floatformat:0|intcomma }}</strong> issued
-                    − <strong>{{ wd_completed_tokens|add:vtw_completed_tokens|floatformat:0|intcomma }}</strong> withdrawn
-                    + <strong>{{ total_tokens_earned|floatformat:0|intcomma }}</strong> earned as returns
-                    ≈ <strong>{{ tokens_in_circulation|floatformat:0|intcomma }}</strong> in circulation.
+                    (purchased + earned) − <strong>{{ wd_completed_tokens|floatformat:0|intcomma }}</strong> withdrawn by partners
+                    = <strong>{{ tokens_in_circulation|floatformat:0|intcomma }}</strong> in circulation.
                 </p>
             </div>
         </div>
@@ -305,7 +304,6 @@
                                     <th class="text-end">Purchased</th>
                                     <th class="text-end">Invested</th>
                                     <th class="text-end">Available</th>
-                                    <th class="text-end">Balance</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -315,16 +313,16 @@
                                     <td class="text-end">{{ acct.total_tokens_purchased|floatformat:0|intcomma }}</td>
                                     <td class="text-end" style="color:#eab308;">{{ acct.locked_tokens|floatformat:0|intcomma }}</td>
                                     <td class="text-end fw-semibold text-success">{{ acct.available_tokens|floatformat:0|intcomma }}</td>
-                                    <td class="text-end fw-semibold">{{ acct.token_balance|floatformat:0|intcomma }}</td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="5" class="text-center text-muted py-3">No partner accounts yet.</td></tr>
+                                <tr><td colspan="4" class="text-center text-muted py-3">No partner accounts yet.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                         <p class="text-muted small mb-0 mt-2">
-                            <strong>Available</strong> = Balance − Invested (tokens locked in active investments).
-                            <strong>Purchased</strong> is lifetime tokens bought; it can differ from Balance once tokens are withdrawn or returns are earned.
+                            <strong>Purchased</strong> = lifetime tokens bought (incl. bonus).
+                            <strong>Invested</strong> = tokens currently locked in active investments.
+                            <strong>Available</strong> = tokens free to invest or withdraw.
                         </p>
                     </div>
                 </div>

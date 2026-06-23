@@ -413,33 +413,14 @@ def srt_analytics(request):
     thirty_days_ago = now - timedelta(days=30)
 
     # ------------------------------------------------------------------
-    # TOKEN SUPPLY & PURCHASES
-    # ------------------------------------------------------------------
-    successful_purchases = TokenPurchase.objects.filter(status='successful')
-    purchase_totals = successful_purchases.aggregate(
-        tokens=Sum('tokens'),
-        bonus=Sum('bonus_tokens'),
-        ngn=Sum('amount_ngn'),
-        usd=Sum('amount_usd'),
-        count=Count('id'),
-    )
-    total_tokens_purchased = purchase_totals['tokens'] or Decimal('0')
-    total_bonus_tokens     = purchase_totals['bonus'] or Decimal('0')
-    total_tokens_issued    = total_tokens_purchased + total_bonus_tokens
-    total_purchase_ngn     = purchase_totals['ngn'] or Decimal('0')
-    total_purchase_usd     = purchase_totals['usd'] or Decimal('0')
-    successful_purchase_count = purchase_totals['count'] or 0
-
-    pending_purchase_count = TokenPurchase.objects.filter(status__in=['pending', 'processing']).count()
-    failed_purchase_count  = TokenPurchase.objects.filter(status='failed').count()
-    avg_purchase_tokens = (total_tokens_issued / successful_purchase_count) if successful_purchase_count else Decimal('0')
-
-    purchases_30d = successful_purchases.filter(created_at__gte=thirty_days_ago).aggregate(
-        tokens=Sum('tokens'), ngn=Sum('amount_ngn'), count=Count('id'),
-    )
-
-    # ------------------------------------------------------------------
-    # CAPITAL ACCOUNTS  (tokens currently held by partners)
+    # TOKEN SUPPLY & CIRCULATION  (authoritative source: capital accounts)
+    #
+    # Every token credit/debit flows through PartnerCapitalAccount, so these
+    # fields — not the TokenPurchase payment log — are the source of truth for
+    # token *quantities*. The invariant the page relies on:
+    #     issued (purchased + earned) − withdrawn = balance (in circulation)
+    #     balance = available + locked
+    # total_tokens_purchased already includes package bonus tokens.
     # ------------------------------------------------------------------
     account_totals = PartnerCapitalAccount.objects.aggregate(
         balance=Sum('token_balance'),
@@ -449,12 +430,27 @@ def srt_analytics(request):
         purchased=Sum('total_tokens_purchased'),
         count=Count('id'),
     )
-    tokens_in_circulation = account_totals['balance'] or Decimal('0')
-    tokens_locked         = account_totals['locked'] or Decimal('0')
-    tokens_available      = tokens_in_circulation - tokens_locked
-    total_tokens_earned   = account_totals['earned'] or Decimal('0')
-    total_accounts        = account_totals['count'] or 0
-    funded_accounts       = PartnerCapitalAccount.objects.filter(token_balance__gt=0).count()
+    total_tokens_purchased = account_totals['purchased'] or Decimal('0')   # lifetime, incl. bonus
+    total_tokens_earned    = account_totals['earned'] or Decimal('0')      # returns / referral bonuses
+    total_tokens_issued    = total_tokens_purchased + total_tokens_earned  # everything ever credited
+    tokens_in_circulation  = account_totals['balance'] or Decimal('0')     # still held = issued − withdrawn
+    tokens_locked          = account_totals['locked'] or Decimal('0')
+    tokens_available       = tokens_in_circulation - tokens_locked
+    total_accounts         = account_totals['count'] or 0
+    funded_accounts        = PartnerCapitalAccount.objects.filter(token_balance__gt=0).count()
+
+    # Payment flow — money actually collected via paid token purchases (Paystack).
+    # Tokens may also be issued without a payment (admin grants / migrations), so
+    # these revenue figures cover only purchases made through the payment flow.
+    paid_purchases = TokenPurchase.objects.filter(status='successful')
+    paid_totals = paid_purchases.aggregate(
+        ngn=Sum('amount_ngn'), usd=Sum('amount_usd'), count=Count('id'),
+    )
+    total_purchase_ngn     = paid_totals['ngn'] or Decimal('0')
+    total_purchase_usd     = paid_totals['usd'] or Decimal('0')
+    paid_purchase_count    = paid_totals['count'] or 0
+    pending_purchase_count = TokenPurchase.objects.filter(status__in=['pending', 'processing']).count()
+    failed_purchase_count  = TokenPurchase.objects.filter(status='failed').count()
 
     total_partners    = PartnerProfile.objects.count()
     verified_partners = PartnerProfile.objects.filter(accreditation_status='verified').count()
@@ -560,9 +556,9 @@ def srt_analytics(request):
     # ------------------------------------------------------------------
     # CHART DATA
     # ------------------------------------------------------------------
-    # Token purchases (tokens issued) over last 30 days
+    # Paid token purchases (tokens credited via payment) over last 30 days
     purchase_series = (
-        successful_purchases.filter(created_at__gte=thirty_days_ago)
+        paid_purchases.filter(created_at__gte=thirty_days_ago)
         .annotate(date=TruncDate('created_at'))
         .values('date')
         .annotate(tokens=Sum('tokens'), bonus=Sum('bonus_tokens'))
@@ -608,7 +604,7 @@ def srt_analytics(request):
 
     # Monthly token purchase revenue (last 6 months)
     monthly_purchase_series = (
-        successful_purchases.filter(created_at__gte=now - timedelta(days=180))
+        paid_purchases.filter(created_at__gte=now - timedelta(days=180))
         .annotate(month=TruncMonth('created_at'))
         .values('month')
         .annotate(ngn=Sum('amount_ngn'), usd=Sum('amount_usd'), count=Count('id'))
@@ -623,17 +619,12 @@ def srt_analytics(request):
     context = {
         # Supply / purchases
         'total_tokens_purchased':   total_tokens_purchased,
-        'total_bonus_tokens':       total_bonus_tokens,
         'total_tokens_issued':      total_tokens_issued,
         'total_purchase_ngn':       total_purchase_ngn,
         'total_purchase_usd':       total_purchase_usd,
-        'successful_purchase_count': successful_purchase_count,
+        'paid_purchase_count':      paid_purchase_count,
         'pending_purchase_count':   pending_purchase_count,
         'failed_purchase_count':    failed_purchase_count,
-        'avg_purchase_tokens':      avg_purchase_tokens,
-        'purchases_30d_tokens':     purchases_30d['tokens'] or 0,
-        'purchases_30d_ngn':        purchases_30d['ngn'] or 0,
-        'purchases_30d_count':      purchases_30d['count'] or 0,
 
         # Circulation
         'tokens_in_circulation':    tokens_in_circulation,
