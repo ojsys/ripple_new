@@ -123,8 +123,8 @@
                         <div class="col-sm-4">
                             <div style="background:rgba(255,255,255,0.15); border-radius:12px; padding:16px; color:white; text-align:center;">
                                 <div style="font-size:1.5rem; font-weight:700;">{{ tokens_in_circulation|floatformat:0|intcomma }}</div>
-                                <div style="font-size:0.78rem; opacity:0.85; margin-top:2px;">In Circulation</div>
-                                <div style="font-size:0.72rem; opacity:0.65;">{{ funded_accounts }} funded wallets</div>
+                                <div style="font-size:0.78rem; opacity:0.85; margin-top:2px;">Held by Partners</div>
+                                <div style="font-size:0.72rem; opacity:0.65;">{{ tokens_available|floatformat:0|intcomma }} available + {{ tokens_locked|floatformat:0|intcomma }} invested</div>
                             </div>
                         </div>
                     </div>
@@ -203,6 +203,43 @@
             </div>
         </div>
 
+        <!-- Balance breakdown explainer -->
+        <div class="section-card">
+            <div class="section-header"><h3><i class="fas fa-info-circle"></i>How Partner Balances Add Up</h3></div>
+            <div class="section-body">
+                <div class="row g-3 align-items-center text-center">
+                    <div class="col-6 col-md">
+                        <div class="mini-stat" style="background:#f0fdf4;">
+                            <div class="value text-success">{{ tokens_available|floatformat:0|intcomma }}</div>
+                            <div class="label">Available<br><small>idle, can invest/withdraw</small></div>
+                        </div>
+                    </div>
+                    <div class="col-auto d-none d-md-block"><span style="font-size:1.6rem; color:#9ca3af;">+</span></div>
+                    <div class="col-6 col-md">
+                        <div class="mini-stat" style="background:#fefce8;">
+                            <div class="value" style="color:#eab308;">{{ tokens_locked|floatformat:0|intcomma }}</div>
+                            <div class="label">Invested (Locked)<br><small>tied up in active investments</small></div>
+                        </div>
+                    </div>
+                    <div class="col-auto d-none d-md-block"><span style="font-size:1.6rem; color:#9ca3af;">=</span></div>
+                    <div class="col-12 col-md">
+                        <div class="mini-stat" style="background:#fff7ed;">
+                            <div class="value" style="color:#f97316;">{{ tokens_in_circulation|floatformat:0|intcomma }}</div>
+                            <div class="label">Balance / In Circulation<br><small>total still held by partners</small></div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0 mt-3">
+                    <i class="fas fa-lightbulb me-1 text-warning"></i>
+                    Investing <strong>locks</strong> tokens but doesn't remove them from a partner's balance — they only leave circulation on <strong>withdrawal</strong>.
+                    So <strong>{{ total_tokens_issued|floatformat:0|intcomma }}</strong> issued
+                    − <strong>{{ wd_completed_tokens|add:vtw_completed_tokens|floatformat:0|intcomma }}</strong> withdrawn
+                    + <strong>{{ total_tokens_earned|floatformat:0|intcomma }}</strong> earned as returns
+                    ≈ <strong>{{ tokens_in_circulation|floatformat:0|intcomma }}</strong> in circulation.
+                </p>
+            </div>
+        </div>
+
         <!-- Charts row 1 -->
         <div class="row g-4">
             <div class="col-lg-8">
@@ -262,19 +299,33 @@
                     <div class="section-header"><h3><i class="fas fa-trophy"></i>Top Partners by Balance</h3></div>
                     <div class="section-body">
                         <table class="data-table">
-                            <thead><tr><th>Partner</th><th class="text-end">Balance</th><th class="text-end">Invested</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Partner</th>
+                                    <th class="text-end">Purchased</th>
+                                    <th class="text-end">Invested</th>
+                                    <th class="text-end">Available</th>
+                                    <th class="text-end">Balance</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 {% for acct in top_partners %}
                                 <tr>
                                     <td>{{ acct.partner.get_full_name|default:acct.partner.email }}</td>
+                                    <td class="text-end">{{ acct.total_tokens_purchased|floatformat:0|intcomma }}</td>
+                                    <td class="text-end" style="color:#eab308;">{{ acct.locked_tokens|floatformat:0|intcomma }}</td>
+                                    <td class="text-end fw-semibold text-success">{{ acct.available_tokens|floatformat:0|intcomma }}</td>
                                     <td class="text-end fw-semibold">{{ acct.token_balance|floatformat:0|intcomma }}</td>
-                                    <td class="text-end">{{ acct.total_tokens_invested|floatformat:0|intcomma }}</td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="3" class="text-center text-muted py-3">No partner accounts yet.</td></tr>
+                                <tr><td colspan="5" class="text-center text-muted py-3">No partner accounts yet.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
+                        <p class="text-muted small mb-0 mt-2">
+                            <strong>Available</strong> = Balance − Invested (tokens locked in active investments).
+                            <strong>Purchased</strong> is lifetime tokens bought; it can differ from Balance once tokens are withdrawn or returns are earned.
+                        </p>
                     </div>
                 </div>
             </div>
