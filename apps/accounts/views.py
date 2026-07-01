@@ -726,6 +726,7 @@ def initialize_registration_payment(request):
                 if response_data['status']:
                     if is_ajax:
                         return _JR({
+                            'authorization_url': response_data['data']['authorization_url'],
                             'access_code': response_data['data']['access_code'],
                             'reference': pending_registration.paystack_reference,
                         })

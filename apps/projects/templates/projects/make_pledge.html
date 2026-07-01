@@ -365,15 +365,16 @@
                 payBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Continue to Payment';
                 return;
             }
-            PaystackPop.resumeTransaction(data.access_code, {
-                onSuccess: function (transaction) {
-                    window.location.href = callbackUrl + '?reference=' + transaction.reference;
-                },
-                onCancel: function () {
-                    payBtn.disabled = false;
-                    payBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Continue to Payment';
-                },
-            });
+            if (data.authorization_url) {
+                // Redirect to Paystack's hosted checkout. After payment Paystack
+                // redirects back to the callback URL with the reference.
+                window.location.href = data.authorization_url;
+                return;
+            }
+            formError.textContent = 'Could not start payment. Please try again.';
+            formError.classList.remove('d-none');
+            payBtn.disabled = false;
+            payBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Continue to Payment';
         })
         .catch(() => {
             formError.textContent = 'An unexpected error occurred. Please try again.';

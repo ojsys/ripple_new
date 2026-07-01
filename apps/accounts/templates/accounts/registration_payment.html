@@ -226,15 +226,16 @@
                 btn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Registration Fee';
                 return;
             }
-            PaystackPop.resumeTransaction(data.access_code, {
-                onSuccess: function (transaction) {
-                    window.location.href = callbackUrl + '?reference=' + transaction.reference;
-                },
-                onCancel: function () {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Registration Fee';
-                },
-            });
+            if (data.authorization_url) {
+                // Redirect to Paystack's hosted checkout. After payment Paystack
+                // redirects back to the callback URL with the reference.
+                window.location.href = data.authorization_url;
+                return;
+            }
+            errBox.textContent = 'Could not start payment. Please try again.';
+            errBox.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Registration Fee';
         })
         .catch(() => {
             errBox.textContent = 'An unexpected error occurred. Please try again.';

@@ -477,6 +477,7 @@ def make_pledge(request, project_id):
                         if is_ajax:
                             from django.http import JsonResponse as _JR
                             return _JR({
+                                'authorization_url': result['data']['authorization_url'],
                                 'access_code': result['data']['access_code'],
                                 'reference': reference,
                             })
@@ -679,6 +680,7 @@ def investment_proposal(request, project_id):
                         if is_ajax:
                             from django.http import JsonResponse as _JR
                             return _JR({
+                                'authorization_url': result['data']['authorization_url'],
                                 'access_code': result['data']['access_code'],
                                 'reference': reference,
                             })
