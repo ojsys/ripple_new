@@ -32,8 +32,8 @@ from .email_utils import (
 
 from .models import (
     TokenPackage, PartnerCapitalAccount, Venture,
-    VentureInvestment, SRTTransaction, TokenPurchase, TokenWithdrawal,
-    VentureTokenWithdrawal,
+    VentureInvestment, SRTTransaction, TokenPurchase, TokenPurchaseIntent,
+    TokenWithdrawal, VentureTokenWithdrawal,
 )
 from .forms import WithdrawalForm, InvestmentModifyForm, SRTProjectInvestmentForm, VentureWithdrawalForm
 from .paystack_utils import verify_transaction
@@ -61,11 +61,40 @@ def get_or_create_capital_account(user):
 
 
 def generate_unique_srt_reference():
-    """Return an SRT payment reference that is not already used by a TokenPurchase."""
+    """Return an SRT payment reference not used by any TokenPurchase or intent."""
     while True:
         reference = f"SRT-{uuid.uuid4().hex[:12].upper()}"
-        if not TokenPurchase.objects.filter(paystack_reference=reference).exists():
+        if (not TokenPurchase.objects.filter(paystack_reference=reference).exists()
+                and not TokenPurchaseIntent.objects.filter(paystack_reference=reference).exists()):
             return reference
+
+
+def finalize_successful_purchase(reference):
+    """Record a confirmed-successful payment: create the TokenPurchase from its
+    intent, credit the partner, send emails, and remove the intent. Idempotent.
+
+    Returns (purchase, credited):
+      purchase  – the TokenPurchase, or None if the reference is unknown.
+      credited  – True only when tokens were actually credited on this call.
+    """
+    purchase = TokenPurchase.objects.filter(paystack_reference=reference).first()
+    if purchase:
+        credited = purchase.complete_purchase() if purchase.status != 'successful' else False
+        if credited:
+            send_token_purchase_confirmation_to_user(purchase)
+            send_token_purchase_notification_to_admin(purchase)
+        return purchase, credited
+
+    intent = TokenPurchaseIntent.objects.filter(paystack_reference=reference).first()
+    if not intent:
+        return None, False
+
+    purchase, credited = intent.to_purchase()
+    intent.delete()
+    if credited:
+        send_token_purchase_confirmation_to_user(purchase)
+        send_token_purchase_notification_to_admin(purchase)
+    return purchase, credited
 
 
 @login_required
@@ -221,7 +250,7 @@ def buy_tokens(request):
 
     tokens_purchased_this_month = TokenPurchase.objects.filter(
         partner=request.user,
-        status='completed',
+        status='successful',
         created_at__gte=current_month_start
     ).aggregate(total=Sum('tokens'))['total'] or 0
 
@@ -258,7 +287,7 @@ def initialize_token_purchase(request):
 
     tokens_purchased_this_month = TokenPurchase.objects.filter(
         partner=request.user,
-        status='completed',
+        status='successful',
         created_at__gte=current_month_start
     ).aggregate(total=Sum('tokens'))['total'] or 0
 
@@ -285,10 +314,11 @@ def initialize_token_purchase(request):
     from apps.funding.fees import gross_up_ngn
     charged_ngn = gross_up_ngn(amount_ngn)
 
-    # Create pending purchase (no bonus tokens) with a reference that is unique
-    # in our own database.
+    # Record the attempt as an *intent* (internal pending store) with a reference
+    # that is unique in our own database. Nothing lands in the TokenPurchase table
+    # (or the admin) until Paystack confirms the payment succeeded.
     reference = generate_unique_srt_reference()
-    purchase = TokenPurchase.objects.create(
+    intent = TokenPurchaseIntent.objects.create(
         partner=request.user,
         account=account,
         package=None,
@@ -315,7 +345,7 @@ def initialize_token_purchase(request):
             'reference': reference,
             'callback_url': request.build_absolute_uri('/srt/token-purchase-callback/'),
             'metadata': {
-                'purchase_id': purchase.id,
+                'intent_id': intent.id,
                 'tokens': str(tokens),
             }
         }
@@ -329,8 +359,7 @@ def initialize_token_purchase(request):
             )
             result = response.json()
         except Exception as e:
-            purchase.status = 'failed'
-            purchase.save(update_fields=['status'])
+            intent.delete()
             return JsonResponse({'error': str(e)}, status=500)
 
         if result.get('status'):
@@ -345,12 +374,11 @@ def initialize_token_purchase(request):
         # Retry with a fresh reference if Paystack rejects it as a duplicate.
         if 'duplicate' in message.lower() and attempt < 2:
             reference = generate_unique_srt_reference()
-            purchase.paystack_reference = reference
-            purchase.save(update_fields=['paystack_reference'])
+            intent.paystack_reference = reference
+            intent.save(update_fields=['paystack_reference'])
             continue
 
-        purchase.status = 'failed'
-        purchase.save(update_fields=['status'])
+        intent.delete()
         return JsonResponse({'error': message}, status=400)
 
 
@@ -363,48 +391,42 @@ def token_purchase_callback(request):
         messages.error(request, "Invalid payment reference.")
         return redirect('srt:buy_tokens')
 
-    try:
-        purchase = TokenPurchase.objects.get(paystack_reference=reference)
-    except TokenPurchase.DoesNotExist:
-        messages.error(request, "Purchase not found.")
-        return redirect('srt:buy_tokens')
-
     # Verify with Paystack
-    headers = {
-        'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}',
-    }
+    status, error = verify_transaction(reference)
+    if error:
+        messages.error(request, f"Error verifying payment: {error}")
+        return redirect('srt:dashboard')
 
-    try:
-        response = requests.get(
-            f'https://api.paystack.co/transaction/verify/{reference}',
-            headers=headers
-        )
-        result = response.json()
+    if status == 'success':
+        try:
+            purchase, credited = finalize_successful_purchase(reference)
+        except Exception as complete_error:
+            messages.error(
+                request,
+                f"An internal error occurred while processing your purchase: "
+                f"{complete_error}. Please contact support."
+            )
+            return redirect('srt:dashboard')
 
-        if result.get('status') and result['data']['status'] == 'success':
-            try:
-                if purchase.complete_purchase():
-                    messages.success(
-                        request,
-                        f"Payment successful! {purchase.total_tokens} SRT tokens have been added to your account."
-                    )
-                    # Send email notifications
-                    send_token_purchase_confirmation_to_user(purchase)
-                    send_token_purchase_notification_to_admin(purchase)
-                else:
-                    messages.info(request, "This purchase has already been processed.")
-            except Exception as complete_error:
-                # Log the error for debugging purposes
-                # logger.error(f"Error completing purchase {purchase.id}: {complete_error}")
-                purchase.status = 'failed' # Ensure purchase is marked as failed
-                purchase.save()
-                messages.error(request, f"An internal error occurred while processing your purchase: {str(complete_error)}. Please contact support.")
+        if credited:
+            messages.success(
+                request,
+                f"Payment successful! {purchase.total_tokens} SRT tokens have been added to your account."
+            )
+        elif purchase:
+            messages.info(request, "This purchase has already been processed.")
         else:
-            purchase.status = 'failed'
-            purchase.save()
-            messages.error(request, "Payment verification failed. Please contact support.")
-    except Exception as e:
-        messages.error(request, f"Error verifying payment: {str(e)}")
+            messages.error(
+                request,
+                "We could not match this payment to a purchase. Please contact support."
+            )
+    else:
+        # Not paid (abandoned/failed) — nothing is recorded; the intent is left for
+        # the reconciliation cron to clean up.
+        messages.error(
+            request,
+            "Your payment was not completed. If you were charged, please contact support."
+        )
 
     return redirect('srt:dashboard')
 
@@ -424,37 +446,18 @@ def staff_required(view_func):
 
 @staff_required
 def staff_pending_purchases(request):
-    """Staff-only page to review token purchases that are stuck pending/processing
-    and manually confirm the ones that succeeded on Paystack."""
-    status_filter = request.GET.get('status', 'pending')
+    """Staff-only page to review pending purchase intents (payments that were
+    started but not yet confirmed) and manually confirm the ones that succeeded."""
+    intents = TokenPurchaseIntent.objects.select_related(
+        'partner', 'account', 'package'
+    ).order_by('-created_at')
 
-    purchases = TokenPurchase.objects.select_related('partner', 'account', 'package')
-    if status_filter == 'all':
-        purchases = purchases.exclude(status='successful')
-    elif status_filter in ('pending', 'processing', 'failed', 'successful'):
-        purchases = purchases.filter(status=status_filter)
-    else:
-        status_filter = 'pending'
-        purchases = purchases.filter(status='pending')
-
-    purchases = purchases.order_by('-created_at')
-
-    paginator = Paginator(purchases, 25)
-    purchases_page = paginator.get_page(request.GET.get('page'))
+    paginator = Paginator(intents, 25)
+    intents_page = paginator.get_page(request.GET.get('page'))
 
     context = {
-        'purchases': purchases_page,
-        'status_filter': status_filter,
-        'status_tabs': [
-            ('pending', 'Pending'),
-            ('processing', 'Processing'),
-            ('failed', 'Failed'),
-            ('successful', 'Successful'),
-            ('all', 'All (unconfirmed)'),
-        ],
-        'pending_count': TokenPurchase.objects.filter(
-            status__in=['pending', 'processing']
-        ).count(),
+        'intents': intents_page,
+        'pending_count': TokenPurchaseIntent.objects.count(),
     }
     return render(request, 'srt/staff_pending_purchases.html', context)
 
@@ -462,36 +465,31 @@ def staff_pending_purchases(request):
 @staff_required
 @require_POST
 def staff_confirm_purchase(request, pk):
-    """Verify a token purchase against Paystack and, if the payment succeeded,
-    mark it successful and credit the partner's account."""
-    purchase = get_object_or_404(TokenPurchase, pk=pk)
-    status_filter = request.GET.get('status', 'pending')
-    redirect_url = f"{reverse('srt:staff_pending_purchases')}?status={status_filter}"
-
-    if purchase.status == 'successful':
-        messages.info(request, "This purchase has already been credited.")
-        return redirect(redirect_url)
+    """Verify a pending intent against Paystack and, if the payment succeeded,
+    record the purchase and credit the partner's account."""
+    intent = get_object_or_404(TokenPurchaseIntent, pk=pk)
+    redirect_url = reverse('srt:staff_pending_purchases')
 
     # Re-verify with Paystack so we never credit a payment that did not go through.
-    status, error = verify_transaction(purchase.paystack_reference)
+    status, error = verify_transaction(intent.paystack_reference)
     if error:
         messages.error(request, f"Could not reach Paystack to verify this payment: {error}")
         return redirect(redirect_url)
 
     if status == 'success':
         try:
-            if purchase.complete_purchase():
-                messages.success(
-                    request,
-                    f"Confirmed. {purchase.total_tokens} SRT credited to "
-                    f"{purchase.partner.get_full_name()} ({purchase.paystack_reference})."
-                )
-                send_token_purchase_confirmation_to_user(purchase)
-                send_token_purchase_notification_to_admin(purchase)
-            else:
-                messages.info(request, "This purchase has already been processed.")
+            purchase, credited = finalize_successful_purchase(intent.paystack_reference)
         except Exception as exc:
             messages.error(request, f"Error crediting tokens: {exc}")
+            return redirect(redirect_url)
+        if credited:
+            messages.success(
+                request,
+                f"Confirmed. {purchase.total_tokens} SRT credited to "
+                f"{purchase.partner.get_full_name()} ({purchase.paystack_reference})."
+            )
+        else:
+            messages.info(request, "This purchase has already been processed.")
     else:
         messages.error(
             request,
@@ -505,19 +503,18 @@ def staff_confirm_purchase(request, pk):
 @staff_required
 @require_POST
 def staff_delete_unsuccessful_purchases(request):
-    """Verify every pending/failed purchase against Paystack, then delete the ones
-    that are genuinely not successful. Any that turn out successful are credited
+    """Verify every pending intent against Paystack, then delete the ones that are
+    genuinely not successful. Any that turn out successful are recorded & credited
     instead of deleted, so a real payment can never be thrown away."""
-    status_filter = request.GET.get('status', 'pending')
-    redirect_url = f"{reverse('srt:staff_pending_purchases')}?status={status_filter}"
+    redirect_url = reverse('srt:staff_pending_purchases')
 
     # Statuses Paystack can report that mean the money never came in.
     deletable_statuses = {'failed', 'abandoned', 'reversed', 'not_found'}
 
     deleted = credited = skipped = 0
 
-    for purchase in TokenPurchase.objects.filter(status__in=['pending', 'failed']):
-        status, error = verify_transaction(purchase.paystack_reference)
+    for intent in TokenPurchaseIntent.objects.all():
+        status, error = verify_transaction(intent.paystack_reference)
         if error:
             # Couldn't verify — leave it alone so we never delete blindly.
             skipped += 1
@@ -525,23 +522,22 @@ def staff_delete_unsuccessful_purchases(request):
 
         if status == 'success':
             try:
-                if purchase.complete_purchase():
-                    send_token_purchase_confirmation_to_user(purchase)
-                    send_token_purchase_notification_to_admin(purchase)
+                _, was_credited = finalize_successful_purchase(intent.paystack_reference)
+                if was_credited:
                     credited += 1
             except Exception:
                 logger.exception(
-                    "Failed to credit purchase %s during cleanup", purchase.paystack_reference
+                    "Failed to credit intent %s during cleanup", intent.paystack_reference
                 )
                 skipped += 1
         elif status in deletable_statuses:
-            purchase.delete()
+            intent.delete()
             deleted += 1
         else:
             # e.g. still 'ongoing'/'pending' on Paystack, or 'unknown' — don't delete.
             skipped += 1
 
-    parts = [f"Deleted {deleted} unsuccessful purchase(s)."]
+    parts = [f"Deleted {deleted} unsuccessful attempt(s)."]
     if credited:
         parts.append(f"{credited} were actually successful and got credited instead.")
     if skipped:
@@ -1550,23 +1546,15 @@ def _handle_transfer_event(event, data):
 
 
 def _handle_charge_event(data):
-    """Handle charge.success events — auto-confirm SRT token purchases so they
-    credit even if the buyer never returns to the callback URL (e.g. closes the tab)."""
+    """Handle charge.success events — record & credit the SRT token purchase from
+    its intent even if the buyer never returns to the callback URL (e.g. closes the tab)."""
     reference = data.get('reference', '')
-    if not reference:
+    if not reference or data.get('status') != 'success':
         return
 
-    try:
-        purchase = TokenPurchase.objects.get(paystack_reference=reference)
-    except TokenPurchase.DoesNotExist:
-        # Unknown reference (could be a donation/investment charge) — ignore
-        return
-
-    # Only credit when Paystack reports the charge as successful
-    if data.get('status') == 'success' and purchase.status != 'successful':
-        if purchase.complete_purchase():
-            send_token_purchase_confirmation_to_user(purchase)
-            send_token_purchase_notification_to_admin(purchase)
+    # Only our token-purchase references have an intent; others (donations, etc.)
+    # are ignored by finalize_successful_purchase.
+    finalize_successful_purchase(reference)
 
 
 @csrf_exempt

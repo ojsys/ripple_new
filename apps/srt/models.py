@@ -580,6 +580,79 @@ class TokenPurchase(models.Model):
         return True
 
 
+class TokenPurchaseIntent(models.Model):
+    """A token purchase that has been initialized on Paystack but not yet paid.
+
+    Intents are the internal 'pending' store: they hold everything needed to
+    create a real TokenPurchase once payment is confirmed, so the TokenPurchase
+    table (and the admin) only ever contains successful purchases. Abandoned/
+    failed intents are cleaned up by the reconciliation cron.
+    """
+    partner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='token_purchase_intents'
+    )
+    account = models.ForeignKey(
+        PartnerCapitalAccount,
+        on_delete=models.CASCADE,
+        related_name='purchase_intents'
+    )
+    package = models.ForeignKey(
+        TokenPackage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    tokens = models.DecimalField(max_digits=15, decimal_places=2)
+    bonus_tokens = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    amount_ngn = models.DecimalField(max_digits=12, decimal_places=2)
+    amount_usd = models.DecimalField(max_digits=10, decimal_places=2)
+
+    paystack_reference = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Token Purchase Intent"
+        verbose_name_plural = "Token Purchase Intents"
+
+    def __str__(self):
+        return f"Intent {self.paystack_reference} - {self.partner.email}"
+
+    @property
+    def total_tokens(self):
+        return self.tokens + self.bonus_tokens
+
+    def to_purchase(self):
+        """Create the real (successful) TokenPurchase from this intent and credit
+        the partner. Idempotent: if a purchase already exists for this reference,
+        returns it. Returns (purchase, credited: bool)."""
+        purchase = TokenPurchase.objects.filter(
+            paystack_reference=self.paystack_reference
+        ).first()
+        if purchase:
+            credited = False
+            if purchase.status != 'successful':
+                credited = purchase.complete_purchase()
+            return purchase, credited
+
+        purchase = TokenPurchase.objects.create(
+            partner=self.partner,
+            account=self.account,
+            package=self.package,
+            tokens=self.tokens,
+            bonus_tokens=self.bonus_tokens,
+            amount_ngn=self.amount_ngn,
+            amount_usd=self.amount_usd,
+            paystack_reference=self.paystack_reference,
+            status='pending',
+        )
+        credited = purchase.complete_purchase()
+        return purchase, credited
+
+
 class TokenWithdrawal(models.Model):
     """Track token withdrawal requests"""
     STATUS_CHOICES = [

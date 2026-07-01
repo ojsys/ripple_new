@@ -65,7 +65,7 @@ def send_token_purchase_confirmation_to_user(purchase):
     user = purchase.partner
     user_name = user.first_name or user.email
 
-    subject = f"Token Purchase Confirmed - {purchase.tokens_purchased:,.2f} SRT"
+    subject = f"Token Purchase Confirmed - {purchase.total_tokens:,.2f} SRT"
 
     content = f'''
     <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
@@ -77,12 +77,12 @@ def send_token_purchase_confirmation_to_user(purchase):
     </p>
     '''
 
-    content += get_highlight_box("Tokens Purchased", f"{purchase.tokens_purchased:,.2f} SRT", "#0d9488")
+    content += get_highlight_box("Tokens Purchased", f"{purchase.total_tokens:,.2f} SRT", "#0d9488")
 
     content += get_info_box("Purchase Details", [
-        ("Reference", purchase.reference),
-        ("Amount Paid", f"NGN {purchase.amount_paid:,.2f}"),
-        ("Tokens Received", f"{purchase.tokens_purchased:,.2f} SRT"),
+        ("Reference", purchase.paystack_reference),
+        ("Amount Paid", f"NGN {purchase.amount_ngn:,.2f}"),
+        ("Tokens Received", f"{purchase.tokens:,.2f} SRT"),
         ("Bonus Tokens", f"{purchase.bonus_tokens:,.2f} SRT"),
         ("Date", purchase.created_at.strftime('%B %d, %Y at %H:%M')),
         ("New Balance", f"{purchase.account.token_balance:,.2f} SRT"),
@@ -111,9 +111,9 @@ Hi {user_name},
 Your token purchase has been successfully processed!
 
 Purchase Details:
-- Reference: {purchase.reference}
-- Amount Paid: NGN {purchase.amount_paid:,.2f}
-- Tokens Received: {purchase.tokens_purchased:,.2f} SRT
+- Reference: {purchase.paystack_reference}
+- Amount Paid: NGN {purchase.amount_ngn:,.2f}
+- Tokens Received: {purchase.tokens:,.2f} SRT
 - Bonus Tokens: {purchase.bonus_tokens:,.2f} SRT
 - Date: {purchase.created_at.strftime('%B %d, %Y at %H:%M')}
 - New Balance: {purchase.account.token_balance:,.2f} SRT
@@ -137,7 +137,7 @@ def send_token_purchase_notification_to_admin(purchase):
     """
     user = purchase.partner
 
-    subject = f"[ADMIN] New Token Purchase - {purchase.tokens_purchased:,.2f} SRT by {user.email}"
+    subject = f"[ADMIN] New Token Purchase - {purchase.total_tokens:,.2f} SRT by {user.email}"
 
     content = f'''
     <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.7; color: #4a5568; text-align: center;">
@@ -145,17 +145,17 @@ def send_token_purchase_notification_to_admin(purchase):
     </p>
     '''
 
-    content += get_highlight_box("Amount Received", f"NGN {purchase.amount_paid:,.2f}", "#1e40af")
+    content += get_highlight_box("Amount Received", f"NGN {purchase.amount_ngn:,.2f}", "#1e40af")
 
     content += get_info_box("Purchase Details", [
-        ("Reference", purchase.reference),
+        ("Reference", purchase.paystack_reference),
         ("Partner", user.get_full_name() or user.email),
         ("Email", user.email),
-        ("Amount Paid", f"NGN {purchase.amount_paid:,.2f}"),
-        ("Tokens Purchased", f"{purchase.tokens_purchased:,.2f} SRT"),
+        ("Amount Paid", f"NGN {purchase.amount_ngn:,.2f}"),
+        ("Tokens Purchased", f"{purchase.tokens:,.2f} SRT"),
         ("Bonus Tokens", f"{purchase.bonus_tokens:,.2f} SRT"),
-        ("Payment Method", purchase.payment_method or 'Paystack'),
-        ("Payment Reference", purchase.payment_reference or 'N/A'),
+        ("Payment Method", "Paystack"),
+        ("Payment Reference", purchase.paystack_reference),
         ("Date", purchase.created_at.strftime('%B %d, %Y at %H:%M')),
         ("Partner Balance", f"{purchase.account.token_balance:,.2f} SRT"),
     ], "#1e40af")
@@ -177,13 +177,13 @@ def send_token_purchase_notification_to_admin(purchase):
 A new token purchase has been completed:
 
 Purchase Details:
-- Reference: {purchase.reference}
+- Reference: {purchase.paystack_reference}
 - Partner: {user.get_full_name() or user.email}
 - Email: {user.email}
-- Amount Paid: NGN {purchase.amount_paid:,.2f}
-- Tokens Purchased: {purchase.tokens_purchased:,.2f} SRT
+- Amount Paid: NGN {purchase.amount_ngn:,.2f}
+- Tokens Purchased: {purchase.tokens:,.2f} SRT
 - Bonus Tokens: {purchase.bonus_tokens:,.2f} SRT
-- Payment Method: {purchase.payment_method or 'Paystack'}
+- Payment Method: Paystack
 - Date: {purchase.created_at.strftime('%B %d, %Y at %H:%M')}
 
 View in admin: {SITE_URL}/admin/srt/tokenpurchase/

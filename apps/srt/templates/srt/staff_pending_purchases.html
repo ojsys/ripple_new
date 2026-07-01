@@ -10,7 +10,8 @@
         <div>
             <h2 class="mb-1">Token Purchase Confirmations</h2>
             <p class="text-muted mb-0">
-                Review purchases stuck as pending and confirm the ones that succeeded on Paystack.
+                These are payments that were started but not yet confirmed. Confirm the ones
+                that succeeded on Paystack to credit the partner's tokens.
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
@@ -18,8 +19,8 @@
                 {{ pending_count }} awaiting action
             </span>
             <form method="post"
-                  action="{% url 'srt:staff_delete_unsuccessful_purchases' %}?status={{ status_filter }}"
-                  onsubmit="return confirm('This re-checks every pending and failed purchase with Paystack, then permanently deletes the ones that are NOT successful. Any that turn out successful will be credited instead. Continue?');">
+                  action="{% url 'srt:staff_delete_unsuccessful_purchases' %}"
+                  onsubmit="return confirm('This re-checks every pending attempt with Paystack, then permanently deletes the ones that are NOT successful. Any that turn out successful will be credited instead. Continue?');">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-outline-danger">
                     <i class="fas fa-trash-alt me-1"></i>Delete unsuccessful
@@ -28,84 +29,58 @@
         </div>
     </div>
 
-    <!-- Status filter -->
-    <ul class="nav nav-pills mb-4">
-        {% for value, label in status_tabs %}
-        <li class="nav-item">
-            <a class="nav-link {% if status_filter == value %}active{% endif %}"
-               href="?status={{ value }}">{{ label }}</a>
-        </li>
-        {% endfor %}
-    </ul>
-
-    {% if purchases %}
+    {% if intents %}
     <div class="table-responsive border rounded">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Date</th>
+                    <th>Started</th>
                     <th>Partner</th>
                     <th>Package</th>
                     <th class="text-end">Tokens</th>
                     <th class="text-end">Amount</th>
                     <th>Paystack Reference</th>
-                    <th>Status</th>
                     <th class="text-end">Action</th>
                 </tr>
             </thead>
             <tbody>
-                {% for purchase in purchases %}
+                {% for intent in intents %}
                 <tr>
-                    <td class="text-nowrap">{{ purchase.created_at|date:"M d, Y" }}<br>
-                        <small class="text-muted">{{ purchase.created_at|date:"g:i A" }}</small>
+                    <td class="text-nowrap">{{ intent.created_at|date:"M d, Y" }}<br>
+                        <small class="text-muted">{{ intent.created_at|date:"g:i A" }}</small>
                     </td>
                     <td>
-                        {{ purchase.partner.get_full_name|default:purchase.partner.email }}<br>
-                        <small class="text-muted">{{ purchase.partner.email }}</small>
+                        {{ intent.partner.get_full_name|default:intent.partner.email }}<br>
+                        <small class="text-muted">{{ intent.partner.email }}</small>
                     </td>
-                    <td>{{ purchase.package.name|default:"Custom" }}</td>
+                    <td>{{ intent.package.name|default:"Custom" }}</td>
                     <td class="text-end">
-                        {{ purchase.total_tokens|floatformat:0|intcomma }} SRT
-                        {% if purchase.bonus_tokens %}
-                        <br><small class="text-success">+{{ purchase.bonus_tokens|floatformat:0 }} bonus</small>
+                        {{ intent.total_tokens|floatformat:0|intcomma }} SRT
+                        {% if intent.bonus_tokens %}
+                        <br><small class="text-success">+{{ intent.bonus_tokens|floatformat:0 }} bonus</small>
                         {% endif %}
                     </td>
                     <td class="text-end text-nowrap">
-                        ₦{{ purchase.amount_ngn|floatformat:2|intcomma }}<br>
-                        <small class="text-muted">${{ purchase.amount_usd|floatformat:2|intcomma }}</small>
+                        ₦{{ intent.amount_ngn|floatformat:2|intcomma }}<br>
+                        <small class="text-muted">${{ intent.amount_usd|floatformat:2|intcomma }}</small>
                     </td>
                     <td>
-                        <code class="small">{{ purchase.paystack_reference }}</code>
-                        <a href="https://dashboard.paystack.com/#/transactions?search={{ purchase.paystack_reference }}"
+                        <code class="small">{{ intent.paystack_reference }}</code>
+                        <a href="https://dashboard.paystack.com/#/transactions?search={{ intent.paystack_reference }}"
                            target="_blank" rel="noopener" class="ms-1 small"
                            title="Look up on Paystack">
                             <i class="fas fa-external-link-alt"></i>
                         </a>
                     </td>
-                    <td>
-                        {% if purchase.status == 'successful' %}
-                        <span class="badge bg-success">Successful</span>
-                        {% elif purchase.status == 'failed' %}
-                        <span class="badge bg-danger">Failed</span>
-                        {% elif purchase.status == 'processing' %}
-                        <span class="badge bg-info text-dark">Processing</span>
-                        {% else %}
-                        <span class="badge bg-warning text-dark">Pending</span>
-                        {% endif %}
-                    </td>
                     <td class="text-end">
-                        {% if purchase.status == 'successful' %}
-                        <span class="text-muted small">Credited</span>
-                        {% else %}
                         <form method="post"
-                              action="{% url 'srt:staff_confirm_purchase' purchase.pk %}?status={{ status_filter }}"
-                              onsubmit="return confirm('Verify this payment on Paystack and credit {{ purchase.total_tokens|floatformat:0 }} SRT to {{ purchase.partner.get_full_name|escapejs }}?');">
+                              action="{% url 'srt:staff_confirm_purchase' intent.pk %}"
+                              onsubmit="return confirm('Verify this payment on Paystack and credit {{ intent.total_tokens|floatformat:0 }} SRT to {{ intent.partner.get_full_name|escapejs }}?');">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-sm btn-success">
                                 <i class="fas fa-check me-1"></i>Confirm
                             </button>
                         </form>
-                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -114,20 +89,20 @@
     </div>
 
     <!-- Pagination -->
-    {% if purchases.has_other_pages %}
+    {% if intents.has_other_pages %}
     <nav class="mt-4">
         <ul class="pagination justify-content-center">
-            {% if purchases.has_previous %}
+            {% if intents.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?status={{ status_filter }}&page={{ purchases.previous_page_number }}">Previous</a>
+                <a class="page-link" href="?page={{ intents.previous_page_number }}">Previous</a>
             </li>
             {% endif %}
             <li class="page-item disabled">
-                <span class="page-link">Page {{ purchases.number }} of {{ purchases.paginator.num_pages }}</span>
+                <span class="page-link">Page {{ intents.number }} of {{ intents.paginator.num_pages }}</span>
             </li>
-            {% if purchases.has_next %}
+            {% if intents.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?status={{ status_filter }}&page={{ purchases.next_page_number }}">Next</a>
+                <a class="page-link" href="?page={{ intents.next_page_number }}">Next</a>
             </li>
             {% endif %}
         </ul>
@@ -138,14 +113,15 @@
     <div class="text-center py-5 border rounded bg-light">
         <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
         <h5>Nothing to confirm</h5>
-        <p class="text-muted mb-0">There are no purchases matching this filter.</p>
+        <p class="text-muted mb-0">There are no pending payment attempts right now.</p>
     </div>
     {% endif %}
 
     <div class="alert alert-info mt-4 small">
         <i class="fas fa-info-circle me-1"></i>
         Clicking <strong>Confirm</strong> re-verifies the transaction directly with Paystack.
-        Tokens are only credited if Paystack reports the payment as successful.
+        Tokens are only credited if Paystack reports the payment as successful, and the purchase
+        is then recorded under Token Purchases.
     </div>
 
 </div>
