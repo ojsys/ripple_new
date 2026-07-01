@@ -15,20 +15,17 @@ Intended to run on a cron, e.g. every 5 minutes:
     */5 * * * * /path/to/env/bin/python /path/to/manage.py reconcile_token_purchases
 """
 
-import requests
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
-from django.conf import settings
 from django.utils import timezone
 
 from apps.srt.models import TokenPurchase
+from apps.srt.paystack_utils import verify_transaction
 from apps.srt.email_utils import (
     send_token_purchase_confirmation_to_user,
     send_token_purchase_notification_to_admin,
 )
-
-PAYSTACK_VERIFY_URL = 'https://api.paystack.co/transaction/verify/{reference}'
 
 
 class Command(BaseCommand):
@@ -74,27 +71,17 @@ class Command(BaseCommand):
 
         self.stdout.write(f'Checking {purchases.count()} pending purchase(s) against Paystack...')
 
-        headers = {'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}'}
         credited = failed = skipped = errors = 0
 
         for purchase in purchases:
             ref = purchase.paystack_reference
-            try:
-                resp = requests.get(
-                    PAYSTACK_VERIFY_URL.format(reference=ref),
-                    headers=headers,
-                    timeout=30,
-                )
-                result = resp.json()
-            except Exception as exc:
+            paystack_status, error = verify_transaction(ref)
+            if error:
                 errors += 1
-                self.stdout.write(self.style.ERROR(f'  {ref}: verify request failed — {exc}'))
+                self.stdout.write(self.style.ERROR(f'  {ref}: verify request failed — {error}'))
                 continue
 
-            data = result.get('data') or {}
-            paystack_status = data.get('status')
-
-            if result.get('status') and paystack_status == 'success':
+            if paystack_status == 'success':
                 if dry_run:
                     self.stdout.write(
                         f'  [DRY RUN] {ref}: would credit {purchase.total_tokens} SRT '

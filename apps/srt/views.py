@@ -36,6 +36,7 @@ from .models import (
     VentureTokenWithdrawal,
 )
 from .forms import WithdrawalForm, InvestmentModifyForm, SRTProjectInvestmentForm, VentureWithdrawalForm
+from .paystack_utils import verify_transaction
 
 
 def partner_required(view_func):
@@ -57,6 +58,14 @@ def get_or_create_capital_account(user):
     """Get or create a partner's capital account"""
     account, created = PartnerCapitalAccount.objects.get_or_create(partner=user)
     return account
+
+
+def generate_unique_srt_reference():
+    """Return an SRT payment reference that is not already used by a TokenPurchase."""
+    while True:
+        reference = f"SRT-{uuid.uuid4().hex[:12].upper()}"
+        if not TokenPurchase.objects.filter(paystack_reference=reference).exists():
+            return reference
 
 
 @login_required
@@ -276,10 +285,9 @@ def initialize_token_purchase(request):
     from apps.funding.fees import gross_up_ngn
     charged_ngn = gross_up_ngn(amount_ngn)
 
-    # Generate reference
-    reference = f"SRT-{uuid.uuid4().hex[:12].upper()}"
-
-    # Create pending purchase (no bonus tokens)
+    # Create pending purchase (no bonus tokens) with a reference that is unique
+    # in our own database.
+    reference = generate_unique_srt_reference()
     purchase = TokenPurchase.objects.create(
         partner=request.user,
         account=account,
@@ -297,24 +305,33 @@ def initialize_token_purchase(request):
         'Content-Type': 'application/json',
     }
 
-    data = {
-        'email': request.user.email,
-        'amount': int(charged_ngn * 100),  # grossed-up amount in kobo
-        'reference': reference,
-        'callback_url': request.build_absolute_uri('/srt/token-purchase-callback/'),
-        'metadata': {
-            'purchase_id': purchase.id,
-            'tokens': str(tokens),
+    # Paystack requires references to be unique across the whole account. Because
+    # this is a shared agency account, a reference can occasionally clash; if it
+    # does, regenerate and retry a few times before giving up.
+    for attempt in range(3):
+        data = {
+            'email': request.user.email,
+            'amount': int(charged_ngn * 100),  # grossed-up amount in kobo
+            'reference': reference,
+            'callback_url': request.build_absolute_uri('/srt/token-purchase-callback/'),
+            'metadata': {
+                'purchase_id': purchase.id,
+                'tokens': str(tokens),
+            }
         }
-    }
 
-    try:
-        response = requests.post(
-            'https://api.paystack.co/transaction/initialize',
-            json=data,
-            headers=headers
-        )
-        result = response.json()
+        try:
+            response = requests.post(
+                'https://api.paystack.co/transaction/initialize',
+                json=data,
+                headers=headers,
+                timeout=30,
+            )
+            result = response.json()
+        except Exception as e:
+            purchase.status = 'failed'
+            purchase.save(update_fields=['status'])
+            return JsonResponse({'error': str(e)}, status=500)
 
         if result.get('status'):
             return JsonResponse({
@@ -322,14 +339,19 @@ def initialize_token_purchase(request):
                 'access_code': result['data']['access_code'],
                 'reference': reference
             })
-        else:
-            purchase.status = 'failed'
-            purchase.save()
-            return JsonResponse({'error': result.get('message', 'Payment initialization failed')}, status=400)
-    except Exception as e:
+
+        message = result.get('message', 'Payment initialization failed')
+
+        # Retry with a fresh reference if Paystack rejects it as a duplicate.
+        if 'duplicate' in message.lower() and attempt < 2:
+            reference = generate_unique_srt_reference()
+            purchase.paystack_reference = reference
+            purchase.save(update_fields=['paystack_reference'])
+            continue
+
         purchase.status = 'failed'
-        purchase.save()
-        return JsonResponse({'error': str(e)}, status=500)
+        purchase.save(update_fields=['status'])
+        return JsonResponse({'error': message}, status=400)
 
 
 @login_required
@@ -451,19 +473,12 @@ def staff_confirm_purchase(request, pk):
         return redirect(redirect_url)
 
     # Re-verify with Paystack so we never credit a payment that did not go through.
-    headers = {'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}'}
-    try:
-        response = requests.get(
-            f'https://api.paystack.co/transaction/verify/{purchase.paystack_reference}',
-            headers=headers,
-            timeout=30,
-        )
-        result = response.json()
-    except Exception as exc:
-        messages.error(request, f"Could not reach Paystack to verify this payment: {exc}")
+    status, error = verify_transaction(purchase.paystack_reference)
+    if error:
+        messages.error(request, f"Could not reach Paystack to verify this payment: {error}")
         return redirect(redirect_url)
 
-    if result.get('status') and result.get('data', {}).get('status') == 'success':
+    if status == 'success':
         try:
             if purchase.complete_purchase():
                 messages.success(
@@ -478,16 +493,60 @@ def staff_confirm_purchase(request, pk):
         except Exception as exc:
             messages.error(request, f"Error crediting tokens: {exc}")
     else:
-        gateway = (
-            result.get('data', {}).get('gateway_response')
-            or result.get('message')
-            or 'not successful'
-        )
         messages.error(
             request,
             f"Paystack does not report this payment as successful "
-            f"(response: {gateway}). Tokens were NOT credited."
+            f"(status: {status}). Tokens were NOT credited."
         )
+
+    return redirect(redirect_url)
+
+
+@staff_required
+@require_POST
+def staff_delete_unsuccessful_purchases(request):
+    """Verify every pending/failed purchase against Paystack, then delete the ones
+    that are genuinely not successful. Any that turn out successful are credited
+    instead of deleted, so a real payment can never be thrown away."""
+    status_filter = request.GET.get('status', 'pending')
+    redirect_url = f"{reverse('srt:staff_pending_purchases')}?status={status_filter}"
+
+    # Statuses Paystack can report that mean the money never came in.
+    deletable_statuses = {'failed', 'abandoned', 'reversed', 'not_found'}
+
+    deleted = credited = skipped = 0
+
+    for purchase in TokenPurchase.objects.filter(status__in=['pending', 'failed']):
+        status, error = verify_transaction(purchase.paystack_reference)
+        if error:
+            # Couldn't verify — leave it alone so we never delete blindly.
+            skipped += 1
+            continue
+
+        if status == 'success':
+            try:
+                if purchase.complete_purchase():
+                    send_token_purchase_confirmation_to_user(purchase)
+                    send_token_purchase_notification_to_admin(purchase)
+                    credited += 1
+            except Exception:
+                logger.exception(
+                    "Failed to credit purchase %s during cleanup", purchase.paystack_reference
+                )
+                skipped += 1
+        elif status in deletable_statuses:
+            purchase.delete()
+            deleted += 1
+        else:
+            # e.g. still 'ongoing'/'pending' on Paystack, or 'unknown' — don't delete.
+            skipped += 1
+
+    parts = [f"Deleted {deleted} unsuccessful purchase(s)."]
+    if credited:
+        parts.append(f"{credited} were actually successful and got credited instead.")
+    if skipped:
+        parts.append(f"{skipped} left untouched (couldn't confirm as failed).")
+    messages.success(request, ' '.join(parts))
 
     return redirect(redirect_url)
 

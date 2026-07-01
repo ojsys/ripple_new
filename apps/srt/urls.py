@@ -60,4 +60,5 @@ urlpatterns = [
     # Staff: confirm stuck token purchases
     path('staff/pending-purchases/', views.staff_pending_purchases, name='staff_pending_purchases'),
     path('staff/pending-purchases/<int:pk>/confirm/', views.staff_confirm_purchase, name='staff_confirm_purchase'),
+    path('staff/pending-purchases/delete-unsuccessful/', views.staff_delete_unsuccessful_purchases, name='staff_delete_unsuccessful_purchases'),
 ]

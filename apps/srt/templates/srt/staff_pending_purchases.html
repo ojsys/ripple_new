@@ -13,9 +13,19 @@
                 Review purchases stuck as pending and confirm the ones that succeeded on Paystack.
             </p>
         </div>
-        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
-            {{ pending_count }} awaiting action
-        </span>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                {{ pending_count }} awaiting action
+            </span>
+            <form method="post"
+                  action="{% url 'srt:staff_delete_unsuccessful_purchases' %}?status={{ status_filter }}"
+                  onsubmit="return confirm('This re-checks every pending and failed purchase with Paystack, then permanently deletes the ones that are NOT successful. Any that turn out successful will be credited instead. Continue?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fas fa-trash-alt me-1"></i>Delete unsuccessful
+                </button>
+            </form>
+        </div>
     </div>
 
     <!-- Status filter -->

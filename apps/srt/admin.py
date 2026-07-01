@@ -20,8 +20,10 @@ from .email_utils import (
     send_venture_withdrawal_approved_to_founder,
     send_venture_withdrawal_completed_to_founder,
     send_venture_withdrawal_rejected_to_founder,
+    send_token_purchase_confirmation_to_user,
+    send_token_purchase_notification_to_admin,
 )
-from .paystack_utils import initiate_withdrawal_transfer
+from .paystack_utils import initiate_withdrawal_transfer, verify_transaction
 
 
 @admin.register(TokenPackage)
@@ -351,10 +353,35 @@ class TokenPurchaseAdmin(admin.ModelAdmin):
     actions = ['mark_successful']
 
     def mark_successful(self, request, queryset):
-        for purchase in queryset.filter(status='pending'):
-            purchase.complete_purchase()
-        self.message_user(request, f"Marked {queryset.count()} purchases as successful")
-    mark_successful.short_description = "Mark selected purchases as successful"
+        """Verify each selected purchase with Paystack and credit only the ones
+        Paystack confirms as successful."""
+        credited = 0
+        not_successful = []
+        errors = []
+
+        for purchase in queryset.exclude(status='successful'):
+            status, error = verify_transaction(purchase.paystack_reference)
+            if error:
+                errors.append(f"{purchase.paystack_reference}: {error}")
+                continue
+            if status == 'success':
+                if purchase.complete_purchase():
+                    send_token_purchase_confirmation_to_user(purchase)
+                    send_token_purchase_notification_to_admin(purchase)
+                    credited += 1
+            else:
+                not_successful.append(f"{purchase.paystack_reference} ({status})")
+
+        msg = f"Credited {credited} purchase(s) after Paystack verification."
+        if not_successful:
+            msg += f" Not successful on Paystack, skipped: {', '.join(not_successful)}."
+        if errors:
+            msg += f" Could not verify: {'; '.join(errors)}."
+        self.message_user(
+            request, msg,
+            level='warning' if (not_successful or errors) else 'info'
+        )
+    mark_successful.short_description = "Verify with Paystack & credit selected purchases"
 
 
 @admin.register(TokenWithdrawal)

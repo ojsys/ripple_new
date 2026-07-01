@@ -86,6 +86,37 @@ def get_bank_code(bank_name_key):
     return PAYSTACK_BANK_CODES.get(bank_name_key)
 
 
+def verify_transaction(reference):
+    """
+    Verify a Paystack transaction (charge) by its reference.
+
+    Returns (status, error):
+      status – Paystack's transaction status string, one of
+               'success', 'failed', 'abandoned', 'reversed', 'not_found',
+               or 'unknown'. None when the request itself failed.
+      error  – error message when the request could not be completed
+               (network/API error); None otherwise.
+    """
+    url = f'https://api.paystack.co/transaction/verify/{reference}'
+    headers = {'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}'}
+    try:
+        resp = requests.get(url, headers=headers, timeout=30)
+        result = resp.json()
+    except Exception as exc:
+        logger.exception("Paystack verify_transaction failed for %s: %s", reference, exc)
+        return None, str(exc)
+
+    if result.get('status'):
+        data = result.get('data') or {}
+        return data.get('status') or 'unknown', None
+
+    # status == False: either a genuine "not found" or another API error
+    message = result.get('message', 'Verification failed')
+    if 'not found' in message.lower():
+        return 'not_found', None
+    return None, message
+
+
 def create_transfer_recipient(bank_code, account_number, account_name):
     """
     Register a bank account as a Paystack transfer recipient.
