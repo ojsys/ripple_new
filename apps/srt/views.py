@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
@@ -384,6 +385,111 @@ def token_purchase_callback(request):
         messages.error(request, f"Error verifying payment: {str(e)}")
 
     return redirect('srt:dashboard')
+
+
+def staff_required(view_func):
+    """Decorator to ensure the user is a StartUpRipple staff member."""
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            messages.error(request, "Please log in to continue.")
+            return redirect('accounts:login')
+        if not request.user.is_staff:
+            messages.error(request, "You do not have permission to access that page.")
+            return redirect('srt:dashboard')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@staff_required
+def staff_pending_purchases(request):
+    """Staff-only page to review token purchases that are stuck pending/processing
+    and manually confirm the ones that succeeded on Paystack."""
+    status_filter = request.GET.get('status', 'pending')
+
+    purchases = TokenPurchase.objects.select_related('partner', 'account', 'package')
+    if status_filter == 'all':
+        purchases = purchases.exclude(status='successful')
+    elif status_filter in ('pending', 'processing', 'failed', 'successful'):
+        purchases = purchases.filter(status=status_filter)
+    else:
+        status_filter = 'pending'
+        purchases = purchases.filter(status='pending')
+
+    purchases = purchases.order_by('-created_at')
+
+    paginator = Paginator(purchases, 25)
+    purchases_page = paginator.get_page(request.GET.get('page'))
+
+    context = {
+        'purchases': purchases_page,
+        'status_filter': status_filter,
+        'status_tabs': [
+            ('pending', 'Pending'),
+            ('processing', 'Processing'),
+            ('failed', 'Failed'),
+            ('successful', 'Successful'),
+            ('all', 'All (unconfirmed)'),
+        ],
+        'pending_count': TokenPurchase.objects.filter(
+            status__in=['pending', 'processing']
+        ).count(),
+    }
+    return render(request, 'srt/staff_pending_purchases.html', context)
+
+
+@staff_required
+@require_POST
+def staff_confirm_purchase(request, pk):
+    """Verify a token purchase against Paystack and, if the payment succeeded,
+    mark it successful and credit the partner's account."""
+    purchase = get_object_or_404(TokenPurchase, pk=pk)
+    status_filter = request.GET.get('status', 'pending')
+    redirect_url = f"{reverse('srt:staff_pending_purchases')}?status={status_filter}"
+
+    if purchase.status == 'successful':
+        messages.info(request, "This purchase has already been credited.")
+        return redirect(redirect_url)
+
+    # Re-verify with Paystack so we never credit a payment that did not go through.
+    headers = {'Authorization': f'Bearer {settings.PAYSTACK_SECRET_KEY}'}
+    try:
+        response = requests.get(
+            f'https://api.paystack.co/transaction/verify/{purchase.paystack_reference}',
+            headers=headers,
+            timeout=30,
+        )
+        result = response.json()
+    except Exception as exc:
+        messages.error(request, f"Could not reach Paystack to verify this payment: {exc}")
+        return redirect(redirect_url)
+
+    if result.get('status') and result.get('data', {}).get('status') == 'success':
+        try:
+            if purchase.complete_purchase():
+                messages.success(
+                    request,
+                    f"Confirmed. {purchase.total_tokens} SRT credited to "
+                    f"{purchase.partner.get_full_name()} ({purchase.paystack_reference})."
+                )
+                send_token_purchase_confirmation_to_user(purchase)
+                send_token_purchase_notification_to_admin(purchase)
+            else:
+                messages.info(request, "This purchase has already been processed.")
+        except Exception as exc:
+            messages.error(request, f"Error crediting tokens: {exc}")
+    else:
+        gateway = (
+            result.get('data', {}).get('gateway_response')
+            or result.get('message')
+            or 'not successful'
+        )
+        messages.error(
+            request,
+            f"Paystack does not report this payment as successful "
+            f"(response: {gateway}). Tokens were NOT credited."
+        )
+
+    return redirect(redirect_url)
 
 
 @login_required
@@ -1333,18 +1439,85 @@ def export_my_withdrawals_csv(request):
 import hashlib
 import hmac as _hmac
 import json as _json
+import logging
 
 from django.views.decorators.csrf import csrf_exempt
+
+logger = logging.getLogger(__name__)
+
+
+def _handle_transfer_event(event, data):
+    """Handle transfer.success / transfer.failed events (SRT withdrawals)."""
+    reference = data.get('reference', '')
+    transfer_code = data.get('transfer_code', '')
+    if not reference:
+        return
+
+    # Locate the withdrawal by reference — check VentureTokenWithdrawal first
+    withdrawal = None
+    withdrawal_type = None
+    try:
+        withdrawal = VentureTokenWithdrawal.objects.get(reference=reference)
+        withdrawal_type = 'venture'
+    except VentureTokenWithdrawal.DoesNotExist:
+        pass
+
+    if withdrawal is None:
+        try:
+            withdrawal = TokenWithdrawal.objects.get(reference=reference)
+            withdrawal_type = 'token'
+        except TokenWithdrawal.DoesNotExist:
+            pass
+
+    if withdrawal is None:
+        return
+
+    if event == 'transfer.success':
+        if withdrawal.status in ('processing', 'approved'):
+            withdrawal.complete(payment_ref=transfer_code or reference)
+            if withdrawal_type == 'venture':
+                send_venture_withdrawal_completed_to_founder(withdrawal)
+            else:
+                send_withdrawal_completed_to_user(withdrawal)
+
+    elif event == 'transfer.failed':
+        if withdrawal.status == 'processing':
+            failure_reason = data.get('failures') or [{}]
+            reason_msg = failure_reason[0].get('reason', 'Unknown reason') if failure_reason else 'Unknown reason'
+            note = f"[Transfer failed – {reason_msg}] Paystack ref: {transfer_code}"
+            withdrawal.status = 'approved'
+            withdrawal.admin_notes = (withdrawal.admin_notes + '\n' + note).strip()
+            withdrawal.save(update_fields=['status', 'admin_notes'])
+
+
+def _handle_charge_event(data):
+    """Handle charge.success events — auto-confirm SRT token purchases so they
+    credit even if the buyer never returns to the callback URL (e.g. closes the tab)."""
+    reference = data.get('reference', '')
+    if not reference:
+        return
+
+    try:
+        purchase = TokenPurchase.objects.get(paystack_reference=reference)
+    except TokenPurchase.DoesNotExist:
+        # Unknown reference (could be a donation/investment charge) — ignore
+        return
+
+    # Only credit when Paystack reports the charge as successful
+    if data.get('status') == 'success' and purchase.status != 'successful':
+        if purchase.complete_purchase():
+            send_token_purchase_confirmation_to_user(purchase)
+            send_token_purchase_notification_to_admin(purchase)
 
 
 @csrf_exempt
 def paystack_transfer_webhook(request):
     """
-    Receives Paystack transfer event webhooks.
+    Single entry point for Paystack event webhooks. Paystack delivers *all*
+    events to one configured URL, so this handler dispatches by event type:
 
-    Events handled:
-      transfer.success  → mark matching withdrawal as completed, send email
-      transfer.failed   → revert to 'approved' so admin can investigate and retry
+      transfer.success / transfer.failed → SRT withdrawal handling
+      charge.success                     → SRT token purchase auto-confirm
 
     Paystack signs each request with HMAC-SHA512 using PAYSTACK_SECRET_KEY.
     The signature is in the 'x-paystack-signature' request header.
@@ -1369,48 +1542,16 @@ def paystack_transfer_webhook(request):
 
     event = payload.get('event', '')
     data = payload.get('data', {})
-    reference = data.get('reference', '')
-    transfer_code = data.get('transfer_code', '')
-
-    if not reference:
-        return HttpResponse(status=200)
-
-    # Locate the withdrawal by reference — check VentureTokenWithdrawal first
-    withdrawal = None
-    withdrawal_type = None
 
     try:
-        withdrawal = VentureTokenWithdrawal.objects.get(reference=reference)
-        withdrawal_type = 'venture'
-    except VentureTokenWithdrawal.DoesNotExist:
-        pass
+        if event.startswith('transfer.'):
+            _handle_transfer_event(event, data)
+        elif event == 'charge.success':
+            _handle_charge_event(data)
+    except Exception:
+        logger.exception("Paystack webhook failed handling event %s", event)
+        # Return 500 so Paystack retries the webhook later
+        return HttpResponse(status=500)
 
-    if withdrawal is None:
-        try:
-            withdrawal = TokenWithdrawal.objects.get(reference=reference)
-            withdrawal_type = 'token'
-        except TokenWithdrawal.DoesNotExist:
-            pass
-
-    if withdrawal is None:
-        # Unknown reference — acknowledge so Paystack stops retrying
-        return HttpResponse(status=200)
-
-    if event == 'transfer.success':
-        if withdrawal.status in ('processing', 'approved'):
-            withdrawal.complete(payment_ref=transfer_code or reference)
-            if withdrawal_type == 'venture':
-                send_venture_withdrawal_completed_to_founder(withdrawal)
-            else:
-                send_withdrawal_completed_to_user(withdrawal)
-
-    elif event == 'transfer.failed':
-        if withdrawal.status == 'processing':
-            failure_reason = data.get('failures') or [{}]
-            reason_msg = failure_reason[0].get('reason', 'Unknown reason') if failure_reason else 'Unknown reason'
-            note = f"[Transfer failed – {reason_msg}] Paystack ref: {transfer_code}"
-            withdrawal.status = 'approved'
-            withdrawal.admin_notes = (withdrawal.admin_notes + '\n' + note).strip()
-            withdrawal.save(update_fields=['status', 'admin_notes'])
-
+    # Acknowledge everything else so Paystack stops retrying
     return HttpResponse(status=200)

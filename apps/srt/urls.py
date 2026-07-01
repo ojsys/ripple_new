@@ -56,4 +56,8 @@ urlpatterns = [
 
     # Paystack Transfer Webhook (no auth — verified by HMAC signature)
     path('webhooks/paystack/transfer/', views.paystack_transfer_webhook, name='paystack_transfer_webhook'),
+
+    # Staff: confirm stuck token purchases
+    path('staff/pending-purchases/', views.staff_pending_purchases, name='staff_pending_purchases'),
+    path('staff/pending-purchases/<int:pk>/confirm/', views.staff_confirm_purchase, name='staff_confirm_purchase'),
 ]

@@ -571,6 +571,7 @@
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'core:analytics_dashboard' %}"><i class="fas fa-chart-line text-primary"></i>Analytics Dashboard</a></li>
                             <li><a class="dropdown-item" href="{% url 'core:srt_analytics' %}"><i class="fas fa-coins text-warning"></i>SRT Analytics</a></li>
+                            <li><a class="dropdown-item" href="{% url 'srt:staff_pending_purchases' %}"><i class="fas fa-check-circle text-success"></i>Confirm Token Purchases</a></li>
                             {% endif %}
                             {% if user.user_type == 'founder' %}
                             <li><hr class="dropdown-divider"></li>
